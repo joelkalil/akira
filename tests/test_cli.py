@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import shutil
+import subprocess
 import tomllib
 from pathlib import Path
+from zipfile import ZipFile
 
+import pytest
 from typer.testing import CliRunner
 
 from akira.cli import app
@@ -103,3 +107,25 @@ def test_package_script_points_to_cli_main() -> None:
     pyproject = tomllib.loads(Path("pyproject.toml").read_text())
 
     assert pyproject["project"]["scripts"]["akira"] == "akira.cli:main"
+
+
+def test_wheel_build_includes_jinja_templates(tmp_path: Path) -> None:
+    uv = shutil.which("uv")
+    if uv is None:
+        pytest.skip("uv is required to build the wheel for package-data validation.")
+
+    subprocess.run(
+        [uv, "build", "--wheel", "--out-dir", str(tmp_path)],
+        check=True,
+        cwd=Path.cwd(),
+        stdout=subprocess.DEVNULL,
+    )
+    wheel_path = next(tmp_path.glob("*.whl"))
+
+    with ZipFile(wheel_path) as archive:
+        names = set(archive.namelist())
+
+    assert "akira/detect/templates/stack.md.j2" in names
+    assert "akira/skills/templates/base.md.j2" in names
+    assert "akira/skills/templates/python/python.md.j2" in names
+    assert "akira/skills/templates/python/testing/pytest.md.j2" in names

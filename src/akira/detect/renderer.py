@@ -9,6 +9,7 @@ from pathlib import Path
 from jinja2 import Environment, PackageLoader, StrictUndefined
 
 from akira import __version__
+from akira.detect.categories import normalize_skill_category
 from akira.detect.models import StackInfo, ToolInfo
 
 
@@ -99,9 +100,6 @@ SKILL_HINTS = {
     ("ci_cd", "gitlab-ci"): "ci_cd/gitlab_ci.md",
 }
 
-TOOLING_CATEGORIES = {"linting", "formatting", "type_checking", "pre_commit"}
-
-
 def render_stack_markdown(
     stack: StackInfo,
     *,
@@ -156,7 +154,7 @@ def build_active_skills(stack: StackInfo) -> tuple[ActiveSkill, ...]:
     """Derive active skill hints from detected tools."""
     paths: list[str] = []
     for signal in stack.signals:
-        category = "tooling" if signal.category in TOOLING_CATEGORIES else signal.category
+        category = normalize_skill_category(signal.category)
         path = SKILL_HINTS.get((category, signal.tool))
         if path and path not in paths:
             paths.append(path)
