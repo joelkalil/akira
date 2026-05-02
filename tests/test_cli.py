@@ -38,9 +38,11 @@ def test_fingerprint_help_documents_options() -> None:
     result = runner.invoke(app, ["fingerprint", "--help"])
 
     assert result.exit_code == 0
+    assert "write fingerprint.md output" in result.stdout
     assert "--path" in result.stdout
     assert "--sample-size" in result.stdout
     assert "--exclude" in result.stdout
+    assert "--output" in result.stdout
 
 
 def test_fingerprint_command_collects_files_and_parse_failures(tmp_path: Path) -> None:
@@ -50,15 +52,61 @@ def test_fingerprint_command_collects_files_and_parse_failures(tmp_path: Path) -
     tests_dir.mkdir()
     (tests_dir / "test_valid.py").write_text("def test_valid():\n    pass\n", encoding="utf-8")
 
-    result = runner.invoke(
-        app,
-        ["fingerprint", "--path", str(tmp_path), "--exclude", "tests/"],
-    )
+    with runner.isolated_filesystem():
+        fingerprint_path = Path.cwd() / DEFAULT_OUTPUT_DIR / "fingerprint.md"
+        result = runner.invoke(
+            app,
+            ["fingerprint", "--path", str(tmp_path), "--exclude", "tests/"],
+        )
+        fingerprint_exists = fingerprint_path.exists()
 
     assert result.exit_code == 0
+    assert fingerprint_exists
     assert "Files analyzed: 2" in result.stdout
     assert "Parsed: 1" in result.stdout
     assert "Parse failures: 1" in result.stdout
+    assert f"Wrote: {fingerprint_path}" in result.stdout
+
+
+def test_fingerprint_writes_markdown_to_output(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    output_dir = tmp_path / ".akira"
+    project.mkdir()
+    (project / "module.py").write_text(
+        '''import os
+
+
+def load_value(name: str) -> str:
+    if not name:
+        return "fallback"
+    return f"Hello {name}"
+''',
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "fingerprint",
+            "--path",
+            str(project),
+            "--sample-size",
+            "5",
+            "--output",
+            str(output_dir),
+        ],
+    )
+
+    fingerprint_path = output_dir / "fingerprint.md"
+    assert result.exit_code == 0
+    assert fingerprint_path.exists()
+    content = fingerprint_path.read_text(encoding="utf-8")
+    assert "sample_size: 5" in content
+    assert '  - "module.py"' in content
+    assert "confidence:" in content
+    assert "## Spacing" in content
+    assert "## Control Flow" in content
+    assert "## General Patterns" in content
 
 
 def test_detect_rejects_invalid_path() -> None:
@@ -99,6 +147,21 @@ def test_detect_rejects_output_file(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
         ["detect", "--path", str(tmp_path), "--output", str(output_file)],
+    )
+    output = f"{result.stdout}\n{result.stderr}"
+
+    assert result.exit_code != 0
+    assert output_file.name in output
+    assert "file" in output.lower()
+
+
+def test_fingerprint_rejects_output_file(tmp_path: Path) -> None:
+    output_file = tmp_path / "fingerprint.md"
+    output_file.write_text("", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["fingerprint", "--path", str(tmp_path), "--output", str(output_file)],
     )
     output = f"{result.stdout}\n{result.stderr}"
 
@@ -192,6 +255,7 @@ def test_wheel_build_includes_jinja_templates(tmp_path: Path) -> None:
         names = set(archive.namelist())
 
     assert "akira/detect/templates/stack.md.j2" in names
+    assert "akira/fingerprint/templates/fingerprint.md.j2" in names
     assert "akira/skills/templates/base.md.j2" in names
     assert "akira/skills/templates/python/python.md.j2" in names
     assert "akira/skills/templates/python/testing/pytest.md.j2" in names

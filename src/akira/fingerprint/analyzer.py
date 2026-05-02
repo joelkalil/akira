@@ -1,4 +1,4 @@
-"""Collect Python source files for developer fingerprint extractors."""
+"""Collect Python source files and extract developer fingerprint patterns."""
 
 from __future__ import annotations
 
@@ -9,7 +9,19 @@ import tokenize
 from pathlib import Path
 from typing import Iterable
 
-from akira.fingerprint.models import FingerprintAnalysis, SourceFile
+from akira.fingerprint.extractors import (
+    comments,
+    docstrings,
+    error_handling,
+    imports,
+    naming,
+    organization,
+    spacing,
+    strings,
+    structure,
+    typing,
+)
+from akira.fingerprint.models import FingerprintAnalysis, SourceFile, StylePattern
 
 DEFAULT_EXCLUDED_DIRS = {
     ".akira",
@@ -51,6 +63,41 @@ def analyze_project(
         for path in collect_python_files(root, sample_size=sample_size, exclude=exclude)
     )
     return FingerprintAnalysis(project_root=root, files=files)
+
+
+def extract_style_patterns(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
+    """Run all v1 practical fingerprint extractors over a source sample."""
+    extractors = (
+        spacing.extract,
+        naming.extract,
+        imports.extract,
+        comments.extract,
+        typing.extract,
+        structure.extract,
+        docstrings.extract,
+        organization.extract,
+        error_handling.extract,
+        strings.extract,
+    )
+    patterns: list[StylePattern] = []
+    for extractor in extractors:
+        patterns.extend(extractor(analysis))
+    return tuple(patterns)
+
+
+def fingerprint_project(
+    project_root: Path,
+    *,
+    sample_size: int = 20,
+    exclude: Iterable[str] = (),
+) -> FingerprintAnalysis:
+    """Collect files and attach structured style patterns."""
+    analysis = analyze_project(project_root, sample_size=sample_size, exclude=exclude)
+    return FingerprintAnalysis(
+        project_root=analysis.project_root,
+        files=analysis.files,
+        patterns=extract_style_patterns(analysis),
+    )
 
 
 def collect_python_files(
