@@ -1,0 +1,52 @@
+---
+name: akira-gcp
+description: >
+  Google Cloud guidance for {{ project_name | default("this project") }}.
+  Consult when changing Cloud Run, Cloud Build, service accounts, deployment
+  configuration, or GCP-specific integrations.
+user-invocable: false
+---
+
+# GCP Guidance
+
+## Project Context
+
+- GCP target: {{ gcp_target | default("Cloud Run, Cloud Build, or detected service") }}
+- Config files: {{ gcp_config_files | default("app.yaml, cloudbuild.yaml, or project config") }}
+- Containerized: {{ uses_docker | default("detected by Akira") }}
+
+## Configuration
+
+- Keep project IDs, regions, and service names configurable.
+- Use service accounts with least privilege.
+- Store secrets in Secret Manager or the platform's configured secret channel.
+- Keep deployment config reviewable in source control without secret values.
+- Keep IAM changes separate enough to review permissions clearly.
+- Prefer workload identity or platform-provided credentials over service account
+  key files.
+
+## Runtime
+
+- Read environment variables at application startup or settings boundaries.
+- Make health checks cheap and dependency-aware.
+- Emit logs to stdout/stderr in a format Cloud Logging can ingest.
+- Keep request timeouts and concurrency aligned with the service's workload.
+- Make startup failures explicit so unhealthy revisions do not receive traffic.
+- Keep local emulator usage behind configuration flags when applicable.
+
+{% include "_partials/error_handling.md.j2" %}
+
+{% include "_partials/logging_patterns.md.j2" %}
+
+## Testing
+
+- Mock cloud clients at the boundary in unit tests.
+- Reserve real GCP calls for explicit integration tests.
+
+## Avoid
+
+- Hard-coded project IDs, credentials, or service account keys.
+- Assuming local ADC credentials exist in tests.
+- Network access or credential checks while rendering generated skills.
+- Cloud-specific code mixed into domain logic when a boundary would keep it
+  testable.

@@ -1,0 +1,57 @@
+---
+name: akira-python
+description: >
+  Python coding guidance for {{ project_name | default("this project") }}.
+  Consult before editing Python modules, package structure, imports, or shared
+  application logic.
+user-invocable: false
+---
+
+# Python Guidance
+
+## Project Context
+
+- Python version: {{ python_version | default("detected by Akira") }}
+- Source layout: {{ source_layout | default("src or project package layout") }}
+- Package manager: {{ package_manager | default("detected by Akira") }}
+
+{% include "_partials/pep8_base.md.j2" %}
+
+## Module Structure
+
+- Keep modules focused around one responsibility or closely related use cases.
+- Put constants near the top after imports and before runtime logic.
+- Keep public functions and classes easy to scan; move local complexity into
+  private helpers when it improves readability.
+- Prefer absolute imports inside the package unless the project already uses
+  relative imports consistently.
+
+## Type Hints
+
+- Add type hints to public functions, methods, and dataclasses.
+- Prefer built-in generics such as `list[str]` and `dict[str, int]`.
+- Use `X | None` for optional values on Python 3.10+ projects.
+{% if python_version | default("") is string and python_version | default("") < "3.10" %}
+- For older Python targets, match the project's existing `typing.Optional`
+  and `typing.Union` style.
+{% endif %}
+- Avoid `Any` unless the boundary is genuinely dynamic.
+
+{% include "_partials/error_handling.md.j2" %}
+
+{% include "_partials/logging_patterns.md.j2" %}
+
+## Do
+
+- Preserve existing naming, import ordering, and layout conventions.
+- Keep side effects at application boundaries.
+- Write code that can be tested without network access.
+- Make configuration explicit through settings, environment parsing, or CLI
+  options already used by the project.
+
+## Avoid
+
+- Hidden global state in import-time code.
+- Bare `except:` clauses.
+- New dependencies for simple standard-library problems.
+- Reformatting unrelated files while making a targeted change.
