@@ -1,0 +1,7 @@
+## Error Handling
+
+- Catch specific exceptions and handle only failures the code can recover from.
+- Preserve exception context with `raise ... from exc` when wrapping errors.
+- Avoid broad `except Exception` blocks in request handlers and library code.
+- Validate inputs at boundaries and keep domain functions focused on domain work.
+- Return actionable error messages without leaking secrets or internal tokens.

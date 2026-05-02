@@ -1,0 +1,50 @@
+---
+name: akira-uv
+description: >
+  uv package and environment guidance for {{ project_name | default("this project") }}.
+  Consult when changing dependencies, lock files, scripts, or Python runtime
+  configuration.
+user-invocable: false
+---
+
+# uv Guidance
+
+## Project Context
+
+- Python version: {{ python_version | default("detected by Akira") }}
+- Lock file: {{ lock_file | default("uv.lock") }}
+- Project file: {{ project_file | default("pyproject.toml") }}
+
+## Dependency Changes
+
+- Update dependencies through the project command that maintains `uv.lock`.
+- Keep runtime dependencies separate from dev and optional dependency groups.
+- Avoid adding packages for small standard-library tasks.
+- Review lock file changes for unexpected upgrades.
+- Keep extras and dependency groups named for how developers actually use them.
+- Remove unused dependencies in the same change that removes their imports.
+
+## Commands
+
+- Use `uv sync` to create or update the local environment.
+- Use `uv run <command>` for project commands when the repo expects uv.
+- Use `uv add` for runtime dependencies and the configured dev-group command
+  for test, lint, and type-check tools.
+
+## Python Versions
+
+- Keep `requires-python` aligned with CI, classifiers, and test environments.
+- Do not use syntax newer than the configured minimum Python version.
+- When raising the minimum version, update docs and CI in the same change.
+
+## Scripts
+
+- Prefer project scripts or documented `uv run` commands for repeatable tasks.
+- Keep command examples free of local absolute paths.
+
+## Avoid
+
+- Hand-editing `uv.lock`.
+- Mixing pip, poetry, and uv workflows in the same change.
+- Installing dependencies from the network during generated skill rendering.
+- Committing machine-specific virtual environment paths.

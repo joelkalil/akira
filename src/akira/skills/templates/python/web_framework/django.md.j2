@@ -1,0 +1,53 @@
+---
+name: akira-django
+description: >
+  Django guidance for {{ project_name | default("this project") }}.
+  Consult when editing models, views, URLs, settings, management commands,
+  migrations, forms, or Django REST Framework code.
+user-invocable: false
+---
+
+# Django Guidance
+
+## Project Context
+
+- Django version: {{ django_version | default("detected by Akira") }}
+- Settings module: {{ settings_module | default("project settings") }}
+- API layer: {{ api_layer | default("Django views or DRF if detected") }}
+
+## Project Structure
+
+- Keep domain behavior close to the app that owns the model.
+- Put URL routing in app-level `urls.py` files when the project uses them.
+- Keep settings explicit and split by environment only when already established.
+- Use management commands for operational tasks instead of ad hoc scripts.
+
+## Models And Queries
+
+- Keep model methods small and side-effect aware.
+- Use `select_related()` and `prefetch_related()` for known relationship access.
+- Prefer queryset methods or managers for reusable query logic.
+- Keep migrations reviewable and generated from intentional model changes.
+
+{% if uses_drf | default(false) %}
+## Django REST Framework
+
+- Keep serializers explicit about fields and validation.
+- Put permission classes on views or viewsets.
+- Prefer viewsets only when the resource shape fits DRF conventions.
+{% endif %}
+
+{% include "_partials/error_handling.md.j2" %}
+
+## Testing Hooks
+
+- Use Django's test database isolation.
+- Test URLs, permissions, and serializer validation at the boundary.
+- Prefer factories or fixtures over large inline setup blocks.
+
+## Avoid
+
+- Query logic duplicated across views.
+- Unbounded queryset evaluation in templates or serializers.
+- Settings reads hidden deep in domain code.
+- Manual database changes outside migrations.

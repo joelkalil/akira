@@ -1,0 +1,8 @@
+## Logging Patterns
+
+- Use module-level loggers created with `logging.getLogger(__name__)`.
+- Log operational events at `INFO`, unexpected recoverable failures at
+  `WARNING`, and actionable failures at `ERROR` or `EXCEPTION`.
+- Include stable identifiers in log context, not raw payloads or credentials.
+- Do not use `print()` for application diagnostics outside CLI user output.
+- Prefer structured context through `extra` when the project logger supports it.
