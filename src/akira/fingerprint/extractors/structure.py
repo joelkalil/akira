@@ -38,8 +38,14 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     early_return_count = sum(1 for function in functions if _has_early_return(function))
     guard_count = sum(1 for function in functions if _has_guard_clause(function))
     nesting_depths = [_max_nesting_depth(function) for function in functions]
-    ternary_count = sum(
-        1 for function in functions for node in ast.walk(function) if isinstance(node, ast.IfExp)
+    ternary_counts = [
+        sum(1 for node in _walk_current_scope(function) if isinstance(node, ast.IfExp))
+        for function in functions
+    ]
+    ternary_count = sum(ternary_counts)
+    functions_with_ternary = sum(1 for count in ternary_counts if count > 0)
+    ternary_confidence = (
+        1.0 if functions_with_ternary == 0 else functions_with_ternary / len(functions)
     )
     lengths = [_function_length(function) for function in functions]
     dominant_depth, depth_share, depth_samples = modal_pattern(nesting_depths)
@@ -75,11 +81,14 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
         make_pattern(
             dimension="structure",
             name="ternary_usage",
-            value="uses_ternary" if ternary_count else "avoids_ternary",
-            confidence=1.0 if ternary_count == 0 else min(1.0, ternary_count / len(functions)),
+            value="uses_ternary" if functions_with_ternary else "avoids_ternary",
+            confidence=ternary_confidence,
             samples=len(functions),
             description="Conditional expressions are detected in function bodies.",
-            evidence={"ternary_expressions": ternary_count},
+            evidence={
+                "ternary_expressions": ternary_count,
+                "functions_with_ternary": functions_with_ternary,
+            },
         ),
         make_pattern(
             dimension="structure",
@@ -94,7 +103,7 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
 
 
 def _has_early_return(function: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
-    returns = [node for node in ast.walk(function) if isinstance(node, ast.Return)]
+    returns = [node for node in _walk_current_scope(function) if isinstance(node, ast.Return)]
     if not returns:
         return False
 
@@ -120,8 +129,26 @@ def _max_nesting_depth(function: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
 
 def _nesting_depth(node: ast.AST, depth: int) -> int:
     next_depth = depth + 1 if isinstance(node, BRANCH_NODES) else depth
+    if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
+        return next_depth
     child_depths = [_nesting_depth(child, next_depth) for child in ast.iter_child_nodes(node)]
     return max([next_depth, *child_depths])
+
+
+def _walk_current_scope(function: ast.FunctionDef | ast.AsyncFunctionDef) -> list[ast.AST]:
+    nodes: list[ast.AST] = []
+    for statement in function.body:
+        nodes.extend(_walk_without_nested_scopes(statement))
+    return nodes
+
+
+def _walk_without_nested_scopes(node: ast.AST) -> list[ast.AST]:
+    nodes = [node]
+    if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
+        return nodes
+    for child in ast.iter_child_nodes(node):
+        nodes.extend(_walk_without_nested_scopes(child))
+    return nodes
 
 
 def _function_length(function: ast.FunctionDef | ast.AsyncFunctionDef) -> int:

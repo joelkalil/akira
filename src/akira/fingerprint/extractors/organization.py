@@ -209,11 +209,13 @@ def _is_main_block(node: ast.stmt) -> bool:
     if not isinstance(compare, ast.Compare):
         return False
     left_is_name = isinstance(compare.left, ast.Name) and compare.left.id == "__name__"
-    has_main = any(
-        isinstance(comparator, ast.Constant) and comparator.value == "__main__"
-        for comparator in compare.comparators
+    is_eq = len(compare.ops) == 1 and isinstance(compare.ops[0], ast.Eq)
+    has_main = (
+        len(compare.comparators) == 1
+        and isinstance(compare.comparators[0], ast.Constant)
+        and compare.comparators[0].value == "__main__"
     )
-    return left_is_name and has_main
+    return left_is_name and is_eq and has_main
 
 
 def _is_type_container(node: ast.ClassDef) -> bool:

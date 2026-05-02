@@ -183,6 +183,55 @@ def nested(items: list[int]) -> int:
     assert patterns["function_length"].value == "under_30_lines"
 
 
+def test_structure_extractor_ignores_nested_scopes_for_outer_function_shape(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "module.py"
+    source.write_text(
+        '''def outer(flag: bool) -> int:
+    def inner() -> int:
+        if flag:
+            if not flag:
+                return 1
+            return 2
+        return 3
+
+    return inner()
+''',
+        encoding="utf-8",
+    )
+
+    patterns = _patterns_by_name(fingerprint_project(tmp_path).patterns)
+
+    assert patterns["early_returns"].confidence == 0.5
+    assert patterns["nesting_depth"].evidence["distribution"] == {0: 1, 2: 1}
+
+
+def test_ternary_confidence_counts_functions_not_expressions(tmp_path: Path) -> None:
+    source = tmp_path / "module.py"
+    source.write_text(
+        '''def with_ternaries(first: bool, second: bool) -> tuple[str, str]:
+    left = "yes" if first else "no"
+    right = "up" if second else "down"
+    return left, right
+
+
+def without_ternary() -> str:
+    return "plain"
+''',
+        encoding="utf-8",
+    )
+
+    patterns = _patterns_by_name(fingerprint_project(tmp_path).patterns)
+
+    assert patterns["ternary_usage"].value == "uses_ternary"
+    assert patterns["ternary_usage"].confidence == 0.5
+    assert patterns["ternary_usage"].evidence == {
+        "ternary_expressions": 2,
+        "functions_with_ternary": 1,
+    }
+
+
 def test_docstring_extractor_reports_style_and_visibility(tmp_path: Path) -> None:
     source = tmp_path / "module.py"
     source.write_text(
@@ -279,6 +328,27 @@ if __name__ == "__main__":
         "private_methods",
     )
     assert patterns["main_block"].confidence == 1.0
+
+
+def test_organization_extractor_only_treats_eq_main_compare_as_main_guard(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "module.py"
+    source.write_text(
+        '''def load() -> str:
+    return "ok"
+
+
+if __name__ != "__main__":
+    load()
+''',
+        encoding="utf-8",
+    )
+
+    patterns = _patterns_by_name(fingerprint_project(tmp_path).patterns)
+
+    assert "main_block" not in patterns
+    assert patterns["module_order"].value == ("public_functions",)
 
 
 def test_error_and_string_extractors_report_idioms(tmp_path: Path) -> None:
