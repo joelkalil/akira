@@ -9,7 +9,8 @@ from rich.console import Console
 from rich.prompt import Prompt
 import typer
 
-from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR, SUPPORTED_AGENTS
+from akira.agents import SUPPORTED_AGENT_NAMES, UnsupportedAgent, get_agent_adapter
+from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR
 from akira.craft import (
     MissingCraftPrerequisites,
     UnsupportedCraftAgent,
@@ -24,7 +25,7 @@ from akira.review import (
     apply_review_findings,
     render_review,
 )
-from akira.skills import generate_skills, install_claude_skills
+from akira.skills import generate_skills
 
 app = typer.Typer(
     help="Akira detects project context and generates agent skills.",
@@ -33,8 +34,8 @@ app = typer.Typer(
 
 
 def _validate_agent(agent: str) -> str:
-    if agent not in SUPPORTED_AGENTS:
-        supported = ", ".join(SUPPORTED_AGENTS)
+    if agent not in SUPPORTED_AGENT_NAMES:
+        supported = ", ".join(SUPPORTED_AGENT_NAMES)
         raise typer.BadParameter(
             f"Unsupported agent '{agent}'. Choose one of: {supported}."
         )
@@ -88,9 +89,7 @@ def detect(
     stack = scan_project(path)
     stack_path = write_stack_markdown(output, stack)
     skill_paths = generate_skills(stack, output)
-    installed_paths = ()
-    if agent == "claude-code":
-        installed_paths = install_claude_skills(path, output)
+    installed_paths = get_agent_adapter(agent).install(path, output).installed_files
 
     typer.echo(f"Project path: {path}")
     typer.echo(f"Agent: {agent}")
@@ -216,10 +215,12 @@ def craft(
             typer.echo(f"  {prerequisite.message}")
         raise typer.Exit(1) from exc
     except UnsupportedCraftAgent as exc:
-        typer.echo(
-            f"Agent adapter '{exc.agent}' is not implemented for craft yet. "
-            "Available craft agent: claude-code."
-        )
+        supported = ", ".join(exc.supported) if exc.supported else ", ".join(SUPPORTED_AGENT_NAMES)
+        typer.echo(f"Unsupported agent '{exc.agent}'. Choose one of: {supported}.")
+        raise typer.Exit(1) from exc
+    except UnsupportedAgent as exc:
+        supported = ", ".join(exc.supported)
+        typer.echo(f"Unsupported agent '{exc.agent}'. Choose one of: {supported}.")
         raise typer.Exit(1) from exc
 
     typer.echo(f"Project path: {result.project_root}")
