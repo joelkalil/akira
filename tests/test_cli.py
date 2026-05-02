@@ -11,6 +11,7 @@ from typer.testing import CliRunner
 
 from akira.cli import app
 from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR
+from akira.craft import UnsupportedCraftAgent, get_agent_adapter as get_craft_agent_adapter
 
 
 runner = CliRunner()
@@ -519,7 +520,7 @@ def test_craft_reports_missing_artifacts_with_actions(tmp_path: Path) -> None:
     assert not (project / ".claude").exists()
 
 
-def test_craft_reports_unimplemented_supported_agent(tmp_path: Path) -> None:
+def test_craft_installs_generated_context_for_codex(tmp_path: Path) -> None:
     project = tmp_path / "project"
     artifacts = tmp_path / ".akira"
     project.mkdir()
@@ -541,9 +542,16 @@ def test_craft_reports_unimplemented_supported_agent(tmp_path: Path) -> None:
         ],
     )
 
-    assert result.exit_code == 1
-    assert "Agent adapter 'codex' is not implemented for craft yet" in result.stdout
-    assert not (project / ".codex").exists()
+    assert result.exit_code == 0
+    assert (project / ".codex" / "skills" / "akira" / "SKILL.md").exists()
+    assert "Agent: codex" in result.stdout
+
+
+def test_craft_agent_adapter_wrapper_raises_craft_error_for_invalid_agent() -> None:
+    with pytest.raises(UnsupportedCraftAgent) as exc_info:
+        get_craft_agent_adapter("unknown-agent")
+
+    assert "Unsupported agent 'unknown-agent'" in str(exc_info.value)
 
 
 def test_craft_defaults_to_current_working_directory_artifacts(

@@ -5,7 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from akira.agents import AgentInstallResult, BaseAgentAdapter, ClaudeCodeAdapter
+from akira.agents import (
+    AgentInstallResult,
+    BaseAgentAdapter,
+    UnsupportedAgent,
+    get_agent_adapter as get_registered_agent_adapter,
+)
 from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR
 
 
@@ -41,9 +46,18 @@ class MissingCraftPrerequisites(CraftError):
 class UnsupportedCraftAgent(CraftError):
     """Raised when the requested agent has no craft adapter."""
 
-    def __init__(self, agent: str) -> None:
+    def __init__(
+        self,
+        agent: str,
+        supported: tuple[str, ...] = (),
+    ) -> None:
         self.agent = agent
-        super().__init__(f"Agent adapter '{agent}' is not implemented for craft.")
+        self.supported = supported
+        supported_text = ", ".join(supported)
+        message = f"Unsupported agent '{agent}'."
+        if supported_text:
+            message = f"{message} Choose one of: {supported_text}."
+        super().__init__(message)
 
 
 def craft_context(
@@ -118,7 +132,7 @@ def validate_craft_prerequisites(
 
 def get_agent_adapter(agent: str) -> BaseAgentAdapter:
     """Return the craft adapter for an agent."""
-    if agent == "claude-code":
-        return ClaudeCodeAdapter()
-
-    raise UnsupportedCraftAgent(agent)
+    try:
+        return get_registered_agent_adapter(agent)
+    except UnsupportedAgent as exc:
+        raise UnsupportedCraftAgent(exc.agent, exc.supported) from exc
