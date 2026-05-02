@@ -1,0 +1,23 @@
+---
+generated_at: {{ generated_at | tojson }}
+sample_size: {{ sample_size }}
+files_analyzed:
+{% for file in files_analyzed %}
+  - {{ file | tojson }}
+{% endfor %}
+confidence: {{ "%.2f"|format(confidence) }}
+---
+
+# Developer Fingerprint
+
+{% for section in sections %}
+## {{ section.title }}
+{% if section.lines %}
+{% for line in section.lines %}
+- **{{ line.label }}**: {{ line.value }} (confidence {{ "%.2f"|format(line.confidence) }}, samples {{ line.samples }})
+{% endfor %}
+{% else %}
+- No stable pattern detected in the current sample.
+{% endif %}
+
+{% endfor %}

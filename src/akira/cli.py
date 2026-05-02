@@ -9,7 +9,7 @@ import typer
 
 from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR, SUPPORTED_AGENTS
 from akira.detect import scan_project, write_stack_markdown
-from akira.fingerprint import fingerprint_project
+from akira.fingerprint import fingerprint_project, write_fingerprint_markdown
 from akira.skills import generate_skills, install_claude_skills
 
 app = typer.Typer(
@@ -121,12 +121,30 @@ def fingerprint(
             help="Project-relative path or glob to exclude. May be passed multiple times.",
         ),
     ] = None,
+    output: Annotated[
+        Path,
+        typer.Option(
+            "--output",
+            "-o",
+            help="Directory where Akira will write generated files.",
+            file_okay=False,
+            dir_okay=True,
+            writable=True,
+            resolve_path=True,
+        ),
+    ] = DEFAULT_OUTPUT_DIR,
 ) -> None:
     """Collect source files for developer fingerprint analysis."""
     analysis = fingerprint_project(path, sample_size=sample_size, exclude=exclude or ())
+    fingerprint_path = write_fingerprint_markdown(
+        output,
+        analysis,
+        sample_size=sample_size,
+    )
 
     typer.echo(f"Project path: {path}")
     typer.echo(f"Sample size: {sample_size}")
+    typer.echo(f"Output: {output}")
     for pattern in exclude or ():
         typer.echo(f"Exclude: {pattern}")
     typer.echo(f"Files analyzed: {len(analysis.files)}")
@@ -134,6 +152,7 @@ def fingerprint(
     typer.echo(f"Parse failures: {len(analysis.failed_files)}")
     typer.echo(f"Patterns extracted: {len(analysis.patterns)}")
     typer.echo(f"Confidence: {analysis.confidence:.2f}")
+    typer.echo(f"Wrote: {fingerprint_path}")
 
 
 def main() -> None:
