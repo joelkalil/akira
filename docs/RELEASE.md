@@ -47,7 +47,9 @@ Expected output includes one `.whl` and one `.tar.gz` under `dist/`.
 ## Smoke Test: pip
 
 Install the built wheel into a clean virtual environment and confirm the CLI and
-templates work outside the repository checkout:
+templates work outside the repository checkout.
+
+Windows:
 
 ```bash
 python -m venv .venv-release
@@ -55,6 +57,16 @@ python -m venv .venv-release
 .venv-release\Scripts\python -m pip install dist\*.whl
 .venv-release\Scripts\akira --help
 .venv-release\Scripts\akira detect --path tests\fixtures\fastapi_project --output .akira-release
+```
+
+Linux/macOS:
+
+```bash
+python -m venv .venv-release
+.venv-release/bin/python -m pip install --upgrade pip
+.venv-release/bin/python -m pip install dist/*.whl
+.venv-release/bin/akira --help
+.venv-release/bin/akira detect --path tests/fixtures/fastapi_project --output .akira-release
 ```
 
 The `akira --help` command must list the CLI commands. The `detect` command must

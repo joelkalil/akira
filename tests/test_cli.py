@@ -596,13 +596,13 @@ def test_craft_rejects_artifacts_with_wrong_path_types(tmp_path: Path) -> None:
 
 
 def test_package_script_points_to_cli_main() -> None:
-    pyproject = tomllib.loads(Path("pyproject.toml").read_text())
+    pyproject = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
 
     assert pyproject["project"]["scripts"]["akira"] == "akira.cli:main"
 
 
 def test_build_backend_and_package_discovery_are_configured() -> None:
-    pyproject = tomllib.loads(Path("pyproject.toml").read_text())
+    pyproject = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
 
     assert pyproject["build-system"]["build-backend"] == "hatchling.build"
     assert pyproject["build-system"]["requires"] == ["hatchling>=1.26"]
