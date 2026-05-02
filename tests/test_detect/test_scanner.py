@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import MappingProxyType
 
 import pytest
 
@@ -68,6 +69,7 @@ def test_signals_include_source_confidence_and_metadata(tmp_path: Path) -> None:
     assert signal.source == "pyproject.toml"
     assert signal.confidence == 1.0
     assert signal.metadata == {"detector": "EarlierDetector"}
+    assert isinstance(signal.metadata, MappingProxyType)
 
 
 def test_scanner_deduplicates_equivalent_signals_with_highest_confidence(
@@ -91,6 +93,7 @@ def test_stack_info_groups_tools_by_category(tmp_path: Path) -> None:
     assert len(testing_tools) == 1
     assert testing_tools[0].name == "pytest"
     assert testing_tools[0].sources == ("pyproject.toml",)
+    assert isinstance(testing_tools[0].metadata, MappingProxyType)
 
 
 def test_signal_rejects_invalid_confidence() -> None:

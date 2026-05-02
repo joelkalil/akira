@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Mapping
 
 
 @dataclass(frozen=True)
@@ -16,7 +17,7 @@ class Signal:
     version: str | None = None
     confidence: float = 1.0
     source: str = ""
-    metadata: dict[str, Any] = field(default_factory=dict)
+    metadata: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not 0.0 <= self.confidence <= 1.0:
@@ -26,6 +27,7 @@ class Signal:
         object.__setattr__(self, "tool", self.tool.strip().lower())
         object.__setattr__(self, "category", self.category.strip().lower())
         object.__setattr__(self, "source", self.source.strip())
+        object.__setattr__(self, "metadata", MappingProxyType(dict(self.metadata)))
 
     @property
     def identity(self) -> tuple[str, str, str | None, str]:
@@ -42,7 +44,10 @@ class ToolInfo:
     version: str | None = None
     confidence: float = 1.0
     sources: tuple[str, ...] = ()
-    metadata: dict[str, Any] = field(default_factory=dict)
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "metadata", MappingProxyType(dict(self.metadata)))
 
 
 @dataclass(frozen=True)
