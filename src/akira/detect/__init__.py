@@ -1,0 +1,2 @@
+"""Project stack detection package."""
+
