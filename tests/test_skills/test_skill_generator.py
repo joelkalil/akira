@@ -198,14 +198,24 @@ def build_name(value: str | None) -> str:
     assert "- Use full type hints on function signatures." in router
     assert "- Use `X | None` syntax for optional values." in router
     assert "Treat `fingerprint.md` as the source of truth" not in router
+    assert "`fingerprint.md` exists" not in router
     assert "`fingerprint.md` may not exist yet" not in router
 
 
-def test_root_router_handles_existing_fingerprint_without_stable_rules(
+def test_root_router_does_not_rescan_when_only_fingerprint_file_exists(
     tmp_path: Path,
 ) -> None:
     project = tmp_path / "project"
     project.mkdir()
+    (project / "module.py").write_text(
+        '''def build_name(value: str | None) -> str:
+    if value is None:
+        return "anonymous"
+
+    return f"{value}"
+''',
+        encoding="utf-8",
+    )
     output = tmp_path / ".akira"
     output.mkdir()
     (output / "fingerprint.md").write_text("# Developer Fingerprint\n", encoding="utf-8")
@@ -219,6 +229,7 @@ def test_root_router_handles_existing_fingerprint_without_stable_rules(
     router = (output / "skills" / "SKILL.md").read_text(encoding="utf-8")
     assert "`fingerprint.md` exists" in router
     assert "enough high-confidence" in router
+    assert "Prefer early returns" not in router
     assert "`fingerprint.md` may not exist yet" not in router
 
 

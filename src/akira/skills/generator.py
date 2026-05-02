@@ -10,7 +10,7 @@ from jinja2 import Environment, PackageLoader, StrictUndefined
 
 from akira.detect.categories import normalize_skill_category
 from akira.detect.models import StackInfo, ToolInfo
-from akira.fingerprint import fingerprint_project, format_fingerprint_value
+from akira.fingerprint import format_fingerprint_value
 from akira.fingerprint.models import FingerprintAnalysis, StylePattern
 
 
@@ -170,14 +170,12 @@ class SkillGenerator:
         selected = self.select_templates(stack)
         self._remove_stale_skills(python_dir, selected)
         fingerprint_path = output_dir / "fingerprint.md"
-        fingerprint_exists = fingerprint is not None or fingerprint_path.exists()
-        if fingerprint is None and fingerprint_path.exists():
-            fingerprint = fingerprint_project(stack.project_root)
+        fingerprint_file_exists = fingerprint_path.exists()
 
         context = build_template_context(
             stack,
             selected,
-            fingerprint_exists=fingerprint_exists,
+            fingerprint_exists=fingerprint_file_exists,
             fingerprint=fingerprint,
         )
         generated = [
@@ -361,6 +359,8 @@ def _core_rule_for_pattern(pattern: StylePattern) -> str | None:
     if key == ("structure", "guard_clauses") and value == "preferred":
         return "Put guard clauses near the top of functions."
     if key == ("structure", "nesting_depth") and isinstance(value, int):
+        if value == 0:
+            return "Avoid nested control flow where possible."
         return f"Keep control-flow nesting to {value} {_plural('level', value)} or less."
     if key == ("comments", "section_separators"):
         return f"Use {format_fingerprint_value(value)} comments as section separators."
