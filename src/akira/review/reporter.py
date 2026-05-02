@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from rich.console import Console
+from rich.markup import escape
 from rich.panel import Panel
 from rich.table import Table
 
@@ -22,7 +23,7 @@ def render_review(result: ReviewResult, console: Console | None = None) -> None:
     output = console or Console()
     output.print(
         Panel.fit(
-            f"[bold]Akira Review[/bold]\n{result.stack.project_name}",
+            f"[bold]Akira Review[/bold]\n{escape(result.stack.project_name)}",
             border_style="cyan",
         )
     )

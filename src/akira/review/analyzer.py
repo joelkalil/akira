@@ -24,7 +24,7 @@ class Rule:
 
     id: str
     condition: Callable[[StackInfo], bool]
-    severity: ReviewCategory
+    category: ReviewCategory
     message: str
     migration: str | None = None
 
@@ -74,7 +74,7 @@ def analyze_stack(
     findings = tuple(
         Finding(
             rule_id=rule.id,
-            category=rule.severity,
+            category=rule.category,
             message=rule.message,
             migration=rule.migration,
         )
@@ -108,7 +108,7 @@ INITIAL_RULES: tuple[Rule, ...] = (
         id="pytest-over-unittest",
         condition=lambda stack: stack.has("unittest", category="testing")
         and not stack.has("pytest", category="testing"),
-        severity=ReviewCategory.SUGGESTION,
+        category=ReviewCategory.SUGGESTION,
         message="unittest detected. Consider pytest for richer fixtures, plugins, and modern Python test ergonomics.",
         migration="testing/unittest-to-pytest",
     ),
@@ -119,21 +119,21 @@ INITIAL_RULES: tuple[Rule, ...] = (
             stack.has("black", category="formatting")
             or stack.has("isort", category="formatting")
         ),
-        severity=ReviewCategory.SUGGESTION,
+        category=ReviewCategory.SUGGESTION,
         message="Ruff can handle formatting and import sorting, so black/isort may be redundant.",
     ),
     Rule(
         id="alembic-needs-sqlalchemy",
         condition=lambda stack: stack.has("alembic", category="database")
         and not stack.has("sqlalchemy", category="database"),
-        severity=ReviewCategory.INCOMPATIBILITY,
+        category=ReviewCategory.INCOMPATIBILITY,
         message="Alembic detected without SQLAlchemy. Add SQLAlchemy or remove the migration setup.",
     ),
     Rule(
         id="missing-type-checker",
         condition=lambda stack: _python_version_at_least(stack, (3, 10))
         and not stack.has_any("mypy", "pyright", "pytype", category="type_checking"),
-        severity=ReviewCategory.MISSING,
+        category=ReviewCategory.MISSING,
         message="No type checker detected for a modern Python project. Consider adding mypy or pyright.",
     ),
     Rule(
@@ -141,7 +141,7 @@ INITIAL_RULES: tuple[Rule, ...] = (
         condition=lambda stack: stack.has("fastapi", category="web_framework")
         and stack.has_any("asyncpg", "psycopg3", category="database")
         and not stack.has("psycopg2", category="database"),
-        severity=ReviewCategory.CONSISTENCY,
+        category=ReviewCategory.CONSISTENCY,
         message="FastAPI is paired with an async-friendly PostgreSQL driver.",
     ),
     Rule(
@@ -149,7 +149,7 @@ INITIAL_RULES: tuple[Rule, ...] = (
         condition=lambda stack: stack.has("fastapi", category="web_framework")
         and stack.has("psycopg2", category="database")
         and not stack.has_any("asyncpg", "psycopg3", category="database"),
-        severity=ReviewCategory.SUGGESTION,
+        category=ReviewCategory.SUGGESTION,
         message="FastAPI is async-first, but psycopg2 is synchronous. Consider asyncpg or psycopg3.",
     ),
 )

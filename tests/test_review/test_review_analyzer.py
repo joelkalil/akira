@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from rich.console import Console
+
 from akira.detect.models import Signal, StackInfo
-from akira.review import ReviewCategory, analyze_stack
+from akira.review import ReviewCategory, analyze_stack, render_review
 
 
 def stack_with(*signals: Signal) -> StackInfo:
@@ -72,3 +74,12 @@ def test_async_consistency_rule_reports_matching_async_stack() -> None:
         "async-stack-consistency"
     )
     assert result.has_incompatibilities is False
+
+
+def test_review_reporter_escapes_project_name_markup() -> None:
+    stack = StackInfo.from_signals(Path("project[broken]").resolve(), [])
+    console = Console(record=True, force_terminal=False, width=80)
+
+    render_review(analyze_stack(stack), console=console)
+
+    assert "project[broken]" in console.export_text()
