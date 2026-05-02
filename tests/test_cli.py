@@ -6,6 +6,7 @@ from pathlib import Path
 from typer.testing import CliRunner
 
 from akira.cli import app
+from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR
 
 
 runner = CliRunner()
@@ -36,6 +37,40 @@ def test_detect_rejects_invalid_path() -> None:
     assert "does-not-exist" in output
     assert "does not" in output.lower()
     assert "exist" in output.lower()
+
+
+def test_detect_uses_config_defaults(tmp_path: Path) -> None:
+    result = runner.invoke(app, ["detect", "--path", str(tmp_path)])
+
+    assert result.exit_code == 0
+    assert f"Agent: {DEFAULT_AGENT}" in result.stdout
+    assert f"Output: {Path.cwd() / DEFAULT_OUTPUT_DIR}" in result.stdout
+
+
+def test_detect_rejects_unsupported_agent(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["detect", "--path", str(tmp_path), "--agent", "unknown-agent"],
+    )
+    output = f"{result.stdout}\n{result.stderr}"
+
+    assert result.exit_code != 0
+    assert "Unsupported agent 'unknown-agent'" in output
+
+
+def test_detect_rejects_output_file(tmp_path: Path) -> None:
+    output_file = tmp_path / "stack.md"
+    output_file.write_text("", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["detect", "--path", str(tmp_path), "--output", str(output_file)],
+    )
+    output = f"{result.stdout}\n{result.stderr}"
+
+    assert result.exit_code != 0
+    assert output_file.name in output
+    assert "file" in output.lower()
 
 
 def test_package_script_points_to_cli_main() -> None:

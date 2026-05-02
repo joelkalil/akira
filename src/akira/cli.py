@@ -7,10 +7,22 @@ from typing import Annotated
 
 import typer
 
+from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR, SUPPORTED_AGENTS
+
 app = typer.Typer(
     help="Akira detects project context and generates agent skills.",
     no_args_is_help=True,
 )
+
+
+def _validate_agent(agent: str) -> str:
+    if agent not in SUPPORTED_AGENTS:
+        supported = ", ".join(SUPPORTED_AGENTS)
+        raise typer.BadParameter(
+            f"Unsupported agent '{agent}'. Choose one of: {supported}."
+        )
+
+    return agent
 
 
 @app.callback()
@@ -39,16 +51,21 @@ def detect(
             "--agent",
             "-a",
             help="Agent target for generated skills.",
+            callback=_validate_agent,
         ),
-    ] = "claude-code",
+    ] = DEFAULT_AGENT,
     output: Annotated[
         Path,
         typer.Option(
             "--output",
             "-o",
             help="Directory where Akira will write generated files.",
+            file_okay=False,
+            dir_okay=True,
+            writable=True,
+            resolve_path=True,
         ),
-    ] = Path(".akira"),
+    ] = DEFAULT_OUTPUT_DIR,
 ) -> None:
     """Detect a project's stack and prepare agent skill output."""
     typer.echo(f"Project path: {path}")
