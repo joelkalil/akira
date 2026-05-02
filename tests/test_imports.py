@@ -1,8 +1,15 @@
+# Standard Libraries
 from __future__ import annotations
-
 from importlib.metadata import PackageNotFoundError, version
 
+# Third-Party Libraries
+
+# Local Libraries
 import akira
+
+# -----------------------------------------------------------------------------
+# Public Functions
+# -----------------------------------------------------------------------------
 
 
 def test_package_exposes_version() -> None:

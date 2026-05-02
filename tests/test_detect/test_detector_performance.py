@@ -1,9 +1,16 @@
+# Standard Libraries
 from __future__ import annotations
-
 from pathlib import Path
 
+# Third-Party Libraries
+
+# Local Libraries
 from akira.detect.detectors.database import DatabaseDetector
 from akira.detect.detectors.testing import TestingDetector
+
+# -----------------------------------------------------------------------------
+# Public Functions
+# -----------------------------------------------------------------------------
 
 
 def test_database_detector_skips_import_scan_when_all_packages_found(

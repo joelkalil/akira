@@ -1,5 +1,8 @@
-"""Agent context crafting package."""
+"""
+Agent context crafting package.
+"""
 
+# Local Libraries
 from akira.craft.context import (
     CraftPrerequisite,
     CraftResult,
@@ -9,6 +12,10 @@ from akira.craft.context import (
     get_agent_adapter,
     validate_craft_prerequisites,
 )
+
+# -----------------------------------------------------------------------------
+# Constants
+# -----------------------------------------------------------------------------
 
 __all__ = [
     "CraftPrerequisite",

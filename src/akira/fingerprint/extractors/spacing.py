@@ -1,10 +1,13 @@
-"""Spacing style extractor."""
+"""
+Spacing style extractor.
+"""
 
-from __future__ import annotations
-
+# Standard Libraries
 import ast
+from __future__ import annotations
 from collections import Counter
 
+# Local Libraries
 from akira.fingerprint.extractors._common import (
     blank_lines_before,
     blank_lines_between,
@@ -13,47 +16,87 @@ from akira.fingerprint.extractors._common import (
 )
 from akira.fingerprint.models import FingerprintAnalysis, StylePattern
 
+# -----------------------------------------------------------------------------
+# Public Functions
+# -----------------------------------------------------------------------------
+
 
 def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
-    """Extract blank-line and logical spacing preferences."""
+    """
+    Extract blank-line and logical spacing preferences.
+
+    Parameters
+    ----------
+    analysis : FingerprintAnalysis
+        The analysis context containing parsed files and other relevant information.
+
+    Returns
+    -------
+    tuple[StylePattern, ...]
+        A tuple of StylePattern instances representing the dominant spacing styles found
+        in the analyzed codebase.
+    """
+
     top_level: list[int] = []
+
     methods: list[int] = []
+
     after_imports: list[int] = []
+
     logical_blocks: list[int] = []
 
     for source in analysis.parsed_files:
+
         if source.tree is None:
+
             continue
 
         lines = source.text.splitlines()
+
         module = source.tree
+
         assert isinstance(module, ast.Module)
 
         for node in module.body:
+
             if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
+
                 top_level.append(blank_lines_before(lines, node.lineno))
+
             if isinstance(node, ast.ClassDef):
+
                 class_methods = [
                     child
                     for child in node.body
                     if isinstance(child, ast.FunctionDef | ast.AsyncFunctionDef)
                 ]
+
                 for child in class_methods[1:]:
+
                     methods.append(blank_lines_before(lines, child.lineno))
 
         import_gap = _blank_lines_after_import_section(module, lines)
+
         if import_gap is not None:
+
             after_imports.append(import_gap)
 
         for node in ast.walk(module):
+
             if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+
                 for previous, current in zip(node.body, node.body[1:]):
+
                     previous_end = getattr(previous, "end_lineno", previous.lineno)
+
                     gap = blank_lines_between(lines, previous_end, current.lineno)
+
                     if gap > 0:
+
                         logical_blocks.append(gap)
 
     patterns: list[StylePattern] = []
+
     patterns.extend(
         _dominant_blank_line_pattern(
             name="top_level_definitions",
@@ -61,6 +104,7 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
             description="Blank lines before top-level functions and classes.",
         )
     )
+
     patterns.extend(
         _dominant_blank_line_pattern(
             name="methods",
@@ -68,6 +112,7 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
             description="Blank lines before methods inside classes.",
         )
     )
+
     patterns.extend(
         _dominant_blank_line_pattern(
             name="after_imports",
@@ -75,6 +120,7 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
             description="Blank lines between the import section and the next statement.",
         )
     )
+
     patterns.extend(
         _dominant_blank_line_pattern(
             name="logical_blocks",
@@ -82,7 +128,13 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
             description="Blank lines used between logical statement groups inside functions.",
         )
     )
+
     return tuple(patterns)
+
+
+# -----------------------------------------------------------------------------
+# Private Functions
+# -----------------------------------------------------------------------------
 
 
 def _dominant_blank_line_pattern(
@@ -91,8 +143,29 @@ def _dominant_blank_line_pattern(
     values: list[int],
     description: str,
 ) -> tuple[StylePattern, ...]:
+    """
+    Identify the dominant blank line pattern from a list of observed values.
+
+    Parameters
+    ----------
+    name : str
+        The name of the pattern being analyzed (e.g., "top_level_definitions").
+    values : list[int]
+        A list of observed blank line counts for the given pattern.
+    description : str
+        A human-readable description of the pattern for documentation purposes.
+
+    Returns
+    -------
+    tuple[StylePattern, ...]
+        A tuple of StylePattern instances representing the dominant spacing styles found
+        in the analyzed codebase.
+    """
+
     value, share, samples = modal_pattern(values)
+
     if value is None:
+
         return ()
 
     return (
@@ -108,7 +181,26 @@ def _dominant_blank_line_pattern(
     )
 
 
-def _blank_lines_after_import_section(module: ast.Module, lines: list[str]) -> int | None:
+def _blank_lines_after_import_section(
+    module: ast.Module, lines: list[str]
+) -> int | None:
+    """
+    Determine the number of blank lines between the last import statement and the next code statement.
+
+    Parameters
+    ----------
+    module : ast.Module
+        The AST module node representing the parsed Python file.
+    lines : list[str]
+        The list of source code lines corresponding to the module.
+
+    Returns
+    -------
+    int | None
+        The number of blank lines between the last import and the next statement, or None if no imports
+        are found.
+    """
+
     import_nodes = [
         node
         for node in module.body
@@ -119,14 +211,25 @@ def _blank_lines_after_import_section(module: ast.Module, lines: list[str]) -> i
             and isinstance(node.value.value, str)
         )
     ]
-    imports = [node for node in import_nodes if isinstance(node, ast.Import | ast.ImportFrom)]
+
+    imports = [
+        node for node in import_nodes if isinstance(node, ast.Import | ast.ImportFrom)
+    ]
+
     if not imports:
+
         return None
 
-    last_import = max(imports, key=lambda node: getattr(node, "end_lineno", node.lineno))
+    last_import = max(
+        imports, key=lambda node: getattr(node, "end_lineno", node.lineno)
+    )
+
     last_line = getattr(last_import, "end_lineno", last_import.lineno)
+
     next_nodes = [node for node in module.body if node.lineno > last_line]
+
     if not next_nodes:
+
         return None
 
     return blank_lines_between(lines, last_line, next_nodes[0].lineno)

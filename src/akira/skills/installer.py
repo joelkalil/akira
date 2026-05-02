@@ -1,27 +1,44 @@
-"""Install generated Akira skills into agent-specific skill directories."""
+"""
+Install generated Akira skills into agent-specific skill directories.
+"""
 
+# Standard Libraries
 from __future__ import annotations
-
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
+# -----------------------------------------------------------------------------
+# Constants
+# -----------------------------------------------------------------------------
 
 InstallStatus = Literal["installed", "updated", "unchanged", "removed"]
 
 
 @dataclass(frozen=True)
+
+# -----------------------------------------------------------------------------
+# Classes
+# -----------------------------------------------------------------------------
+
+
 class InstalledSkillFile:
-    """A file touched while installing generated skills."""
+    """
+    A file touched while installing generated skills.
+    """
 
     path: Path
+
     status: InstallStatus
 
 
 class GeneratedSkillInstaller:
-    """Install generated Akira skills into a project-local target directory."""
+    """
+    Install generated Akira skills into a project-local target directory.
+    """
 
     def __init__(self, target_relative_dir: Path) -> None:
+
         self.target_relative_dir = target_relative_dir
 
     def install(
@@ -29,35 +46,55 @@ class GeneratedSkillInstaller:
         project_root: Path,
         output_dir: Path,
     ) -> tuple[InstalledSkillFile, ...]:
-        """Copy generated Akira output into project_root/target_relative_dir."""
+        """
+        Copy generated Akira output into project_root/target_relative_dir.
+        """
+
         source_files = _generated_source_files(output_dir)
+
         target_dir = _resolve_project_target(project_root, self.target_relative_dir)
+
         target_dir.mkdir(parents=True, exist_ok=True)
 
         results: list[InstalledSkillFile] = []
+
         desired_paths = set(source_files)
 
         for relative_path, source_path in sorted(
             source_files.items(),
             key=lambda item: item[0].as_posix(),
         ):
+
             target_path = target_dir / relative_path
+
             status = _copy_file(source_path, target_path, relative_path)
+
             results.append(InstalledSkillFile(target_path, status))
 
         for stale_path in _stale_installed_files(target_dir, desired_paths):
+
             stale_path.unlink()
+
             results.append(InstalledSkillFile(stale_path, "removed"))
 
         _remove_empty_directories(target_dir)
+
         return tuple(results)
 
 
 class ClaudeSkillInstaller(GeneratedSkillInstaller):
-    """Install generated Akira skills for Claude Code."""
+    """
+    Install generated Akira skills for Claude Code.
+    """
 
     def __init__(self) -> None:
+
         super().__init__(Path(".claude") / "skills" / "akira")
+
+
+# -----------------------------------------------------------------------------
+# Public Functions
+# -----------------------------------------------------------------------------
 
 
 def install_generated_skills(
@@ -65,42 +102,71 @@ def install_generated_skills(
     output_dir: Path,
     target_relative_dir: Path,
 ) -> tuple[InstalledSkillFile, ...]:
-    """Install generated Akira skills into an agent-specific project directory."""
-    return GeneratedSkillInstaller(target_relative_dir).install(project_root, output_dir)
+    """
+    Install generated Akira skills into an agent-specific project directory.
+    """
+
+    return GeneratedSkillInstaller(target_relative_dir).install(
+        project_root, output_dir
+    )
 
 
 def install_claude_skills(
     project_root: Path,
     output_dir: Path,
 ) -> tuple[InstalledSkillFile, ...]:
-    """Install generated Akira skills into Claude Code's project skill directory."""
+    """
+    Install generated Akira skills into Claude Code's project skill directory.
+    """
+
     return ClaudeSkillInstaller().install(project_root, output_dir)
 
 
+# -----------------------------------------------------------------------------
+# Private Functions
+# -----------------------------------------------------------------------------
+
+
 def _generated_source_files(output_dir: Path) -> dict[Path, Path]:
+
     files: dict[Path, Path] = {}
+
     skills_dir = output_dir / "skills"
 
     if skills_dir.exists():
+
         for path in skills_dir.rglob("*"):
+
             if path.is_file():
+
                 files[path.relative_to(skills_dir)] = path
 
     for filename in ("stack.md", "fingerprint.md"):
+
         path = output_dir / filename
+
         if path.is_file():
+
             files[Path(filename)] = path
 
     return files
 
 
 def _resolve_project_target(project_root: Path, target_relative_dir: Path) -> Path:
+
     resolved_project = project_root.resolve()
+
     target_dir = (resolved_project / target_relative_dir).resolve()
+
     try:
+
         target_dir.relative_to(resolved_project)
+
     except ValueError as exc:
-        raise ValueError("Install target must stay within the project directory.") from exc
+
+        raise ValueError(
+            "Install target must stay within the project directory."
+        ) from exc
 
     return target_dir
 
@@ -110,26 +176,36 @@ def _copy_file(
     target_path: Path,
     relative_path: Path,
 ) -> InstallStatus:
+
     content = source_path.read_bytes()
+
     if relative_path == Path("SKILL.md"):
+
         content = _rewrite_router_references_for_install(content)
 
     if target_path.exists():
+
         if target_path.read_bytes() == content:
+
             return "unchanged"
+
         status: InstallStatus = "updated"
+
     else:
+
         status = "installed"
 
     target_path.parent.mkdir(parents=True, exist_ok=True)
+
     target_path.write_bytes(content)
+
     return status
 
 
 def _rewrite_router_references_for_install(content: bytes) -> bytes:
-    return (
-        content.replace(b"../stack.md", b"stack.md")
-        .replace(b"../fingerprint.md", b"fingerprint.md")
+
+    return content.replace(b"../stack.md", b"stack.md").replace(
+        b"../fingerprint.md", b"fingerprint.md"
     )
 
 
@@ -137,7 +213,9 @@ def _stale_installed_files(
     target_dir: Path,
     desired_paths: set[Path],
 ) -> tuple[Path, ...]:
+
     if not target_dir.exists():
+
         return ()
 
     return tuple(
@@ -153,13 +231,19 @@ def _stale_installed_files(
 
 
 def _remove_empty_directories(target_dir: Path) -> None:
+
     directories = sorted(
         (path for path in target_dir.rglob("*") if path.is_dir()),
         key=lambda path: len(path.parts),
         reverse=True,
     )
+
     for directory in directories:
+
         try:
+
             directory.rmdir()
+
         except OSError:
+
             continue

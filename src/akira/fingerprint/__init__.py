@@ -1,5 +1,8 @@
-"""Developer fingerprint package."""
+"""
+Developer fingerprint package.
+"""
 
+# Local Libraries
 from akira.fingerprint.analyzer import (
     analyze_project,
     collect_python_files,
@@ -13,6 +16,10 @@ from akira.fingerprint.renderer import (
     render_fingerprint_markdown,
     write_fingerprint_markdown,
 )
+
+# -----------------------------------------------------------------------------
+# Constants
+# -----------------------------------------------------------------------------
 
 __all__ = [
     "FingerprintAnalysis",

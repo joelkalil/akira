@@ -10,15 +10,16 @@ from fastapi import HTTPException
 
 from style_app.helpers import _normalize_name, build_tags
 
-
 LOGGER = logging.getLogger(__name__)
+
 MAX_RETRIES = 3
 
 
 # --- Models ---
 @dataclass(frozen=True)
 class UserRecord:
-    """Stored user record.
+    """
+    Stored user record.
 
     Args:
         name: Normalized user name.

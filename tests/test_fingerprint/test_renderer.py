@@ -1,16 +1,24 @@
+# Standard Libraries
 from __future__ import annotations
-
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Third-Party Libraries
+
+# Local Libraries
 from akira.fingerprint import fingerprint_project, render_fingerprint_markdown
 from akira.fingerprint.models import FingerprintAnalysis
+
+# -----------------------------------------------------------------------------
+# Public Functions
+# -----------------------------------------------------------------------------
 
 
 def test_render_fingerprint_markdown_includes_frontmatter_and_v1_sections(
     tmp_path: Path,
 ) -> None:
     source = tmp_path / "module.py"
+
     source.write_text(
         '''# --- Public helpers ---
 import os
@@ -39,6 +47,7 @@ def load_user(user_id: str) -> str:
     )
 
     analysis = fingerprint_project(tmp_path)
+
     content = render_fingerprint_markdown(
         analysis,
         generated_at=datetime(2026, 5, 2, 12, 0, tzinfo=timezone.utc),
@@ -46,13 +55,21 @@ def load_user(user_id: str) -> str:
     )
 
     assert 'generated_at: "2026-05-02T12:00:00+00:00"' in content
+
     assert "sample_size: 20" in content
+
     assert '  - "module.py"' in content
+
     assert "confidence:" in content
+
     assert "- **Between top-level definitions**: 2 blank lines" in content
+
     assert "- **Classes**: PascalCase" in content
+
     assert "- **Optional style**: `X | None`" in content
+
     assert "- **Functions**: Sparse" in content
+
     assert "- **Max nesting**: 0 levels" in content
 
     for section in (
@@ -79,6 +96,7 @@ def test_render_fingerprint_markdown_uses_empty_files_list_for_empty_samples(
     content = render_fingerprint_markdown(analysis, sample_size=0)
 
     assert "sample_size: 0" in content
+
     assert "files_analyzed: []" in content
 
 
@@ -86,8 +104,9 @@ def test_render_fingerprint_markdown_preserves_identifier_like_values(
     tmp_path: Path,
 ) -> None:
     source = tmp_path / "module.py"
+
     source.write_text(
-        '''from typing import ClassVar, TypedDict
+        """from typing import ClassVar, TypedDict
 
 
 class Payload(TypedDict):
@@ -102,11 +121,12 @@ def load_payload(has_access: bool, should_retry: bool) -> Payload:
     has_value = True
     should_log = False
     return {"name": "ok"}
-''',
+""",
         encoding="utf-8",
     )
 
     content = render_fingerprint_markdown(fingerprint_project(tmp_path))
 
     assert "- **Boolean variables**: has_ -> should_" in content
+
     assert "- **Complex type imports**: ClassVar -> TypedDict" in content

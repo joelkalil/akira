@@ -2,7 +2,8 @@ import sys, os
 from .service import UserRecord
 from fastapi import HTTPException
 
-DEFAULT_LABEL = 'anonymous'
+DEFAULT_LABEL = "anonymous"
+
 
 def normalizeName(name):
     if name == None:
@@ -10,7 +11,8 @@ def normalizeName(name):
     else:
         return name.strip().lower()
 
-def build_tags(tags = None):
+
+def build_tags(tags=None):
     result = []
     for tag in tags or []:
         if tag:

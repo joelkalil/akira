@@ -25,6 +25,7 @@ classifiers = [
     "Topic :: Software Development",
 ]
 dependencies = [
+    "black>=26.3.1",
     "jinja2>=3.1",
     "pyyaml>=6.0",
     "rich>=13.0",
@@ -61,3 +62,9 @@ exclude = [
     "tests/fixtures/style_projects/mixed/**",
     "tests/fixtures/style_projects/with_syntax_error/**",
 ]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "D"]
+
+[tool.black]
+line-length = 88

@@ -1,2 +1,3 @@
-"""Stack review rule definitions."""
-
+"""
+Stack review rule definitions.
+"""

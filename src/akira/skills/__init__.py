@@ -1,5 +1,8 @@
-"""Agent skill generation package."""
+"""
+Agent skill generation package.
+"""
 
+# Local Libraries
 from akira.skills.generator import GeneratedSkill, SkillGenerator, generate_skills
 from akira.skills.installer import (
     ClaudeSkillInstaller,
@@ -8,6 +11,10 @@ from akira.skills.installer import (
     install_claude_skills,
     install_generated_skills,
 )
+
+# -----------------------------------------------------------------------------
+# Constants
+# -----------------------------------------------------------------------------
 
 __all__ = [
     "ClaudeSkillInstaller",

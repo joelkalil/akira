@@ -1,14 +1,20 @@
+# Standard Libraries
 from __future__ import annotations
-
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Third-Party Libraries
 import yaml
 
+# Local Libraries
 from akira.detect import Scanner, render_stack_markdown
 from akira.detect.models import Signal, StackInfo, ToolInfo
 from akira.detect.renderer import SKILL_HINTS, tool_label, tool_value
 from akira.skills.generator import SKILL_TEMPLATES
+
+# -----------------------------------------------------------------------------
+# Public Functions
+# -----------------------------------------------------------------------------
 
 
 def test_minimal_project_stack_markdown_has_frontmatter_and_runtime(
@@ -21,18 +27,29 @@ def test_minimal_project_stack_markdown_has_frontmatter_and_runtime(
         generated_at=datetime(2026, 5, 1, 15, 30, tzinfo=timezone.utc),
         akira_version="1.0.0",
     )
+
     frontmatter = _frontmatter(content)
 
     assert frontmatter["generated_at"] == "2026-05-01T15:30:00+00:00"
+
     assert frontmatter["akira_version"] == "1.0.0"
+
     assert frontmatter["project_name"] == "minimal_project"
+
     assert "# Stack - minimal_project" in content
+
     assert "## Runtime" in content
+
     assert "- **Python**: Python 3.12" in content
+
     assert "- **Package manager**: uv" in content
+
     assert "## Framework" not in content
+
     assert "## Active Skills" in content
+
     assert "- `python/SKILL.md`" in content
+
     assert "- `python/tooling/uv.md`" in content
 
 
@@ -59,12 +76,19 @@ def test_fastapi_project_stack_markdown_renders_sections_and_active_skills(
         assert section in content
 
     assert "- **Web**: FastAPI 0.115.0" in content
+
     assert "- **Framework**: pytest 8.3.0" in content
+
     assert "- **ORM**: SQLAlchemy 2.0.36" in content
+
     assert "- **Migrations**: Alembic 1.14.0" in content
+
     assert "- **Linter/Formatter**: ruff" in content
+
     assert "- **Type checker**: mypy" in content
+
     assert "- **Container**: Docker" in content
+
     assert "- **CI/CD**: GitHub Actions" in content
 
     for skill in (
@@ -82,12 +106,24 @@ def test_fastapi_project_stack_markdown_renders_sections_and_active_skills(
         assert f"- `{skill}`" in content
 
     assert "- `python/infra/docker.md`" in content
+
     assert "- `python/infra/docker-compose.md`" not in content
+
+
+# -----------------------------------------------------------------------------
+# Private Functions
+# -----------------------------------------------------------------------------
 
 
 def _frontmatter(content: str) -> dict[str, str]:
     _, raw_frontmatter, _ = content.split("---", 2)
+
     return yaml.safe_load(raw_frontmatter)
+
+
+# -----------------------------------------------------------------------------
+# Public Functions
+# -----------------------------------------------------------------------------
 
 
 def test_unknown_tool_label_uses_tool_name_not_category() -> None:
@@ -134,14 +170,21 @@ def test_stack_markdown_renders_new_infra_ci_and_database_tools(
         assert row in content
 
     assert "- `python/infra/gcp.md`" in content
+
     assert "- `python/ci_cd/gitlab_ci.md`" not in content
+
     assert "- `python/infra/aws.md`" not in content
+
     assert "- `python/infra/terraform.md`" not in content
+
     assert "- `python/database/redis.md`" not in content
 
 
 def test_active_skill_hints_match_generated_skill_outputs() -> None:
     generated_paths = {"python/SKILL.md"}
-    generated_paths.update(f"python/{template.output_path}" for template in SKILL_TEMPLATES)
+
+    generated_paths.update(
+        f"python/{template.output_path}" for template in SKILL_TEMPLATES
+    )
 
     assert set(SKILL_HINTS.values()) <= generated_paths

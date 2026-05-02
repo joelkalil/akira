@@ -1,11 +1,17 @@
+# Standard Libraries
 from __future__ import annotations
-
 from pathlib import Path
 
+# Third-Party Libraries
 from rich.console import Console
 
+# Local Libraries
 from akira.detect.models import Signal, StackInfo
 from akira.review import ReviewCategory, analyze_stack, render_review
+
+# -----------------------------------------------------------------------------
+# Public Functions
+# -----------------------------------------------------------------------------
 
 
 def stack_with(*signals: Signal) -> StackInfo:
@@ -41,7 +47,9 @@ def test_initial_rules_report_expected_findings() -> None:
         "missing-type-checker",
         "async-stack-sync-driver",
     }
+
     assert result.has_incompatibilities is True
+
     assert result.by_category(ReviewCategory.INCOMPATIBILITY)[0].rule_id == (
         "alembic-needs-sqlalchemy"
     )
@@ -49,14 +57,18 @@ def test_initial_rules_report_expected_findings() -> None:
 
 def test_missing_type_checker_only_applies_to_modern_python() -> None:
     legacy_stack = stack_with(signal("python", "runtime", "3.9"))
+
     modern_stack = stack_with(signal("python", "runtime", "3.10"))
+
     typed_stack = stack_with(
         signal("python", "runtime", "3.12"),
         signal("mypy", "type_checking"),
     )
 
     assert "missing-type-checker" not in finding_ids(legacy_stack)
+
     assert "missing-type-checker" in finding_ids(modern_stack)
+
     assert "missing-type-checker" not in finding_ids(typed_stack)
 
 
@@ -73,11 +85,13 @@ def test_async_consistency_rule_reports_matching_async_stack() -> None:
     assert result.by_category(ReviewCategory.CONSISTENCY)[0].rule_id == (
         "async-stack-consistency"
     )
+
     assert result.has_incompatibilities is False
 
 
 def test_review_reporter_escapes_project_name_markup() -> None:
     stack = StackInfo.from_signals(Path("project[broken]").resolve(), [])
+
     console = Console(record=True, force_terminal=False, width=80)
 
     render_review(analyze_stack(stack), console=console)

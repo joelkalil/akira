@@ -1,5 +1,8 @@
-"""Fingerprint extractor implementations."""
+"""
+Fingerprint extractor implementations.
+"""
 
+# Local Libraries
 from akira.fingerprint.extractors import (
     comments,
     docstrings,
@@ -12,6 +15,10 @@ from akira.fingerprint.extractors import (
     structure,
     typing,
 )
+
+# -----------------------------------------------------------------------------
+# Constants
+# -----------------------------------------------------------------------------
 
 __all__ = [
     "comments",
