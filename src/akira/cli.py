@@ -47,9 +47,9 @@ app = typer.Typer(
 
 
 def _validate_agent(agent: str) -> str:
-    
+
     if agent not in SUPPORTED_AGENT_NAMES:
-        
+
         supported = ", ".join(SUPPORTED_AGENT_NAMES)
 
         raise typer.BadParameter(
@@ -130,13 +130,13 @@ def detect(
     typer.echo(f"Wrote: {stack_path}")
 
     for skill in skill_paths:
-        
+
         typer.echo(f"Wrote: {skill.path}")
 
     for installed in installed_paths:
-        
+
         if installed.status in {"installed", "updated"}:
-            
+
             typer.echo(f"{installed.status.title()}: {installed.path}")
 
 
@@ -204,7 +204,7 @@ def fingerprint(
     typer.echo(f"Output: {output}")
 
     for pattern in exclude or ():
-        
+
         typer.echo(f"Exclude: {pattern}")
 
     typer.echo(f"Files analyzed: {len(analysis.files)}")
@@ -262,23 +262,23 @@ def craft(
     """
 
     try:
-        
+
         result = craft_context(path, agent=agent, artifact_dir=output)
-        
+
     except MissingCraftPrerequisites as exc:
-        
+
         typer.echo("Missing Akira artifacts:")
 
         for prerequisite in exc.missing:
-            
+
             typer.echo(f"Missing: {prerequisite.path}")
 
             typer.echo(f"  {prerequisite.message}")
 
         raise typer.Exit(1) from exc
-    
+
     except UnsupportedCraftAgent as exc:
-        
+
         supported = (
             ", ".join(exc.supported)
             if exc.supported
@@ -288,9 +288,9 @@ def craft(
         typer.echo(f"Unsupported agent '{exc.agent}'. Choose one of: {supported}.")
 
         raise typer.Exit(1) from exc
-    
+
     except UnsupportedAgent as exc:
-        
+
         supported = ", ".join(exc.supported)
 
         typer.echo(f"Unsupported agent '{exc.agent}'. Choose one of: {supported}.")
@@ -304,13 +304,13 @@ def craft(
     typer.echo(f"Artifacts: {result.artifact_dir}")
 
     if not result.install_result.installed_files:
-        
+
         typer.echo("No files found to install.")
 
         return
 
     for installed in result.install_result.installed_files:
-        
+
         typer.echo(f"{installed.status.title()}: {installed.path}")
 
 
@@ -367,7 +367,7 @@ def review(
     render_review(result)
 
     if strict and result.has_incompatibilities:
-        
+
         raise typer.Exit(1)
 
     console = Console()
@@ -400,7 +400,7 @@ def _collect_review_decisions(
     auto_apply: bool,
     console: Console,
 ) -> tuple[list[Finding], list[Finding]]:
-    
+
     actionable = [
         finding
         for finding in findings
@@ -408,7 +408,7 @@ def _collect_review_decisions(
     ]
 
     if not actionable:
-        
+
         return [], []
 
     accepted: list[Finding] = []
@@ -416,15 +416,15 @@ def _collect_review_decisions(
     skipped: list[Finding] = []
 
     for finding in actionable:
-        
+
         if auto_apply:
-            
+
             if finding.can_apply_safely:
-                
+
                 accepted.append(finding)
-                
+
             else:
-                
+
                 skipped.append(finding)
 
             continue
@@ -432,18 +432,18 @@ def _collect_review_decisions(
         decision = _prompt_review_decision(finding, console)
 
         if decision == "y" and finding.can_apply_safely:
-            
+
             accepted.append(finding)
-            
+
         else:
-            
+
             skipped.append(finding)
 
     return accepted, skipped
 
 
 def _prompt_review_decision(finding: Finding, console: Console) -> str:
-    
+
     console.print()
 
     console.print(f"[bold]{finding.category.value}[/bold] {finding.rule_id}")
@@ -451,13 +451,13 @@ def _prompt_review_decision(finding: Finding, console: Console) -> str:
     console.print(finding.message)
 
     if finding.migration:
-        
+
         console.print(f"[cyan]Migration reference:[/cyan] {finding.migration}")
 
     while True:
-        
+
         try:
-            
+
             decision = Prompt.ask(
                 "Apply?",
                 choices=("y", "n", "details"),
@@ -465,19 +465,19 @@ def _prompt_review_decision(finding: Finding, console: Console) -> str:
                 show_default=False,
                 console=console,
             )
-            
+
         except (EOFError, KeyboardInterrupt):
-            
+
             return "n"
 
         if decision == "details":
-            
+
             _render_finding_details(finding, console)
 
             continue
 
         if decision == "y" and not finding.can_apply_safely:
-            
+
             console.print(
                 "[yellow]This finding has no safe metadata-only change, so it was skipped.[/yellow]"
             )
@@ -488,7 +488,7 @@ def _prompt_review_decision(finding: Finding, console: Console) -> str:
 
 
 def _render_finding_details(finding: Finding, console: Console) -> None:
-    
+
     console.print(f"[bold]Rule:[/bold] {finding.rule_id}")
 
     console.print(f"[bold]Category:[/bold] {finding.category.value}")
@@ -496,21 +496,21 @@ def _render_finding_details(finding: Finding, console: Console) -> None:
     console.print(f"[bold]Message:[/bold] {finding.message}")
 
     if finding.migration:
-        
+
         console.print(f"[bold]Migration guidance:[/bold] {finding.migration}")
 
         guidance = _migration_guidance(finding.migration)
 
         if guidance:
-            
+
             for item in guidance:
-                
+
                 console.print(f"- {item}")
 
     change = finding.safe_change
 
     if change is None:
-        
+
         console.print("Akira will not change artifacts for this finding automatically.")
 
         return
@@ -518,14 +518,14 @@ def _render_finding_details(finding: Finding, console: Console) -> None:
     console.print(f"[bold]Safe change:[/bold] {change.summary}")
 
     for detail in change.details:
-        
+
         console.print(f"- {detail}")
 
 
 def _migration_guidance(reference: str) -> tuple[str, ...]:
-    
+
     if reference == "testing/unittest-to-pytest":
-        
+
         return (
             "Replace unittest.TestCase classes with plain pytest test functions where practical.",
             "Prefer assert statements and fixtures over self.assert* and setUp/tearDown.",
@@ -543,9 +543,9 @@ def _render_review_summary(
     output: Path,
     console: Console,
 ) -> None:
-    
+
     if not accepted and not skipped:
-        
+
         return
 
     console.print()
@@ -555,17 +555,17 @@ def _render_review_summary(
     console.print(f"Accepted changes: {len(accepted)}")
 
     for finding in accepted:
-        
+
         console.print(f"- {finding.rule_id}")
 
     console.print(f"Skipped changes: {len(skipped)}")
 
     for finding in skipped:
-        
+
         console.print(f"- {finding.rule_id}")
 
     if applied_count:
-        
+
         console.print(f"Updated artifacts in: {output}")
 
         console.print("Regenerated affected skills.")

@@ -1,15 +1,22 @@
 # Standard Libraries
-from __future__ import annotations
 import shutil
 import subprocess
 import tarfile
-import tomllib
+from __future__ import annotations
 from pathlib import Path
 from zipfile import ZipFile
 
 # Third-Party Libraries
 import pytest
 from typer.testing import CliRunner
+
+try:
+
+    import tomllib
+
+except ModuleNotFoundError:
+
+    import tomli as tomllib
 
 # Local Libraries
 from akira.cli import app
@@ -806,7 +813,7 @@ def test_build_backend_and_package_discovery_are_configured() -> None:
         "src/akira"
     ]
 
-    assert pyproject["project"]["requires-python"] == ">=3.11"
+    assert pyproject["project"]["requires-python"] == ">=3.10"
 
 
 def test_release_docs_include_install_smoke_steps_and_name_fallbacks() -> None:

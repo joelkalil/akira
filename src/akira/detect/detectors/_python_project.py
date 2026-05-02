@@ -7,9 +7,17 @@ from __future__ import annotations
 import ast
 import configparser
 import re
-import tomllib
 from pathlib import Path
 from typing import Any, Iterable
+
+# Third-Party Libraries
+try:
+
+    import tomllib
+
+except ModuleNotFoundError:
+
+    import tomli as tomllib
 
 # -----------------------------------------------------------------------------
 # Constants

@@ -5,10 +5,8 @@ Analyze detected stack information with Akira review rules.
 # Standard Libraries
 from __future__ import annotations
 from dataclasses import dataclass
-from enum import StrEnum
+from enum import Enum
 from typing import Callable
-
-# Third-Party Libraries
 
 # Local Libraries
 from akira.detect.models import StackInfo
@@ -18,7 +16,7 @@ from akira.detect.models import StackInfo
 # -----------------------------------------------------------------------------
 
 
-class ReviewCategory(StrEnum):
+class ReviewCategory(str, Enum):
     """
     Categories used to group stack review findings.
     """

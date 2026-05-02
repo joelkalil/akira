@@ -7,7 +7,7 @@ name = "akira"
 version = "1.0.0"
 description = "Project-aware skill generation and coding fingerprint CLI for AI agents."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 license = { file = "LICENSE" }
 authors = [
     { name = "Akira contributors" },
@@ -19,6 +19,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -29,6 +30,7 @@ dependencies = [
     "jinja2>=3.1",
     "pyyaml>=6.0",
     "rich>=13.0",
+    "tomli>=2.0; python_version < '3.11'",
     "typer>=0.15",
 ]
 
@@ -57,7 +59,7 @@ pythonpath = ["src"]
 
 [tool.ruff]
 line-length = 88
-target-version = "py311"
+target-version = "py310"
 exclude = [
     "tests/fixtures/style_projects/mixed/**",
     "tests/fixtures/style_projects/with_syntax_error/**",
