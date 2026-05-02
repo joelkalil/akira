@@ -1,0 +1,1 @@
+"""Tiny Django fixture package."""

@@ -11,23 +11,12 @@ from akira.detect.renderer import tool_label, tool_value
 
 
 def test_minimal_project_stack_markdown_has_frontmatter_and_runtime(
-    tmp_path: Path,
+    fixtures_dir: Path,
 ) -> None:
-    (tmp_path / "pyproject.toml").write_text(
-        """
-[project]
-requires-python = ">=3.12"
-dependencies = []
-
-[tool.uv]
-dev-dependencies = []
-""".strip(),
-        encoding="utf-8",
-    )
-    (tmp_path / "uv.lock").write_text("", encoding="utf-8")
+    project_root = fixtures_dir / "minimal_project"
 
     content = render_stack_markdown(
-        Scanner().scan(tmp_path),
+        Scanner().scan(project_root),
         generated_at=datetime(2026, 5, 1, 15, 30, tzinfo=timezone.utc),
         akira_version="1.0.0",
     )
@@ -35,8 +24,8 @@ dev-dependencies = []
 
     assert frontmatter["generated_at"] == "2026-05-01T15:30:00+00:00"
     assert frontmatter["akira_version"] == "1.0.0"
-    assert frontmatter["project_name"] == tmp_path.name
-    assert f"# Stack - {tmp_path.name}" in content
+    assert frontmatter["project_name"] == "minimal_project"
+    assert "# Stack - minimal_project" in content
     assert "## Runtime" in content
     assert "- **Python**: Python 3.12" in content
     assert "- **Package manager**: uv" in content
@@ -46,35 +35,12 @@ dev-dependencies = []
 
 
 def test_fastapi_project_stack_markdown_renders_sections_and_active_skills(
-    tmp_path: Path,
+    fixtures_dir: Path,
 ) -> None:
-    (tmp_path / "pyproject.toml").write_text(
-        """
-[project]
-requires-python = ">=3.12"
-dependencies = [
-    "fastapi==0.115.0",
-    "pytest==8.3.0",
-    "sqlalchemy==2.0.36",
-    "alembic==1.14.0",
-]
-
-[tool.ruff]
-line-length = 88
-
-[tool.mypy]
-strict = true
-""".strip(),
-        encoding="utf-8",
-    )
-    (tmp_path / "uv.lock").write_text("", encoding="utf-8")
-    (tmp_path / "Dockerfile").write_text("FROM python:3.12\n", encoding="utf-8")
-    workflow_dir = tmp_path / ".github" / "workflows"
-    workflow_dir.mkdir(parents=True)
-    (workflow_dir / "ci.yml").write_text("name: CI\n", encoding="utf-8")
+    project_root = fixtures_dir / "fastapi_project"
 
     content = render_stack_markdown(
-        Scanner().scan(tmp_path),
+        Scanner().scan(project_root),
         generated_at=datetime(2026, 5, 1, 15, 30, tzinfo=timezone.utc),
         akira_version="1.0.0",
     )

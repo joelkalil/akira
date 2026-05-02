@@ -96,6 +96,22 @@ def test_stack_info_groups_tools_by_category(tmp_path: Path) -> None:
     assert isinstance(testing_tools[0].metadata, MappingProxyType)
 
 
+def test_scanner_integration_detects_fastapi_fixture_stack(
+    fixtures_dir: Path,
+) -> None:
+    stack = Scanner().scan(fixtures_dir / "fastapi_project")
+
+    assert stack.has("python", category="runtime")
+    assert stack.has("uv", category="package_manager")
+    assert stack.has("fastapi", category="web_framework")
+    assert stack.has("pytest", category="testing")
+    assert stack.has("ruff", category="linting")
+    assert stack.has("mypy", category="type_checking")
+    assert stack.has("pre-commit", category="pre_commit")
+    assert stack.has("docker", category="infrastructure")
+    assert stack.has("github-actions", category="ci_cd")
+
+
 def test_signal_rejects_invalid_confidence() -> None:
     with pytest.raises(ValueError, match="confidence"):
         Signal(
