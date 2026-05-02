@@ -9,7 +9,7 @@ import typer
 
 from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR, SUPPORTED_AGENTS
 from akira.detect import scan_project, write_stack_markdown
-from akira.fingerprint import analyze_project
+from akira.fingerprint import fingerprint_project
 from akira.skills import generate_skills, install_claude_skills
 
 app = typer.Typer(
@@ -123,7 +123,7 @@ def fingerprint(
     ] = None,
 ) -> None:
     """Collect source files for developer fingerprint analysis."""
-    analysis = analyze_project(path, sample_size=sample_size, exclude=exclude or ())
+    analysis = fingerprint_project(path, sample_size=sample_size, exclude=exclude or ())
 
     typer.echo(f"Project path: {path}")
     typer.echo(f"Sample size: {sample_size}")
@@ -132,6 +132,8 @@ def fingerprint(
     typer.echo(f"Files analyzed: {len(analysis.files)}")
     typer.echo(f"Parsed: {len(analysis.parsed_files)}")
     typer.echo(f"Parse failures: {len(analysis.failed_files)}")
+    typer.echo(f"Patterns extracted: {len(analysis.patterns)}")
+    typer.echo(f"Confidence: {analysis.confidence:.2f}")
 
 
 def main() -> None:
