@@ -1,0 +1,55 @@
+---
+name: akira-sqlalchemy
+description: >
+  SQLAlchemy guidance for {{ project_name | default("this project") }}.
+  Consult when editing ORM models, sessions, queries, transactions, or
+  repository/data-access code.
+user-invocable: false
+---
+
+# SQLAlchemy Guidance
+
+## Project Context
+
+- SQLAlchemy version: {{ sqlalchemy_version | default("detected by Akira") }}
+- Session style: {{ session_style | default("sync or async detected by Akira") }}
+- Database: {{ database_engine | default("detected by Akira") }}
+
+## Models
+
+- Keep ORM models focused on persistence shape and small domain helpers.
+- Use explicit column types, nullability, indexes, and relationship loading.
+- Keep naming aligned with the existing table and metadata conventions.
+- Avoid implicit defaults when server-side defaults are required.
+
+## Sessions And Transactions
+
+- Pass sessions through application boundaries instead of creating them deep in
+  domain functions.
+- Keep transaction ownership clear: one unit of work should commit or roll back.
+- Flush when generated IDs are needed before commit.
+- Do not hide commits in low-level helper functions unless the project already
+  follows that pattern.
+
+{% if session_style | default("") == "async" %}
+## Async SQLAlchemy
+
+- Use `AsyncSession` consistently.
+- Await `execute`, `commit`, `rollback`, `refresh`, and relationship loaders.
+- Avoid sync engines or sessions in async request paths.
+{% endif %}
+
+{% include "_partials/error_handling.md.j2" %}
+
+## Query Practices
+
+- Keep reusable query construction in named functions or repository methods.
+- Use eager loading deliberately to avoid repeated lazy loads.
+- Return domain objects or DTOs according to the project's current pattern.
+
+## Avoid
+
+- Global sessions shared across requests or tests.
+- Raw SQL for ORM-friendly queries without a clear reason.
+- Mixing migration concerns into runtime model code.
+- Silent transaction failures without rollback and logging.

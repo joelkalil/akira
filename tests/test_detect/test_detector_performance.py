@@ -39,8 +39,9 @@ dependencies = [
         "sqlalchemy",
         "alembic",
         "asyncpg",
-        "psycopg",
+        "psycopg3",
         "psycopg2",
+        "postgres",
         "redis",
     }
 

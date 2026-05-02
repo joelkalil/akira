@@ -1,0 +1,60 @@
+---
+name: akira-mypy
+description: >
+  mypy type-checking guidance for {{ project_name | default("this project") }}.
+  Consult when adding annotations, changing type-check configuration, or fixing
+  static type errors.
+user-invocable: false
+---
+
+# mypy Guidance
+
+## Project Context
+
+- mypy version: {{ mypy_version | default("detected by Akira") }}
+- Strictness: {{ mypy_strictness | default("project configured") }}
+- Config file: {{ config_file | default("pyproject.toml, mypy.ini, or setup.cfg") }}
+
+## Annotation Style
+
+- Annotate public function parameters and return values.
+- Prefer precise collection types and small typed structures.
+- Use `Protocol` for behavior-based dependencies when it simplifies tests.
+- Keep casts local and explain them when the reason is not obvious.
+
+## Type Errors
+
+- Fix the source of the type mismatch before reaching for `type: ignore`.
+- Use narrow ignores such as `# type: ignore[code]`.
+- Keep third-party missing-stub configuration centralized.
+- Avoid widening types to `Any` to make errors disappear.
+- Prefer small normalization functions over repeated optional checks spread
+  across call sites.
+- Keep public protocols and aliases near the code that owns them.
+
+{% set _python_version = python_version | default("") %}
+{% set _python_version_parts = _python_version.split(".") if _python_version is string else [] %}
+{% set _python_major = (_python_version_parts[0] | int) if (_python_version_parts | length) > 0 else 0 %}
+{% set _python_minor = (_python_version_parts[1] | int) if (_python_version_parts | length) > 1 else 0 %}
+{% if _python_major > 3 or (_python_major == 3 and _python_minor >= 10) %}
+## Python 3.10+
+
+- Prefer `X | None` over `Optional[X]`.
+- Use built-in collection generics such as `list[str]`.
+{% endif %}
+
+## Testing And Boundaries
+
+- Type boundaries that parse external data explicitly.
+- Keep mocks and fixtures typed enough that test failures remain meaningful.
+- For CLI functions, type parsed options and return values clearly.
+
+## Configuration
+
+- Add stricter options gradually when existing code can satisfy them.
+
+## Avoid
+
+- Blanket ignores in package modules.
+- Untyped helper functions that become hidden dynamic zones.
+- Changing mypy strictness without updating affected code.

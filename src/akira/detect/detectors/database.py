@@ -19,13 +19,15 @@ class DatabaseDetector(BaseDetector):
     order = 50
 
     DATABASE_PACKAGES = {
-        "sqlalchemy",
-        "alembic",
-        "asyncpg",
-        "psycopg",
-        "psycopg2",
-        "redis",
+        "alembic": "alembic",
+        "asyncpg": "asyncpg",
+        "psycopg": "psycopg3",
+        "psycopg2": "psycopg2",
+        "psycopg2-binary": "psycopg2",
+        "redis": "redis",
+        "sqlalchemy": "sqlalchemy",
     }
+    POSTGRES_DRIVERS = {"asyncpg", "psycopg", "psycopg2", "psycopg2-binary"}
 
     def detect(self, project_root: Path) -> list[Signal]:
         """Scan database dependencies, migration config, and imports."""
@@ -33,7 +35,14 @@ class DatabaseDetector(BaseDetector):
         detected: set[str] = set()
         dependencies = extract_dependencies(project_root)
 
-        def emit(tool: str, source: str, confidence: float) -> None:
+        def emit(
+            tool: str,
+            source: str,
+            confidence: float,
+            *,
+            package: str | None = None,
+            metadata: dict | None = None,
+        ) -> None:
             if tool in detected:
                 return
             detected.add(tool)
@@ -41,26 +50,87 @@ class DatabaseDetector(BaseDetector):
                 Signal(
                     tool=tool,
                     category="database",
-                    version=dependencies.get(tool),
+                    version=dependencies.get(package or tool),
                     confidence=confidence,
                     source=source,
+                    metadata=metadata or {},
                 )
             )
 
-        if (project_root / "alembic.ini").exists() or (project_root / "alembic").exists():
-            emit("alembic", "alembic config", 1.0)
+        if (project_root / "alembic.ini").exists():
+            emit("alembic", "alembic.ini", 1.0, package="alembic")
+        if (project_root / "alembic").is_dir():
+            emit("alembic", "alembic/", 1.0, package="alembic")
 
-        for package in self.DATABASE_PACKAGES:
+        postgres_driver_detected = False
+        for package, tool in self.DATABASE_PACKAGES.items():
             if package in dependencies:
-                emit(package, "dependencies", 0.9)
+                emit(tool, "dependencies", 0.9, package=package)
+                postgres_driver_detected = postgres_driver_detected or (
+                    package in self.POSTGRES_DRIVERS
+                )
 
-        remaining_packages = self.DATABASE_PACKAGES - detected
+        if postgres_driver_detected:
+            emit(
+                "postgres",
+                "dependencies",
+                0.8,
+                metadata={"inferred_from": "postgres driver"},
+            )
+
+        if _project_mentions_postgres(project_root):
+            emit("postgres", "project config", 0.7)
+
+        remaining_packages = {
+            package: tool
+            for package, tool in self.DATABASE_PACKAGES.items()
+            if tool not in detected
+        }
         if not remaining_packages:
             return signals
 
         imports = scan_imports(project_root)
-        for package in remaining_packages:
+        postgres_import_detected = False
+        for package, tool in remaining_packages.items():
             if package_to_import_name(package) in imports:
-                emit(package, "source imports", 0.75)
+                emit(tool, "source imports", 0.75, package=package)
+                postgres_import_detected = postgres_import_detected or (
+                    package in self.POSTGRES_DRIVERS
+                )
+
+        if postgres_import_detected:
+            emit(
+                "postgres",
+                "source imports",
+                0.65,
+                metadata={"inferred_from": "postgres driver import"},
+            )
 
         return signals
+
+
+def _project_mentions_postgres(project_root: Path) -> bool:
+    """Return whether lightweight project config hints at PostgreSQL."""
+    for filename in ("alembic.ini", ".env", ".env.example", "docker-compose.yml"):
+        path = project_root / filename
+        if not path.exists() or not path.is_file():
+            continue
+        try:
+            content = path.read_text(encoding="utf-8").lower()
+        except UnicodeDecodeError:
+            continue
+        if any(token in content for token in ("postgresql://", "postgres://", "postgres:")):
+            return True
+
+    for compose_file in ("docker-compose.yaml", "compose.yml", "compose.yaml"):
+        path = project_root / compose_file
+        if not path.exists() or not path.is_file():
+            continue
+        try:
+            content = path.read_text(encoding="utf-8").lower()
+        except UnicodeDecodeError:
+            continue
+        if "postgres" in content:
+            return True
+
+    return False

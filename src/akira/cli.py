@@ -9,6 +9,8 @@ import typer
 
 from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR, SUPPORTED_AGENTS
 from akira.detect import scan_project, write_stack_markdown
+from akira.fingerprint import analyze_project
+from akira.skills import generate_skills, install_claude_skills
 
 app = typer.Typer(
     help="Akira detects project context and generates agent skills.",
@@ -71,11 +73,65 @@ def detect(
     """Detect a project's stack and prepare agent skill output."""
     stack = scan_project(path)
     stack_path = write_stack_markdown(output, stack)
+    skill_paths = generate_skills(stack, output)
+    installed_paths = ()
+    if agent == "claude-code":
+        installed_paths = install_claude_skills(path, output)
 
     typer.echo(f"Project path: {path}")
     typer.echo(f"Agent: {agent}")
     typer.echo(f"Output: {output}")
     typer.echo(f"Wrote: {stack_path}")
+    for skill in skill_paths:
+        typer.echo(f"Wrote: {skill.path}")
+    for installed in installed_paths:
+        if installed.status in {"installed", "updated"}:
+            typer.echo(f"{installed.status.title()}: {installed.path}")
+
+
+@app.command()
+def fingerprint(
+    path: Annotated[
+        Path,
+        typer.Option(
+            "--path",
+            "-p",
+            help="Project directory to analyze.",
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            readable=True,
+            resolve_path=True,
+        ),
+    ] = Path("."),
+    sample_size: Annotated[
+        int,
+        typer.Option(
+            "--sample-size",
+            "-s",
+            min=0,
+            help="Maximum number of Python files to sample.",
+        ),
+    ] = 20,
+    exclude: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--exclude",
+            "-x",
+            help="Project-relative path or glob to exclude. May be passed multiple times.",
+        ),
+    ] = None,
+) -> None:
+    """Collect source files for developer fingerprint analysis."""
+    analysis = analyze_project(path, sample_size=sample_size, exclude=exclude or ())
+
+    typer.echo(f"Project path: {path}")
+    typer.echo(f"Sample size: {sample_size}")
+    for pattern in exclude or ():
+        typer.echo(f"Exclude: {pattern}")
+    typer.echo(f"Files analyzed: {len(analysis.files)}")
+    typer.echo(f"Parsed: {len(analysis.parsed_files)}")
+    typer.echo(f"Parse failures: {len(analysis.failed_files)}")
 
 
 def main() -> None:

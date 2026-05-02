@@ -1,0 +1,55 @@
+---
+name: akira-flask
+description: >
+  Flask guidance for {{ project_name | default("this project") }}.
+  Consult when changing blueprints, views, application factories, request
+  handling, configuration, or Flask extensions.
+user-invocable: false
+---
+
+# Flask Guidance
+
+## Project Context
+
+- Flask version: {{ flask_version | default("detected by Akira") }}
+- App pattern: {{ app_pattern | default("application factory or module app") }}
+- Blueprint style: {{ blueprint_style | default("feature-oriented blueprints") }}
+
+## Application Structure
+
+- Prefer an application factory when the project already uses one.
+- Register blueprints in one predictable place.
+- Keep configuration loading separate from request handling.
+- Initialize extensions once, then bind them to the app during startup.
+- Keep view functions thin and delegate business logic to services.
+
+## Request Handling
+
+- Validate request data at the boundary before calling domain code.
+- Return explicit status codes for create, update, delete, and error paths.
+- Use `url_for()` for internal URL generation.
+- Keep `g`, `request`, and `current_app` usage near framework boundaries.
+- Keep JSON response shapes consistent across success and error cases.
+- Use decorators sparingly and keep authorization behavior easy to trace.
+
+{% include "_partials/error_handling.md.j2" %}
+
+{% include "_partials/logging_patterns.md.j2" %}
+
+## Testing Hooks
+
+- Use the app factory to create isolated test apps.
+- Prefer fixtures for app, client, and database setup.
+- Assert response status, headers, and JSON bodies.
+- Keep extension state isolated between tests.
+
+## Configuration
+
+- Prefer app config keys over scattered direct environment reads.
+
+## Avoid
+
+- Import-time app creation when the project uses factories.
+- Business rules hidden inside view functions.
+- Direct environment reads scattered throughout views.
+- Swallowing exceptions without logging or returning a clear response.

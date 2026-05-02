@@ -1,0 +1,54 @@
+---
+name: akira-unittest
+description: >
+  unittest guidance for {{ project_name | default("this project") }}.
+  Consult when adding or maintaining tests based on unittest.TestCase,
+  fixtures, assertions, or test suites.
+user-invocable: false
+---
+
+# unittest Guidance
+
+## Project Context
+
+- Test path: {{ test_path | default("tests") }}
+- Runner: {{ test_runner | default("python -m unittest or project command") }}
+- Async tests: {{ async_tests | default("detected by Akira") }}
+
+## TestCase Shape
+
+- Group tests by class when they share setup around the same subject.
+- Name methods `test_<behavior>` with the expected result in the name.
+- Keep each test focused on one observable behavior.
+- Use the most specific assertion helper available.
+- Prefer `setUp()` and `tearDown()` only for genuinely shared setup.
+- Use `subTest()` for small input variations inside one behavior.
+- Keep helper methods private and local to the test class when possible.
+
+## Assertions
+
+- Use `assertEqual`, `assertIsNone`, `assertRaises`, and related helpers instead
+  of generic truthiness checks.
+- Assert user-visible behavior and side effects.
+- For exception paths, verify the exception type and message when helpful.
+
+{% if async_tests | default(false) %}
+## Async Tests
+
+- Use `IsolatedAsyncioTestCase` for async test methods.
+- Keep async resource cleanup explicit.
+{% endif %}
+
+{% include "_partials/error_handling.md.j2" %}
+
+## Test Data
+
+- Build fresh data per test unless shared immutable fixtures are clearer.
+- Keep filesystem and environment changes cleaned up in `tearDown()`.
+
+## Avoid
+
+- Large inheritance trees for test setup.
+- Hidden shared mutable state between tests.
+- Network calls or machine-specific paths.
+- Overusing mocks where a small real object is clearer.
