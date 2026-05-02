@@ -42,11 +42,9 @@ Before writing code, consult:
 
 ## Core Rules From Fingerprint
 
-- `fingerprint.md` may not exist yet. Until it is generated, preserve the
-  conventions already present in nearby files.
-- Keep naming, imports, spacing, comments, and type hints consistent with the
-  edited module.
-- Prefer small, explicit changes over broad style rewrites.
+- `fingerprint.md` exists, but Akira did not find enough high-confidence
+  structured rules for the router. Use it as the source of truth for detailed
+  style guidance.
 - Prefer the conventions already present in the repository.
 - Keep generated code offline, deterministic, and inspectable unless the task
   explicitly requires integration with an external service.

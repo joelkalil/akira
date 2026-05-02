@@ -32,6 +32,7 @@ user-invocable: false
 - Use `model_dump()` when passing request payloads into domain constructors.
 - Keep request and response models separate when fields differ.
 
+
 ## Error Handling
 
 - Catch specific exceptions and handle only failures the code can recover from.

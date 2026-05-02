@@ -1,5 +1,5 @@
 ---
-generated_at: "2026-05-02T15:31:54+00:00"
+generated_at: "2026-05-02T15:53:11+00:00"
 akira_version: "1.0.0"
 project_name: "fastapi_project"
 ---
@@ -33,14 +33,14 @@ project_name: "fastapi_project"
 - **CI/CD**: GitHub Actions
 
 ## Active Skills
-- `python.md`
-- `web_framework/fastapi.md`
-- `tooling/ruff.md`
-- `tooling/mypy.md`
-- `testing/pytest.md`
-- `database/alembic.md`
-- `database/sqlalchemy.md`
-- `database/postgres.md`
-- `infra/docker.md`
-- `infra/docker-compose.md`
-- `ci_cd/github_actions.md`
+- `python/SKILL.md`
+- `python/tooling/uv.md`
+- `python/web_framework/fastapi.md`
+- `python/tooling/ruff.md`
+- `python/tooling/mypy.md`
+- `python/testing/pytest.md`
+- `python/database/alembic.md`
+- `python/database/sqlalchemy.md`
+- `python/database/postgres.md`
+- `python/infra/docker.md`
+- `python/ci_cd/github_actions.md`
