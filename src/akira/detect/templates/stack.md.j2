@@ -1,0 +1,21 @@
+---
+generated_at: {{ generated_at | tojson }}
+akira_version: {{ akira_version | tojson }}
+project_name: {{ project_name | tojson }}
+---
+
+# Stack - {{ project_name }}
+
+{% for section in sections %}
+## {{ section.title }}
+{% for label, value in section.rows %}
+- **{{ label }}**: {{ value }}
+{% endfor %}
+
+{% endfor %}
+{% if active_skills %}
+## Active Skills
+{% for skill in active_skills %}
+- `{{ skill.path }}`
+{% endfor %}
+{% endif %}
