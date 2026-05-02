@@ -10,6 +10,11 @@ from rich.prompt import Prompt
 import typer
 
 from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR, SUPPORTED_AGENTS
+from akira.craft import (
+    MissingCraftPrerequisites,
+    UnsupportedCraftAgent,
+    craft_context,
+)
 from akira.detect import scan_project, write_stack_markdown
 from akira.fingerprint import fingerprint_project, write_fingerprint_markdown
 from akira.review import (
@@ -162,6 +167,58 @@ def fingerprint(
     typer.echo(f"Patterns extracted: {len(analysis.patterns)}")
     typer.echo(f"Confidence: {analysis.confidence:.2f}")
     typer.echo(f"Wrote: {fingerprint_path}")
+
+
+@app.command()
+def craft(
+    path: Annotated[
+        Path,
+        typer.Option(
+            "--path",
+            "-p",
+            help="Project directory containing generated .akira artifacts.",
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            readable=True,
+            resolve_path=True,
+        ),
+    ] = Path("."),
+    agent: Annotated[
+        str,
+        typer.Option(
+            "--agent",
+            "-a",
+            help="Agent target to configure.",
+            callback=_validate_agent,
+        ),
+    ] = DEFAULT_AGENT,
+) -> None:
+    """Install generated Akira context for a coding agent."""
+    try:
+        result = craft_context(path, agent=agent)
+    except MissingCraftPrerequisites as exc:
+        typer.echo("Missing Akira artifacts:")
+        for prerequisite in exc.missing:
+            typer.echo(f"Missing: {prerequisite.path}")
+            typer.echo(f"  {prerequisite.message}")
+        raise typer.Exit(1) from exc
+    except UnsupportedCraftAgent as exc:
+        typer.echo(
+            f"Agent adapter '{exc.agent}' is not implemented for craft yet. "
+            "Available craft agent: claude-code."
+        )
+        raise typer.Exit(1) from exc
+
+    typer.echo(f"Project path: {result.project_root}")
+    typer.echo(f"Agent: {result.install_result.agent}")
+    typer.echo(f"Artifacts: {result.artifact_dir}")
+    if not result.install_result.installed_files:
+        typer.echo("No files found to install.")
+        return
+
+    for installed in result.install_result.installed_files:
+        typer.echo(f"{installed.status.title()}: {installed.path}")
 
 
 @app.command()
