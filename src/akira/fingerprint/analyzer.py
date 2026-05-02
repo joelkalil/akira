@@ -9,7 +9,18 @@ import tokenize
 from pathlib import Path
 from typing import Iterable
 
-from akira.fingerprint.extractors import comments, imports, naming, spacing
+from akira.fingerprint.extractors import (
+    comments,
+    docstrings,
+    error_handling,
+    imports,
+    naming,
+    organization,
+    spacing,
+    strings,
+    structure,
+    typing,
+)
 from akira.fingerprint.models import FingerprintAnalysis, SourceFile, StylePattern
 
 DEFAULT_EXCLUDED_DIRS = {
@@ -56,7 +67,18 @@ def analyze_project(
 
 def extract_style_patterns(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     """Run all v1 practical fingerprint extractors over a source sample."""
-    extractors = (spacing.extract, naming.extract, imports.extract, comments.extract)
+    extractors = (
+        spacing.extract,
+        naming.extract,
+        imports.extract,
+        comments.extract,
+        typing.extract,
+        structure.extract,
+        docstrings.extract,
+        organization.extract,
+        error_handling.extract,
+        strings.extract,
+    )
     patterns: list[StylePattern] = []
     for extractor in extractors:
         patterns.extend(extractor(analysis))
