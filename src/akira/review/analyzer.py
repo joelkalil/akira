@@ -19,6 +19,16 @@ class ReviewCategory(StrEnum):
 
 
 @dataclass(frozen=True)
+class StackChange:
+    """A safe metadata-only change that Akira can apply to stack artifacts."""
+
+    summary: str
+    details: tuple[str, ...] = ()
+    add_signals: tuple[tuple[str, str], ...] = ()
+    remove_signals: tuple[tuple[str, str], ...] = ()
+
+
+@dataclass(frozen=True)
 class Rule:
     """A stack review rule."""
 
@@ -27,6 +37,7 @@ class Rule:
     category: ReviewCategory
     message: str
     migration: str | None = None
+    safe_change: StackChange | None = None
 
     def evaluate(self, stack: StackInfo) -> bool:
         """Return whether this rule applies to the detected stack."""
@@ -41,6 +52,12 @@ class Finding:
     category: ReviewCategory
     message: str
     migration: str | None = None
+    safe_change: StackChange | None = None
+
+    @property
+    def can_apply_safely(self) -> bool:
+        """Return whether Akira can update generated artifacts for this finding."""
+        return self.safe_change is not None
 
 
 @dataclass(frozen=True)
@@ -77,6 +94,7 @@ def analyze_stack(
             category=rule.category,
             message=rule.message,
             migration=rule.migration,
+            safe_change=rule.safe_change,
         )
         for rule in active_rules
         if rule.evaluate(stack)
@@ -111,6 +129,16 @@ INITIAL_RULES: tuple[Rule, ...] = (
         category=ReviewCategory.SUGGESTION,
         message="unittest detected. Consider pytest for richer fixtures, plugins, and modern Python test ergonomics.",
         migration="testing/unittest-to-pytest",
+        safe_change=StackChange(
+            summary="Replace unittest stack metadata with pytest.",
+            details=(
+                "Remove the generated unittest skill.",
+                "Add pytest to the accepted stack state.",
+                "Regenerate the pytest testing skill.",
+            ),
+            add_signals=(("pytest", "testing"),),
+            remove_signals=(("unittest", "testing"),),
+        ),
     ),
     Rule(
         id="ruff-replaces-black-isort",
@@ -121,6 +149,14 @@ INITIAL_RULES: tuple[Rule, ...] = (
         ),
         category=ReviewCategory.SUGGESTION,
         message="Ruff can handle formatting and import sorting, so black/isort may be redundant.",
+        safe_change=StackChange(
+            summary="Remove redundant black/isort stack metadata while keeping ruff.",
+            details=(
+                "Leave dependency files unchanged.",
+                "Keep ruff as the generated formatting and linting guidance.",
+            ),
+            remove_signals=(("black", "formatting"), ("isort", "formatting")),
+        ),
     ),
     Rule(
         id="alembic-needs-sqlalchemy",
@@ -135,6 +171,14 @@ INITIAL_RULES: tuple[Rule, ...] = (
         and not stack.has_any("mypy", "pyright", "pytype", category="type_checking"),
         category=ReviewCategory.MISSING,
         message="No type checker detected for a modern Python project. Consider adding mypy or pyright.",
+        safe_change=StackChange(
+            summary="Add mypy to accepted stack metadata.",
+            details=(
+                "Leave dependency files unchanged.",
+                "Generate the mypy skill so agents receive typing guidance.",
+            ),
+            add_signals=(("mypy", "type_checking"),),
+        ),
     ),
     Rule(
         id="async-stack-consistency",

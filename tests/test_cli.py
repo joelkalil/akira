@@ -52,6 +52,7 @@ def test_review_help_documents_options() -> None:
     assert "compatibility and best-practice findings" in result.stdout
     assert "--path" in result.stdout
     assert "--strict" in result.stdout
+    assert "--auto-apply" in result.stdout
 
 
 def test_fingerprint_command_collects_files_and_parse_failures(tmp_path: Path) -> None:
@@ -121,6 +122,103 @@ def test_review_strict_fails_for_incompatibilities(tmp_path: Path) -> None:
 
     assert result.exit_code == 1
     assert "alembic-needs-sqlalchemy" in result.stdout
+
+
+def test_review_auto_apply_updates_stack_and_regenerates_skills(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    output_dir = tmp_path / ".akira"
+    project.mkdir()
+    (project / "pyproject.toml").write_text(
+        """
+[project]
+requires-python = ">=3.12"
+dependencies = [
+    "ruff==0.8.0",
+    "black==24.0.0",
+]
+""".strip(),
+        encoding="utf-8",
+    )
+    (project / "tests").mkdir()
+    (project / "tests" / "test_service.py").write_text(
+        "import unittest\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "review",
+            "--path",
+            str(project),
+            "--output",
+            str(output_dir),
+            "--auto-apply",
+        ],
+    )
+
+    stack = (output_dir / "stack.md").read_text(encoding="utf-8")
+    assert result.exit_code == 0
+    assert "Accepted changes: 3" in result.stdout
+    assert "Skipped changes: 0" in result.stdout
+    assert "Regenerated affected skills." in result.stdout
+    assert "- **Framework**: pytest" in stack
+    assert "- **Type checker**: mypy" in stack
+    assert "black" not in stack
+    assert (output_dir / "skills" / "python" / "testing" / "pytest.md").exists()
+    assert not (output_dir / "skills" / "python" / "testing" / "unittest.md").exists()
+    assert (output_dir / "skills" / "python" / "tooling" / "mypy.md").exists()
+
+
+def test_review_skip_leaves_artifacts_unchanged(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    output_dir = tmp_path / ".akira"
+    project.mkdir()
+    (project / "pyproject.toml").write_text(
+        """
+[project]
+requires-python = ">=3.12"
+dependencies = []
+""".strip(),
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app,
+        ["review", "--path", str(project), "--output", str(output_dir)],
+        input="n\n",
+    )
+
+    assert result.exit_code == 0
+    assert "Accepted changes: 0" in result.stdout
+    assert "Skipped changes: 1" in result.stdout
+    assert not (output_dir / "stack.md").exists()
+    assert not (output_dir / "skills").exists()
+
+
+def test_review_details_show_migration_guidance_before_accepting(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "project"
+    output_dir = tmp_path / ".akira"
+    project.mkdir()
+    (project / "tests").mkdir()
+    (project / "tests" / "test_service.py").write_text(
+        "import unittest\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app,
+        ["review", "--path", str(project), "--output", str(output_dir)],
+        input="details\ny\n",
+    )
+
+    assert result.exit_code == 0
+    assert "Migration guidance:" in result.stdout
+    assert "testing/unittest-to-pytest" in result.stdout
+    assert "Accepted changes: 1" in result.stdout
+    assert (output_dir / "skills" / "python" / "testing" / "pytest.md").exists()
 
 
 def test_fingerprint_writes_markdown_to_output(tmp_path: Path) -> None:
