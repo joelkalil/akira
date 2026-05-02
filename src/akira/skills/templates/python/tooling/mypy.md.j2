@@ -32,7 +32,11 @@ user-invocable: false
   across call sites.
 - Keep public protocols and aliases near the code that owns them.
 
-{% if python_version | default("") is string and python_version | default("") >= "3.10" %}
+{% set _python_version = python_version | default("") %}
+{% set _python_version_parts = _python_version.split(".") if _python_version is string else [] %}
+{% set _python_major = (_python_version_parts[0] | int) if (_python_version_parts | length) > 0 else 0 %}
+{% set _python_minor = (_python_version_parts[1] | int) if (_python_version_parts | length) > 1 else 0 %}
+{% if _python_major > 3 or (_python_major == 3 and _python_minor >= 10) %}
 ## Python 3.10+
 
 - Prefer `X | None` over `Optional[X]`.

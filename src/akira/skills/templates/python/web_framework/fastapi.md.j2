@@ -34,7 +34,7 @@ user-invocable: false
 - Keep request and response models separate when fields differ.
 {% endif %}
 
-{% if async_stack | default(false) %}
+{% if is_async_app | default(false) %}
 ## Async Rules
 
 - Keep async endpoints non-blocking.

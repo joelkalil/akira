@@ -31,7 +31,11 @@ user-invocable: false
 - Add type hints to public functions, methods, and dataclasses.
 - Prefer built-in generics such as `list[str]` and `dict[str, int]`.
 - Use `X | None` for optional values on Python 3.10+ projects.
-{% if python_version | default("") is string and python_version | default("") < "3.10" %}
+{% set _python_version = python_version | default("") %}
+{% set _python_version_parts = _python_version.split(".") if _python_version is string else [] %}
+{% set _python_major = (_python_version_parts[0] | int) if (_python_version_parts | length) > 0 else 0 %}
+{% set _python_minor = (_python_version_parts[1] | int) if (_python_version_parts | length) > 1 else 0 %}
+{% if _python_major < 3 or (_python_major == 3 and _python_minor < 10) %}
 - For older Python targets, match the project's existing `typing.Optional`
   and `typing.Union` style.
 {% endif %}
