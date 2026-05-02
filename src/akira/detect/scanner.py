@@ -5,16 +5,27 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable
 
+from akira.detect.detectors import FrameworkDetector, PythonDetector, ToolingDetector
 from akira.detect.detectors.base import BaseDetector
 from akira.detect.models import Signal, StackInfo
+
+DEFAULT_DETECTORS = (PythonDetector, FrameworkDetector, ToolingDetector)
 
 
 class Scanner:
     """Run detectors and aggregate their signals into a stack model."""
 
     def __init__(self, detectors: Iterable[BaseDetector] | None = None) -> None:
+        detector_instances = (
+            tuple(detector() for detector in DEFAULT_DETECTORS)
+            if detectors is None
+            else tuple(detectors)
+        )
         self.detectors = tuple(
-            sorted(detectors or (), key=lambda detector: (detector.order, detector.name))
+            sorted(
+                detector_instances,
+                key=lambda detector: (detector.order, detector.name),
+            )
         )
 
     def collect_signals(self, project_root: Path) -> list[Signal]:
