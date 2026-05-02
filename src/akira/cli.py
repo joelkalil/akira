@@ -193,10 +193,22 @@ def craft(
             callback=_validate_agent,
         ),
     ] = DEFAULT_AGENT,
+    output: Annotated[
+        Path,
+        typer.Option(
+            "--output",
+            "-o",
+            help="Directory containing generated Akira files.",
+            file_okay=False,
+            dir_okay=True,
+            writable=True,
+            resolve_path=True,
+        ),
+    ] = DEFAULT_OUTPUT_DIR,
 ) -> None:
     """Install generated Akira context for a coding agent."""
     try:
-        result = craft_context(path, agent=agent)
+        result = craft_context(path, agent=agent, artifact_dir=output)
     except MissingCraftPrerequisites as exc:
         typer.echo("Missing Akira artifacts:")
         for prerequisite in exc.missing:

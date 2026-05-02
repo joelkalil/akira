@@ -77,24 +77,43 @@ def validate_craft_prerequisites(
 ) -> tuple[CraftPrerequisite, ...]:
     """Return missing generated artifacts required by craft."""
     checks = (
-        CraftPrerequisite(
-            artifact_dir / "stack.md",
-            "Run `akira detect --path <project>` to generate stack.md.",
+        (
+            CraftPrerequisite(
+                artifact_dir / "stack.md",
+                "Run `akira detect --path <project>` to generate stack.md.",
+            ),
+            "file",
         ),
-        CraftPrerequisite(
-            artifact_dir / "fingerprint.md",
-            "Run `akira fingerprint --path <project>` to generate fingerprint.md.",
+        (
+            CraftPrerequisite(
+                artifact_dir / "fingerprint.md",
+                "Run `akira fingerprint --path <project>` to generate fingerprint.md.",
+            ),
+            "file",
         ),
-        CraftPrerequisite(
-            artifact_dir / "skills",
-            "Run `akira detect --path <project>` to generate the skill tree.",
+        (
+            CraftPrerequisite(
+                artifact_dir / "skills",
+                "Run `akira detect --path <project>` to generate the skill tree.",
+            ),
+            "dir",
         ),
-        CraftPrerequisite(
-            artifact_dir / "skills" / "SKILL.md",
-            "Run `akira detect --path <project>` to generate the router skill.",
+        (
+            CraftPrerequisite(
+                artifact_dir / "skills" / "SKILL.md",
+                "Run `akira detect --path <project>` to generate the router skill.",
+            ),
+            "file",
         ),
     )
-    return tuple(item for item in checks if not item.path.exists())
+    missing: list[CraftPrerequisite] = []
+    for item, expected_type in checks:
+        if expected_type == "file" and not item.path.is_file():
+            missing.append(item)
+        if expected_type == "dir" and not item.path.is_dir():
+            missing.append(item)
+
+    return tuple(missing)
 
 
 def get_agent_adapter(agent: str) -> BaseAgentAdapter:
