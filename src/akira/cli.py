@@ -9,7 +9,7 @@ import typer
 
 from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR, SUPPORTED_AGENTS
 from akira.detect import scan_project, write_stack_markdown
-from akira.skills import generate_skills
+from akira.skills import generate_skills, install_claude_skills
 
 app = typer.Typer(
     help="Akira detects project context and generates agent skills.",
@@ -73,6 +73,9 @@ def detect(
     stack = scan_project(path)
     stack_path = write_stack_markdown(output, stack)
     skill_paths = generate_skills(stack, output)
+    installed_paths = ()
+    if agent == "claude-code":
+        installed_paths = install_claude_skills(path, output)
 
     typer.echo(f"Project path: {path}")
     typer.echo(f"Agent: {agent}")
@@ -80,6 +83,9 @@ def detect(
     typer.echo(f"Wrote: {stack_path}")
     for skill in skill_paths:
         typer.echo(f"Wrote: {skill.path}")
+    for installed in installed_paths:
+        if installed.status in {"installed", "updated"}:
+            typer.echo(f"{installed.status.title()}: {installed.path}")
 
 
 def main() -> None:

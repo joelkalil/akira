@@ -103,6 +103,44 @@ dependencies = ["fastapi==0.115.0"]
     assert f"Wrote: {stack_path}" in result.stdout
 
 
+def test_detect_installs_generated_skills_for_claude_code(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    output_dir = tmp_path / ".akira"
+    project.mkdir()
+    (project / "pyproject.toml").write_text(
+        """
+[project]
+requires-python = ">=3.12"
+dependencies = ["pytest==8.0.0"]
+""".strip(),
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "detect",
+            "--path",
+            str(project),
+            "--output",
+            str(output_dir),
+            "--agent",
+            "claude-code",
+        ],
+    )
+
+    installed_router = (
+        project / ".claude" / "skills" / "akira" / "SKILL.md"
+    )
+    installed_stack = (
+        project / ".claude" / "skills" / "akira" / "stack.md"
+    )
+    assert result.exit_code == 0
+    assert installed_router.exists()
+    assert installed_stack.exists()
+    assert f"Installed: {installed_router}" in result.stdout
+
+
 def test_package_script_points_to_cli_main() -> None:
     pyproject = tomllib.loads(Path("pyproject.toml").read_text())
 
