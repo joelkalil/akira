@@ -1,0 +1,30 @@
+<svg width="1254" height="1254" viewBox="0 0 1254 1254" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Akira logo</title>
+  <desc id="desc">A dark square Akira logo with red circuit traces, a fingerprint mark, and the Akira wordmark.</desc>
+  <rect width="1254" height="1254" fill="#030812"/>
+  <circle cx="627" cy="525" r="338" fill="#050B16" stroke="#071323" stroke-width="2"/>
+  <path d="M466 638C459 572 468 531 497 489V422L442 367" stroke="#FF2633" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M506 625C501 543 522 497 542 467V414L608 348V242" stroke="#FF2633" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M544 671C621 658 599 566 676 530C706 516 747 509 794 524" stroke="#FF2633" stroke-width="15" stroke-linecap="round"/>
+  <path d="M571 703C655 675 637 581 715 564C772 551 806 593 810 654" stroke="#FF2633" stroke-width="15" stroke-linecap="round"/>
+  <path d="M574 479L674 370H713L788 293" stroke="#FF2633" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="440" cy="365" r="20" stroke="#FF2633" stroke-width="15"/>
+  <circle cx="608" cy="242" r="21" stroke="#FF2633" stroke-width="15"/>
+  <circle cx="788" cy="285" r="21" stroke="#FF2633" stroke-width="15"/>
+  <path d="M656 452C716 451 772 476 813 516C853 556 877 611 877 671" stroke="#F6F7F5" stroke-width="15" stroke-linecap="round"/>
+  <path d="M730 520C776 552 802 601 800 654" stroke="#F6F7F5" stroke-width="15" stroke-linecap="round"/>
+  <path d="M727 650C718 712 687 762 637 795" stroke="#F6F7F5" stroke-width="15" stroke-linecap="round"/>
+  <path d="M665 607C670 677 638 733 572 772" stroke="#F6F7F5" stroke-width="15" stroke-linecap="round"/>
+  <path d="M622 610C625 669 595 718 534 754" stroke="#F6F7F5" stroke-width="15" stroke-linecap="round"/>
+  <path d="M693 740C724 704 740 673 744 651" stroke="#F6F7F5" stroke-width="15" stroke-linecap="round"/>
+  <path d="M277 966L354 823H391L468 966H419L373 879L327 966H277Z" fill="#F6F7F5"/>
+  <path d="M339 927L372 868L406 927H339Z" fill="#FF2633"/>
+  <path d="M525 823H568V966H525V823ZM624 823H681L604 893L681 966H622L568 909L624 823Z" fill="#F6F7F5"/>
+  <path d="M760 823H803V966H760V823Z" fill="#F6F7F5"/>
+  <path d="M884 823H1022C1052 823 1074 845 1074 875C1074 904 1052 925 1022 925H935V966H892V885H1018C1026 885 1031 881 1031 874C1031 867 1026 863 1018 863H884V823Z" fill="#F6F7F5"/>
+  <path d="M1103 966L1180 823H1217L1294 966H1245L1199 879L1153 966H1103Z" fill="#F6F7F5" transform="translate(-118 0)"/>
+  <path d="M1059 927L1092 868L1126 927H1059Z" fill="#FF2633"/>
+  <path d="M216 1027H240" stroke="#FF2633" stroke-width="7" stroke-linecap="square"/>
+  <text x="282" y="1037" fill="#98A1B3" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" letter-spacing="14">STACK INTELLIGENCE FOR AI AGENTS</text>
+  <path d="M1016 1027H1040" stroke="#FF2633" stroke-width="7" stroke-linecap="square"/>
+</svg>
