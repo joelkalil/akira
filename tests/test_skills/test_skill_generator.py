@@ -23,6 +23,7 @@ def test_detected_tools_generate_expected_skill_paths(
         "skills/python/SKILL.md",
         "skills/python/ci_cd/github_actions.md",
         "skills/python/database/alembic.md",
+        "skills/python/database/postgres.md",
         "skills/python/database/sqlalchemy.md",
         "skills/python/infra/docker.md",
         "skills/python/testing/pytest.md",
