@@ -23,6 +23,7 @@ def test_help_lists_detect_command() -> None:
     assert "Akira detects project context" in result.stdout
     assert "detect" in result.stdout
     assert "fingerprint" in result.stdout
+    assert "craft" in result.stdout
 
 
 def test_detect_help_documents_options() -> None:
@@ -53,6 +54,16 @@ def test_review_help_documents_options() -> None:
     assert "--path" in result.stdout
     assert "--strict" in result.stdout
     assert "--auto-apply" in result.stdout
+
+
+def test_craft_help_documents_options() -> None:
+    result = runner.invoke(app, ["craft", "--help"])
+
+    assert result.exit_code == 0
+    assert "generated Akira context" in result.stdout
+    assert "--path" in result.stdout
+    assert "--agent" in result.stdout
+    assert "--output" in result.stdout
 
 
 def test_fingerprint_command_collects_files_and_parse_failures(tmp_path: Path) -> None:
@@ -399,6 +410,180 @@ dependencies = ["pytest==8.0.0"]
     assert installed_router.exists()
     assert installed_stack.exists()
     assert f"Installed: {installed_router}" in result.stdout
+
+
+def test_craft_installs_generated_context_for_claude_code_by_default(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "project"
+    output_dir = tmp_path / ".akira"
+    project.mkdir()
+    (project / "pyproject.toml").write_text(
+        """
+[project]
+requires-python = ">=3.12"
+dependencies = ["pytest==8.0.0"]
+""".strip(),
+        encoding="utf-8",
+    )
+    (project / "service.py").write_text(
+        """
+def load_value(name: str) -> str:
+    if not name:
+        return "fallback"
+    return f"Hello {name}"
+""".strip(),
+        encoding="utf-8",
+    )
+
+    detect_result = runner.invoke(
+        app,
+        [
+            "detect",
+            "--path",
+            str(project),
+            "--output",
+            str(output_dir),
+            "--agent",
+            "cursor",
+        ],
+    )
+    fingerprint_result = runner.invoke(
+        app,
+        [
+            "fingerprint",
+            "--path",
+            str(project),
+            "--output",
+            str(output_dir),
+        ],
+    )
+    craft_result = runner.invoke(
+        app,
+        ["craft", "--path", str(project), "--output", str(output_dir)],
+    )
+
+    target = project / ".claude" / "skills" / "akira"
+    assert detect_result.exit_code == 0
+    assert fingerprint_result.exit_code == 0
+    assert craft_result.exit_code == 0
+    assert (target / "SKILL.md").exists()
+    assert (target / "stack.md").exists()
+    assert (target / "fingerprint.md").exists()
+    assert (target / "python" / "testing" / "pytest.md").exists()
+    assert f"Agent: {DEFAULT_AGENT}" in craft_result.stdout
+    assert f"Installed: {target / 'SKILL.md'}" in craft_result.stdout
+
+
+def test_craft_is_idempotent(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    artifacts = tmp_path / ".akira"
+    project.mkdir()
+    (artifacts / "skills").mkdir(parents=True)
+    (artifacts / "skills" / "SKILL.md").write_text("router", encoding="utf-8")
+    (artifacts / "stack.md").write_text("stack", encoding="utf-8")
+    (artifacts / "fingerprint.md").write_text("fingerprint", encoding="utf-8")
+
+    first = runner.invoke(
+        app,
+        ["craft", "--path", str(project), "--output", str(artifacts)],
+    )
+    second = runner.invoke(
+        app,
+        ["craft", "--path", str(project), "--output", str(artifacts)],
+    )
+
+    assert first.exit_code == 0
+    assert second.exit_code == 0
+    assert "Installed:" in first.stdout
+    assert "Unchanged:" in second.stdout
+
+
+def test_craft_reports_missing_artifacts_with_actions(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    output_dir = tmp_path / ".akira"
+    project.mkdir()
+
+    result = runner.invoke(
+        app,
+        ["craft", "--path", str(project), "--output", str(output_dir)],
+    )
+
+    assert result.exit_code == 1
+    assert "Missing Akira artifacts:" in result.stdout
+    assert "Missing:" in result.stdout
+    assert "stack.md" in result.stdout
+    assert "fingerprint.md" in result.stdout
+    assert "Run `akira detect --path <project>`" in result.stdout
+    assert "Run `akira fingerprint --path <project>`" in result.stdout
+    assert not (project / ".claude").exists()
+
+
+def test_craft_reports_unimplemented_supported_agent(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    artifacts = tmp_path / ".akira"
+    project.mkdir()
+    (artifacts / "skills").mkdir(parents=True)
+    (artifacts / "skills" / "SKILL.md").write_text("router", encoding="utf-8")
+    (artifacts / "stack.md").write_text("stack", encoding="utf-8")
+    (artifacts / "fingerprint.md").write_text("fingerprint", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "craft",
+            "--path",
+            str(project),
+            "--output",
+            str(artifacts),
+            "--agent",
+            "codex",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "Agent adapter 'codex' is not implemented for craft yet" in result.stdout
+    assert not (project / ".codex").exists()
+
+
+def test_craft_defaults_to_current_working_directory_artifacts(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "project"
+    project.mkdir()
+
+    with runner.isolated_filesystem():
+        artifacts = Path.cwd() / DEFAULT_OUTPUT_DIR
+        (artifacts / "skills").mkdir(parents=True)
+        (artifacts / "skills" / "SKILL.md").write_text("router", encoding="utf-8")
+        (artifacts / "stack.md").write_text("stack", encoding="utf-8")
+        (artifacts / "fingerprint.md").write_text("fingerprint", encoding="utf-8")
+
+        result = runner.invoke(app, ["craft", "--path", str(project)])
+
+    assert result.exit_code == 0
+    assert (project / ".claude" / "skills" / "akira" / "SKILL.md").exists()
+    assert f"Artifacts: {artifacts}" in result.stdout
+
+
+def test_craft_rejects_artifacts_with_wrong_path_types(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    artifacts = tmp_path / ".akira"
+    project.mkdir()
+    (artifacts / "stack.md").mkdir(parents=True)
+    (artifacts / "fingerprint.md").write_text("fingerprint", encoding="utf-8")
+    (artifacts / "skills").write_text("not a directory", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["craft", "--path", str(project), "--output", str(artifacts)],
+    )
+
+    assert result.exit_code == 1
+    assert f"Missing: {artifacts / 'stack.md'}" in result.stdout
+    assert f"Missing: {artifacts / 'skills'}" in result.stdout
+    assert f"Missing: {artifacts / 'skills' / 'SKILL.md'}" in result.stdout
+    assert not (project / ".claude").exists()
 
 
 def test_package_script_points_to_cli_main() -> None:
