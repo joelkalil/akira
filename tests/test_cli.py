@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+import tarfile
 import tomllib
 from pathlib import Path
 from zipfile import ZipFile
@@ -600,24 +601,70 @@ def test_package_script_points_to_cli_main() -> None:
     assert pyproject["project"]["scripts"]["akira"] == "akira.cli:main"
 
 
-def test_wheel_build_includes_jinja_templates(tmp_path: Path) -> None:
+def test_build_backend_and_package_discovery_are_configured() -> None:
+    pyproject = tomllib.loads(Path("pyproject.toml").read_text())
+
+    assert pyproject["build-system"]["build-backend"] == "hatchling.build"
+    assert pyproject["build-system"]["requires"] == ["hatchling>=1.26"]
+    assert pyproject["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"] == [
+        "src/akira"
+    ]
+    assert pyproject["project"]["requires-python"] == ">=3.11"
+
+
+def test_release_docs_include_install_smoke_steps_and_name_fallbacks() -> None:
+    release_docs = Path("docs/RELEASE.md").read_text(encoding="utf-8")
+
+    assert "python -m build" in release_docs
+    assert "pip install dist\\*.whl" in release_docs
+    assert "uv tool install --force dist\\akira-*.whl" in release_docs
+    assert "uvx --from akira-cli akira --help" in release_docs
+    assert "uvx --from akira-skills akira --help" in release_docs
+    assert 'akira = "akira.cli:main"' in release_docs
+
+
+def test_build_artifacts_include_jinja_templates(tmp_path: Path) -> None:
     uv = shutil.which("uv")
     if uv is None:
-        pytest.skip("uv is required to build the wheel for package-data validation.")
+        pytest.skip("uv is required to build artifacts for package-data validation.")
 
     subprocess.run(
-        [uv, "build", "--wheel", "--out-dir", str(tmp_path)],
+        [uv, "build", "--out-dir", str(tmp_path)],
         check=True,
         cwd=Path.cwd(),
         stdout=subprocess.DEVNULL,
     )
     wheel_path = next(tmp_path.glob("*.whl"))
+    sdist_path = next(tmp_path.glob("*.tar.gz"))
 
     with ZipFile(wheel_path) as archive:
-        names = set(archive.namelist())
+        wheel_names = set(archive.namelist())
+        entry_points_name = next(
+            name for name in wheel_names if name.endswith(".dist-info/entry_points.txt")
+        )
+        entry_points = archive.read(entry_points_name).decode("utf-8")
+    with tarfile.open(sdist_path, "r:gz") as archive:
+        sdist_names = set(archive.getnames())
 
-    assert "akira/detect/templates/stack.md.j2" in names
-    assert "akira/fingerprint/templates/fingerprint.md.j2" in names
-    assert "akira/skills/templates/base.md.j2" in names
-    assert "akira/skills/templates/python/python.md.j2" in names
-    assert "akira/skills/templates/python/testing/pytest.md.j2" in names
+    expected_wheel_paths = {
+        "akira/detect/templates/stack.md.j2",
+        "akira/fingerprint/templates/fingerprint.md.j2",
+        "akira/skills/templates/base.md.j2",
+        "akira/skills/templates/python/python.md.j2",
+        "akira/skills/templates/python/testing/pytest.md.j2",
+    }
+    expected_sdist_suffixes = {
+        "src/akira/detect/templates/stack.md.j2",
+        "src/akira/fingerprint/templates/fingerprint.md.j2",
+        "src/akira/skills/templates/base.md.j2",
+        "src/akira/skills/templates/python/python.md.j2",
+        "src/akira/skills/templates/python/testing/pytest.md.j2",
+    }
+
+    assert expected_wheel_paths <= wheel_names
+    assert "[console_scripts]" in entry_points
+    assert "akira = akira.cli:main" in entry_points
+    assert all(
+        any(name.endswith(suffix) for name in sdist_names)
+        for suffix in expected_sdist_suffixes
+    )

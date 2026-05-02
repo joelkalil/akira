@@ -161,3 +161,6 @@ uv run akira fingerprint --path tests/fixtures/style_projects/consistent --outpu
 
 Manual release validation targets are tracked in
 [`docs/VALIDATION.md`](docs/VALIDATION.md).
+
+Release build, install, smoke-test, fallback package-name, and publish steps are
+tracked in [`docs/RELEASE.md`](docs/RELEASE.md).
