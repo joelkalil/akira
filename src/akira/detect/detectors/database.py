@@ -54,8 +54,12 @@ class DatabaseDetector(BaseDetector):
             if package in dependencies:
                 emit(package, "dependencies", 0.9)
 
+        remaining_packages = self.DATABASE_PACKAGES - detected
+        if not remaining_packages:
+            return signals
+
         imports = scan_imports(project_root)
-        for package in self.DATABASE_PACKAGES:
+        for package in remaining_packages:
             if package_to_import_name(package) in imports:
                 emit(package, "source imports", 0.75)
 

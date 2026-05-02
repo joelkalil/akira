@@ -6,6 +6,8 @@ from pathlib import Path
 import yaml
 
 from akira.detect import Scanner, render_stack_markdown
+from akira.detect.models import ToolInfo
+from akira.detect.renderer import tool_label, tool_value
 
 
 def test_minimal_project_stack_markdown_has_frontmatter_and_runtime(
@@ -114,3 +116,15 @@ strict = true
 def _frontmatter(content: str) -> dict[str, str]:
     _, raw_frontmatter, _ = content.split("---", 2)
     return yaml.safe_load(raw_frontmatter)
+
+
+def test_unknown_tool_label_uses_tool_name_not_category() -> None:
+    tool = ToolInfo(name="psycopg2-binary", category="database")
+
+    assert tool_label(tool) == "Psycopg2 Binary"
+
+
+def test_pre_commit_value_ignores_version_for_boolean_presence() -> None:
+    tool = ToolInfo(name="pre-commit", category="pre_commit", version="3.8.0")
+
+    assert tool_value(tool) == "yes"

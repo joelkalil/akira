@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from jinja2 import Environment, PackageLoader, StrictUndefined
 
 from akira import __version__
 from akira.detect.models import StackInfo, ToolInfo
@@ -100,7 +100,7 @@ def render_stack_markdown(
     """Render stack.md content for detected project stack."""
     timestamp = generated_at or datetime.now(timezone.utc)
     env = Environment(
-        loader=FileSystemLoader(Path(__file__).parent / "templates"),
+        loader=PackageLoader("akira.detect", "templates"),
         autoescape=False,
         keep_trailing_newline=True,
         trim_blocks=True,
@@ -153,9 +153,14 @@ def build_active_skills(stack: StackInfo) -> tuple[ActiveSkill, ...]:
     return tuple(ActiveSkill(path=path) for path in paths)
 
 
+def _humanize_tool_name(name: str) -> str:
+    """Return a readable label derived from a tool name."""
+    return name.replace("-", " ").replace("_", " ").title()
+
+
 def tool_label(tool: ToolInfo) -> str:
     """Return the display label for a detected tool."""
-    return TOOL_LABELS.get(tool.name, tool.category.replace("_", " ").title())
+    return TOOL_LABELS.get(tool.name, _humanize_tool_name(tool.name))
 
 
 def tool_value(tool: ToolInfo) -> str:
@@ -168,7 +173,7 @@ def tool_value(tool: ToolInfo) -> str:
     elif tool.name == "github-actions":
         name = "GitHub Actions"
     elif tool.name == "pre-commit":
-        name = "yes"
+        return "yes"
     elif tool.name == "sqlalchemy":
         name = "SQLAlchemy"
     elif tool.name == "docker-compose":

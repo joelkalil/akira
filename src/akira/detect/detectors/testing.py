@@ -70,11 +70,19 @@ class TestingDetector(BaseDetector):
             if tool in dependencies:
                 emit(tool, "dependencies", 0.9)
 
-        imports = scan_imports(project_root)
-        if "unittest" in imports:
-            emit("unittest", "source imports", 0.75)
-        for tool in self.TESTING_TOOLS:
-            if package_to_import_name(tool) in imports:
-                emit(tool, "source imports", 0.75)
+        if detected:
+            return signals
+
+        remaining_import_signals = {"unittest", *self.TESTING_TOOLS}
+        if remaining_import_signals:
+            imports = scan_imports(project_root)
+            if "unittest" in remaining_import_signals and "unittest" in imports:
+                emit("unittest", "source imports", 0.75)
+            for tool in self.TESTING_TOOLS:
+                if (
+                    tool in remaining_import_signals
+                    and package_to_import_name(tool) in imports
+                ):
+                    emit(tool, "source imports", 0.75)
 
         return signals
