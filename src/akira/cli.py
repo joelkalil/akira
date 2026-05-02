@@ -8,6 +8,7 @@ from typing import Annotated
 import typer
 
 from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR, SUPPORTED_AGENTS
+from akira.detect import scan_project, write_stack_markdown
 
 app = typer.Typer(
     help="Akira detects project context and generates agent skills.",
@@ -68,9 +69,13 @@ def detect(
     ] = DEFAULT_OUTPUT_DIR,
 ) -> None:
     """Detect a project's stack and prepare agent skill output."""
+    stack = scan_project(path)
+    stack_path = write_stack_markdown(output, stack)
+
     typer.echo(f"Project path: {path}")
     typer.echo(f"Agent: {agent}")
     typer.echo(f"Output: {output}")
+    typer.echo(f"Wrote: {stack_path}")
 
 
 def main() -> None:

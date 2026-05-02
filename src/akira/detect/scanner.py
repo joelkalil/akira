@@ -5,11 +5,25 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable
 
-from akira.detect.detectors import FrameworkDetector, PythonDetector, ToolingDetector
+from akira.detect.detectors import (
+    DatabaseDetector,
+    FrameworkDetector,
+    InfrastructureDetector,
+    PythonDetector,
+    TestingDetector,
+    ToolingDetector,
+)
 from akira.detect.detectors.base import BaseDetector
 from akira.detect.models import Signal, StackInfo
 
-DEFAULT_DETECTORS = (PythonDetector, FrameworkDetector, ToolingDetector)
+DEFAULT_DETECTORS = (
+    PythonDetector,
+    FrameworkDetector,
+    ToolingDetector,
+    TestingDetector,
+    DatabaseDetector,
+    InfrastructureDetector,
+)
 
 
 class Scanner:
