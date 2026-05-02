@@ -10,6 +10,7 @@ import typer
 from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR, SUPPORTED_AGENTS
 from akira.detect import scan_project, write_stack_markdown
 from akira.fingerprint import fingerprint_project, write_fingerprint_markdown
+from akira.review import analyze_stack, render_review
 from akira.skills import generate_skills, install_claude_skills
 
 app = typer.Typer(
@@ -153,6 +154,38 @@ def fingerprint(
     typer.echo(f"Patterns extracted: {len(analysis.patterns)}")
     typer.echo(f"Confidence: {analysis.confidence:.2f}")
     typer.echo(f"Wrote: {fingerprint_path}")
+
+
+@app.command()
+def review(
+    path: Annotated[
+        Path,
+        typer.Option(
+            "--path",
+            "-p",
+            help="Project directory to review.",
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            readable=True,
+            resolve_path=True,
+        ),
+    ] = Path("."),
+    strict: Annotated[
+        bool,
+        typer.Option(
+            "--strict",
+            help="Exit with a failure code when incompatibilities are found.",
+        ),
+    ] = False,
+) -> None:
+    """Review a detected stack for compatibility and best-practice findings."""
+    stack = scan_project(path)
+    result = analyze_stack(stack)
+    render_review(result)
+
+    if strict and result.has_incompatibilities:
+        raise typer.Exit(1)
 
 
 def main() -> None:
