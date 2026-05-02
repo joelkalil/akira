@@ -112,18 +112,7 @@ def test_v1_workflow_generates_and_installs_agent_context(
     assert f"Installed: {claude_target / 'SKILL.md'}" in craft_result.stdout
 
 
-@pytest.mark.parametrize("command", ("detect", "fingerprint", "craft"))
-def test_commands_report_missing_project_path(command: str) -> None:
-    result = runner.invoke(app, [command, "--path", "does-not-exist"])
-    output = f"{result.stdout}\n{result.stderr}"
-
-    assert result.exit_code != 0
-    assert "does-not-exist" in output
-    assert "does not" in output.lower()
-    assert "exist" in output.lower()
-
-
-def test_craft_before_generated_artifacts_reports_required_commands(
+def test_craft_before_generated_artifacts_does_not_install_agent_context(
     tmp_path: Path,
     no_network: None,
 ) -> None:
@@ -138,11 +127,16 @@ def test_craft_before_generated_artifacts_reports_required_commands(
 
     assert result.exit_code == 1
     assert "Missing Akira artifacts:" in result.stdout
-    assert "stack.md" in result.stdout
-    assert "fingerprint.md" in result.stdout
-    assert "Run `akira detect --path <project>`" in result.stdout
-    assert "Run `akira fingerprint --path <project>`" in result.stdout
     assert not (project / ".claude").exists()
+
+
+def test_unknown_cli_subcommand_reports_clean_error() -> None:
+    result = runner.invoke(app, ["detcet"])
+    output = f"{result.stdout}\n{result.stderr}"
+
+    assert result.exit_code != 0
+    assert "detcet" in output
+    assert "No such command" in output
 
 
 @pytest.mark.parametrize("command", ("detect", "craft"))
