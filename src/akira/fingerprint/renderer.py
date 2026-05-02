@@ -110,11 +110,14 @@ VALUE_LABELS = {
     "single": "Single quotes `'`",
     "single_leading_underscore": "Single leading underscore",
     "sparse": "Sparse",
+    "specific_exceptions": "Specific exceptions",
     "snake_case": "snake_case",
     "triple_double": 'Triple double quotes `"""`',
     "under_30_lines": "Prefers functions under 30 lines",
     "UPPER_SNAKE_CASE": "UPPER_SNAKE_CASE",
     "uses_ternary": "Uses ternary expressions",
+    "logs_caught_exceptions": "Logs caught exceptions",
+    "reraises_after_catch": "Re-raises after catch",
 }
 
 
