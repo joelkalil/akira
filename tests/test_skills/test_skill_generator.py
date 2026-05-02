@@ -129,8 +129,8 @@ def test_root_router_references_project_files_and_active_sub_skills(
     assert frontmatter["name"] == "akira"
     assert "portfolio-service" in frontmatter["description"]
     assert "FastAPI + pytest + ruff" in frontmatter["description"]
-    assert "`stack.md`" in router
-    assert "`fingerprint.md`" in router
+    assert "`../stack.md`" in router
+    assert "`../fingerprint.md`" in router
     assert "Read `python/SKILL.md` when working with Python modules" in router
     assert (
         "Read `python/web_framework/fastapi.md` when working with FastAPI endpoints"
