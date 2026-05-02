@@ -27,23 +27,29 @@ def apply_review_findings(
 ) -> tuple[StackInfo, tuple[AppliedReviewChange, ...]]:
     """Apply accepted safe findings and regenerate stack-dependent artifacts."""
     accepted_stack = stack
-    applied: list[AppliedReviewChange] = []
+    changed_findings: list[Finding] = []
 
     for finding in findings:
         updated_stack = apply_finding_to_stack(accepted_stack, finding)
         if updated_stack == accepted_stack:
             continue
 
-        stack_path = write_stack_markdown(output_dir, updated_stack)
-        generated = generate_skills(updated_stack, output_dir)
-        applied.append(
-            AppliedReviewChange(
-                finding=finding,
-                stack_path=stack_path,
-                generated_skills=generated,
-            )
-        )
+        changed_findings.append(finding)
         accepted_stack = updated_stack
+
+    if not changed_findings:
+        return accepted_stack, ()
+
+    stack_path = write_stack_markdown(output_dir, accepted_stack)
+    generated = generate_skills(accepted_stack, output_dir)
+    applied = tuple(
+        AppliedReviewChange(
+            finding=finding,
+            stack_path=stack_path,
+            generated_skills=generated,
+        )
+        for finding in changed_findings
+    )
 
     return accepted_stack, tuple(applied)
 

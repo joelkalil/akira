@@ -115,13 +115,27 @@ dependencies = [
 
 def test_review_strict_fails_for_incompatibilities(tmp_path: Path) -> None:
     project = tmp_path / "project"
+    output_dir = tmp_path / ".akira"
     project.mkdir()
     (project / "alembic.ini").write_text("[alembic]\n", encoding="utf-8")
 
-    result = runner.invoke(app, ["review", "--path", str(project), "--strict"])
+    result = runner.invoke(
+        app,
+        [
+            "review",
+            "--path",
+            str(project),
+            "--output",
+            str(output_dir),
+            "--strict",
+        ],
+    )
 
     assert result.exit_code == 1
     assert "alembic-needs-sqlalchemy" in result.stdout
+    assert "Apply?" not in result.stdout
+    assert not (output_dir / "stack.md").exists()
+    assert not (output_dir / "skills").exists()
 
 
 def test_review_auto_apply_updates_stack_and_regenerates_skills(tmp_path: Path) -> None:
@@ -157,8 +171,10 @@ dependencies = [
         ],
     )
 
-    stack = (output_dir / "stack.md").read_text(encoding="utf-8")
+    stack_path = output_dir / "stack.md"
     assert result.exit_code == 0
+    assert stack_path.exists()
+    stack = stack_path.read_text(encoding="utf-8")
     assert "Accepted changes: 3" in result.stdout
     assert "Skipped changes: 0" in result.stdout
     assert "Regenerated affected skills." in result.stdout

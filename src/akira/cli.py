@@ -12,7 +12,13 @@ import typer
 from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR, SUPPORTED_AGENTS
 from akira.detect import scan_project, write_stack_markdown
 from akira.fingerprint import fingerprint_project, write_fingerprint_markdown
-from akira.review import Finding, ReviewCategory, analyze_stack, apply_review_findings, render_review
+from akira.review import (
+    Finding,
+    ReviewCategory,
+    analyze_stack,
+    apply_review_findings,
+    render_review,
+)
 from akira.skills import generate_skills, install_claude_skills
 
 app = typer.Typer(
@@ -204,6 +210,9 @@ def review(
     stack = scan_project(path)
     result = analyze_stack(stack)
     render_review(result)
+    if strict and result.has_incompatibilities:
+        raise typer.Exit(1)
+
     console = Console()
 
     accepted, skipped = _collect_review_decisions(
@@ -219,9 +228,6 @@ def review(
         output=output,
         console=console,
     )
-
-    if strict and result.has_incompatibilities:
-        raise typer.Exit(1)
 
 
 def _collect_review_decisions(
