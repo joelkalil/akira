@@ -1,8 +1,14 @@
 from __future__ import annotations
 
+from importlib.metadata import PackageNotFoundError, version
+
 import akira
 
 
 def test_package_exposes_version() -> None:
-    assert akira.__version__ == "1.0.0"
+    try:
+        expected_version = version("akira")
+    except PackageNotFoundError:
+        expected_version = "0+unknown"
 
+    assert akira.__version__ == expected_version
