@@ -45,6 +45,15 @@ def test_fingerprint_help_documents_options() -> None:
     assert "--output" in result.stdout
 
 
+def test_review_help_documents_options() -> None:
+    result = runner.invoke(app, ["review", "--help"])
+
+    assert result.exit_code == 0
+    assert "compatibility and best-practice findings" in result.stdout
+    assert "--path" in result.stdout
+    assert "--strict" in result.stdout
+
+
 def test_fingerprint_command_collects_files_and_parse_failures(tmp_path: Path) -> None:
     (tmp_path / "valid.py").write_text("VALUE = 1\n", encoding="utf-8")
     (tmp_path / "broken.py").write_text("def broken(:\n    pass\n", encoding="utf-8")
@@ -66,6 +75,52 @@ def test_fingerprint_command_collects_files_and_parse_failures(tmp_path: Path) -
     assert "Parsed: 1" in result.stdout
     assert "Parse failures: 1" in result.stdout
     assert f"Wrote: {fingerprint_path}" in result.stdout
+
+
+def test_review_reports_findings_grouped_by_category(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    project.mkdir()
+    (project / "pyproject.toml").write_text(
+        """
+[project]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi==0.115.0",
+    "ruff==0.8.0",
+    "black==24.0.0",
+    "alembic==1.13.0",
+]
+""".strip(),
+        encoding="utf-8",
+    )
+    (project / "tests").mkdir()
+    (project / "tests" / "test_service.py").write_text(
+        "import unittest\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["review", "--path", str(project)])
+
+    assert result.exit_code == 0
+    assert "Akira Review" in result.stdout
+    assert "Suggestion" in result.stdout
+    assert "Incompatibility" in result.stdout
+    assert "Missing" in result.stdout
+    assert "pytest-over-unittest" in result.stdout
+    assert "ruff-replaces-black-isort" in result.stdout
+    assert "alembic-needs-sqlalchemy" in result.stdout
+    assert "missing-type-checker" in result.stdout
+
+
+def test_review_strict_fails_for_incompatibilities(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    project.mkdir()
+    (project / "alembic.ini").write_text("[alembic]\n", encoding="utf-8")
+
+    result = runner.invoke(app, ["review", "--path", str(project), "--strict"])
+
+    assert result.exit_code == 1
+    assert "alembic-needs-sqlalchemy" in result.stdout
 
 
 def test_fingerprint_writes_markdown_to_output(tmp_path: Path) -> None:
