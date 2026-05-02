@@ -3,6 +3,9 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
+import pytest
+
+from akira.fingerprint import analyzer
 from akira.fingerprint import analyze_project, collect_python_files
 
 
@@ -29,6 +32,24 @@ def test_sampling_honors_sample_size_and_exclude_options(tmp_path: Path) -> None
 
     relative_paths = [path.relative_to(project).as_posix() for path in files]
     assert relative_paths == ["src/demo/a.py", "src/demo/b.py"]
+
+
+def test_sampling_stops_walking_once_sample_size_is_reached(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    project = tmp_path / "project"
+    project.mkdir()
+
+    def fake_walk(root: Path):
+        yield root, [], ["a.py"]
+        raise AssertionError("walk should stop after collecting the sample")
+
+    monkeypatch.setattr(analyzer.os, "walk", fake_walk)
+
+    files = collect_python_files(project, sample_size=1)
+
+    assert [path.relative_to(project).as_posix() for path in files] == ["a.py"]
 
 
 def test_default_sampling_skips_environment_caches_generated_and_akira(
@@ -75,5 +96,28 @@ def test_invalid_python_files_preserve_text_and_parse_error(tmp_path: Path) -> N
     assert file.tree is None
     assert file.parse_error is not None
     assert "line 1" in file.parse_error
+    assert analysis.parsed_files == ()
+    assert analysis.failed_files == (file,)
+
+
+def test_unreadable_python_files_become_parse_failures(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = tmp_path / "unreadable.py"
+    source.write_text("VALUE = 1\n", encoding="utf-8")
+
+    def raise_os_error(*args: object, **kwargs: object) -> None:
+        raise OSError("permission denied")
+
+    monkeypatch.setattr(analyzer.tokenize, "open", raise_os_error)
+    monkeypatch.setattr(Path, "read_text", raise_os_error)
+
+    analysis = analyze_project(tmp_path)
+    file = analysis.files[0]
+
+    assert file.text == ""
+    assert file.tree is None
+    assert file.parse_error == "unreadable file: permission denied"
     assert analysis.parsed_files == ()
     assert analysis.failed_files == (file,)
