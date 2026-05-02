@@ -51,6 +51,7 @@ def test_fastapi_project_stack_markdown_renders_sections_and_active_skills(
         "## Database",
         "## Testing",
         "## Tooling",
+        "## Infrastructure",
         "## Active Skills",
     ):
         assert section in content
@@ -61,6 +62,8 @@ def test_fastapi_project_stack_markdown_renders_sections_and_active_skills(
     assert "- **Migrations**: Alembic 1.14.0" in content
     assert "- **Linter/Formatter**: ruff" in content
     assert "- **Type checker**: mypy" in content
+    assert "- **Container**: Docker" in content
+    assert "- **CI/CD**: GitHub Actions" in content
 
     for skill in (
         "python.md",
@@ -70,6 +73,8 @@ def test_fastapi_project_stack_markdown_renders_sections_and_active_skills(
         "database/alembic.md",
         "tooling/ruff.md",
         "tooling/mypy.md",
+        "infra/docker.md",
+        "ci_cd/github_actions.md",
     ):
         assert f"- `{skill}`" in content
 

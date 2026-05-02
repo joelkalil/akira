@@ -108,6 +108,8 @@ def test_scanner_integration_detects_fastapi_fixture_stack(
     assert stack.has("ruff", category="linting")
     assert stack.has("mypy", category="type_checking")
     assert stack.has("pre-commit", category="pre_commit")
+    assert stack.has("docker", category="infrastructure")
+    assert stack.has("github-actions", category="ci_cd")
 
 
 def test_signal_rejects_invalid_confidence() -> None:
