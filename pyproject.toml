@@ -46,6 +46,8 @@ Homepage = "https://github.com/akira/akira"
 Issues = "https://github.com/akira/akira/issues"
 
 [tool.hatch.build.targets.wheel]
+# Hatchling includes non-Python package data under package directories; keep
+# templates inside src/akira so PackageLoader can find them after installation.
 packages = ["src/akira"]
 
 [tool.pytest.ini_options]

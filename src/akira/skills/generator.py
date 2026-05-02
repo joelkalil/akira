@@ -8,10 +8,8 @@ from typing import Any, Mapping
 
 from jinja2 import Environment, PackageLoader, StrictUndefined
 
+from akira.detect.categories import normalize_skill_category
 from akira.detect.models import StackInfo, ToolInfo
-
-
-TOOLING_CATEGORIES = {"linting", "formatting", "type_checking", "pre_commit"}
 
 
 @dataclass(frozen=True)
@@ -266,12 +264,6 @@ def build_template_context(
     context.update(_infra_context(stack, tools))
     context.update(_ci_context(stack))
     return {key: value for key, value in context.items() if value is not None}
-
-
-def normalize_skill_category(category: str) -> str:
-    """Normalize detector categories to skill template categories."""
-    return "tooling" if category in TOOLING_CATEGORIES else category
-
 
 def _version_context(tools: Mapping[str, ToolInfo]) -> dict[str, str | None]:
     return {
