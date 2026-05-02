@@ -1,58 +1,70 @@
-<p align="center">
-  <img src="docs/assets/akira_logo_horizontal.png" alt="Akira logo" width="360" />
-</p>
+<div align="center">
 
-<h1 align="center">Akira</h1>
+[![Akira](docs/assets/akira_logo_horizontal.png)](https://github.com/akira/akira)
 
-<p align="center">
-  Stack intelligence for AI agents.
-</p>
+[![PyPI](https://img.shields.io/pypi/v/akira?style=for-the-badge&color=ef233c)](https://pypi.org/project/akira/)
+[![Python](https://img.shields.io/pypi/pyversions/akira?style=for-the-badge&logo=python&logoColor=white&color=111827)](https://pypi.org/project/akira/)
+[![License](https://img.shields.io/badge/License-MIT-white?style=for-the-badge)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Alpha-ef233c?style=for-the-badge)](#scope)
 
-<p align="center">
-  <a href="https://pypi.org/project/akira/"><img alt="PyPI" src="https://img.shields.io/pypi/v/akira?style=flat-square"></a>
-  <a href="https://pypi.org/project/akira/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/akira?style=flat-square"></a>
-  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-red?style=flat-square"></a>
-  <img alt="Status" src="https://img.shields.io/badge/status-alpha-0b1220?style=flat-square">
-</p>
+# Akira
 
-Akira is a Python CLI that detects a project's stack, captures its coding
-style, and generates agent-ready context files so AI coding agents can work
-inside the repository's conventions.
+**Stack intelligence for AI agents**
 
-It runs offline, writes inspectable Markdown, and does not depend on an LLM.
+</div>
 
-## Why Akira
+Akira is a local-first Python CLI that detects a project's stack, captures its
+coding style, and generates agent-ready context so coding agents can work inside
+the repository's real conventions.
 
-AI agents are stronger when they understand the project before they edit it.
-Akira turns local repository signals into durable context:
+It does not call an LLM. It reads the project, writes inspectable Markdown, and
+installs deterministic Agent Skills for tools like Claude Code, Cursor, Copilot,
+and Codex.
 
-- Detects Python runtimes, frameworks, databases, test tools, CI, and tooling.
-- Extracts a developer coding fingerprint from real source files.
-- Generates Agent Skills with stack-aware guidance.
-- Reviews detected stack metadata for compatibility and cleanup opportunities.
-- Installs generated context into supported agent targets.
+## Why Akira?
 
-## Install
+Coding agents are usually dropped into a repository cold. Akira gives them the
+missing orientation layer: what stack this project uses, how this developer
+writes code, and which guidance should be active before the first edit happens.
 
-Install globally with `uv`:
+> One scan gives an agent the project map. One fingerprint gives it the local
+> style. One craft step installs the context where the agent can actually use
+> it.
+
+## What Akira Does
+
+```text
+Project --> Akira CLI --> Detectors --> Stack Model --> Skills
+             |              |
+             |              +--> Python, frameworks, testing, databases, CI
+             |
+             +--> Fingerprint --> spacing, imports, naming, docstrings, typing
+```
+
+| Capability | Description |
+| --- | --- |
+| Stack detection | Finds Python runtime, package managers, frameworks, databases, testing tools, CI, infrastructure, and developer tooling. |
+| Coding fingerprint | Extracts style signals from source files: spacing, imports, naming, comments, docstrings, typing, errors, strings, and structure. |
+| Agent Skills | Generates stack-aware Markdown skills with YAML frontmatter from deterministic Jinja2 templates. |
+| Stack review | Reports compatibility and cleanup findings, with optional metadata-only auto-apply behavior. |
+| Agent install | Crafts generated context into supported agent targets: `claude-code`, `cursor`, `copilot`, and `codex`. |
+
+## Quick Start
+
+### Install
 
 ```bash
+# Recommended
 uv tool install akira
-```
 
-Or install with `pip`:
-
-```bash
+# Or use pip
 pip install akira
-```
 
-Run without installing:
-
-```bash
+# Or run once
 uvx akira detect
 ```
 
-## Quick Start
+### Generate Agent Context
 
 ```bash
 akira detect --path .
@@ -61,7 +73,8 @@ akira review --path .
 akira craft --path .
 ```
 
-Akira writes its generated artifacts to `.akira/` by default.
+After the flow finishes, Akira writes local artifacts under `.akira/` and
+installs the generated skills for the selected agent.
 
 ```text
 .akira/
@@ -78,19 +91,22 @@ Akira writes its generated artifacts to `.akira/` by default.
         `-- ...
 ```
 
+> New to Akira? Start with `akira detect --path .`. It scans the project,
+> writes `.akira/stack.md`, generates matching skills, and installs them for the
+> default agent target.
+
+---
+
 ## Commands
 
 ### `akira detect`
 
-Scans a Python project, writes `.akira/stack.md`, generates matching skills,
-and installs them for the selected agent.
+Scans a Python project, writes `.akira/stack.md`, generates matching skills, and
+installs them for the selected agent.
 
 ```bash
 akira detect --path . --agent claude-code --output .akira
 ```
-
-Supported agent targets include `claude-code`, `cursor`, `copilot`, and
-`codex`.
 
 ### `akira fingerprint`
 
@@ -107,10 +123,8 @@ Reviews detected stack metadata for compatibility and best-practice findings.
 ```bash
 akira review --path .
 akira review --path . --strict
+akira review --path . --auto-apply
 ```
-
-Safe metadata-only changes can be accepted interactively or with
-`--auto-apply`.
 
 ### `akira craft`
 
@@ -120,7 +134,8 @@ Installs previously generated Akira artifacts into the selected agent context.
 akira craft --path . --agent claude-code --output .akira
 ```
 
-## Generated Artifacts
+<details>
+<summary><strong>Generated artifacts</strong></summary>
 
 | Artifact | Purpose |
 | --- | --- |
@@ -128,44 +143,62 @@ akira craft --path . --agent claude-code --output .akira
 | `.akira/fingerprint.md` | Style signals such as spacing, naming, imports, typing, comments, docstrings, control flow, error handling, and strings. |
 | `.akira/skills/` | Agent Skills with YAML frontmatter and Markdown guidance generated from templates. |
 
-Example outputs are available in [`docs/examples/stack.md`](docs/examples/stack.md),
-[`docs/examples/fingerprint.md`](docs/examples/fingerprint.md), and
-[`docs/examples/skills/`](docs/examples/skills/).
+Example outputs:
+
+- [`docs/examples/stack.md`](docs/examples/stack.md)
+- [`docs/examples/fingerprint.md`](docs/examples/fingerprint.md)
+- [`docs/examples/skills/`](docs/examples/skills/)
+
+</details>
+
+<details>
+<summary><strong>Supported agent targets</strong></summary>
+
+| Agent | Target |
+| --- | --- |
+| Claude Code | `claude-code` |
+| Cursor | `cursor` |
+| GitHub Copilot | `copilot` |
+| Codex | `codex` |
+
+</details>
+
+---
 
 ## Scope
 
-Akira v1.0 is intentionally narrow:
+Akira v1.0 is intentionally narrow and deterministic.
 
-- Python ecosystem detection.
-- Four CLI commands: `detect`, `fingerprint`, `review`, and `craft`.
-- Offline stack and style analysis.
-- Template-based skill generation.
-- Local agent skill installation.
+| In scope | Out of scope for v1.0 |
+| --- | --- |
+| Python ecosystem detection | JavaScript, TypeScript, Go, Rust, or polyglot detection |
+| Four CLI commands: `detect`, `fingerprint`, `review`, `craft` | Hosted dashboard or web UI |
+| Offline stack and style analysis | LLM-generated or API-enriched skills |
+| Template-based skill generation | Watch mode |
+| Local agent skill installation | MCP server behavior |
 
-Roadmap items include LLM enrichment, multi-language detectors, watch mode,
-hosted documentation, and MCP server behavior.
+Roadmap candidates include multi-language detectors, LLM enrichment, watch mode,
+hosted docs, and an MCP server.
 
 ## Development
 
-Create the development environment:
-
 ```bash
+# Create the dev environment
 uv sync --extra dev
-```
 
-Run the full test suite:
-
-```bash
+# Run the full test suite
 uv run pytest
+
+# Run linting
+uv run ruff check .
 ```
 
-Useful focused checks:
+Focused checks:
 
 ```bash
 uv run pytest tests/test_detect
 uv run pytest tests/test_fingerprint
 uv run pytest tests/test_skills
-uv run ruff check .
 ```
 
 Run the CLI from the working tree:
@@ -175,12 +208,16 @@ uv run akira detect --path tests/fixtures/fastapi_project --output .akira
 uv run akira fingerprint --path tests/fixtures/style_projects/consistent --output .akira
 ```
 
-## Release
+## Documentation
 
-Manual validation targets live in [`docs/VALIDATION.md`](docs/VALIDATION.md).
-Release build, install, smoke-test, fallback package-name, and publish steps
-live in [`docs/RELEASE.md`](docs/RELEASE.md).
+| Resource | Link |
+| --- | --- |
+| Validation checklist | [`docs/VALIDATION.md`](docs/VALIDATION.md) |
+| Release process | [`docs/RELEASE.md`](docs/RELEASE.md) |
+| Example stack output | [`docs/examples/stack.md`](docs/examples/stack.md) |
+| Example fingerprint output | [`docs/examples/fingerprint.md`](docs/examples/fingerprint.md) |
+| Example generated skills | [`docs/examples/skills/`](docs/examples/skills/) |
 
 ## License
 
-Akira is released under the [MIT License](LICENSE).
+MIT - see [LICENSE](LICENSE).
