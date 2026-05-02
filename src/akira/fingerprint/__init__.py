@@ -9,6 +9,7 @@ from akira.fingerprint.analyzer import (
 from akira.fingerprint.models import FingerprintAnalysis, SourceFile, StylePattern
 from akira.fingerprint.renderer import (
     build_fingerprint_sections,
+    format_fingerprint_value,
     render_fingerprint_markdown,
     write_fingerprint_markdown,
 )
@@ -22,6 +23,7 @@ __all__ = [
     "collect_python_files",
     "extract_style_patterns",
     "fingerprint_project",
+    "format_fingerprint_value",
     "render_fingerprint_markdown",
     "write_fingerprint_markdown",
 ]

@@ -205,10 +205,15 @@ def _format_value(pattern: StylePattern) -> str:
 
 
 def _format_raw_value(value: Any) -> str:
+    return format_fingerprint_value(value)
+
+
+def format_fingerprint_value(value: Any) -> str:
+    """Format a structured fingerprint value for human-readable Markdown."""
     if isinstance(value, tuple):
-        return " -> ".join(_format_raw_value(item) for item in value)
+        return " -> ".join(format_fingerprint_value(item) for item in value)
     if isinstance(value, list):
-        return ", ".join(_format_raw_value(item) for item in value)
+        return ", ".join(format_fingerprint_value(item) for item in value)
     if isinstance(value, bool):
         return "yes" if value else "no"
     if isinstance(value, int):
