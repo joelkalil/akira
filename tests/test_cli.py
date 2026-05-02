@@ -40,11 +40,13 @@ def test_detect_rejects_invalid_path() -> None:
 
 
 def test_detect_uses_config_defaults(tmp_path: Path) -> None:
-    result = runner.invoke(app, ["detect", "--path", str(tmp_path)])
+    with runner.isolated_filesystem():
+        expected_output = Path.cwd() / DEFAULT_OUTPUT_DIR
+        result = runner.invoke(app, ["detect", "--path", str(tmp_path)])
 
     assert result.exit_code == 0
     assert f"Agent: {DEFAULT_AGENT}" in result.stdout
-    assert f"Output: {Path.cwd() / DEFAULT_OUTPUT_DIR}" in result.stdout
+    assert f"Output: {expected_output}" in result.stdout
 
 
 def test_detect_rejects_unsupported_agent(tmp_path: Path) -> None:
@@ -71,6 +73,30 @@ def test_detect_rejects_output_file(tmp_path: Path) -> None:
     assert result.exit_code != 0
     assert output_file.name in output
     assert "file" in output.lower()
+
+
+def test_detect_writes_stack_markdown_to_output(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    output_dir = tmp_path / ".akira"
+    project.mkdir()
+    (project / "pyproject.toml").write_text(
+        """
+[project]
+requires-python = ">=3.12"
+dependencies = ["fastapi==0.115.0"]
+""".strip(),
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app,
+        ["detect", "--path", str(project), "--output", str(output_dir)],
+    )
+
+    stack_path = output_dir / "stack.md"
+    assert result.exit_code == 0
+    assert stack_path.exists()
+    assert f"Wrote: {stack_path}" in result.stdout
 
 
 def test_package_script_points_to_cli_main() -> None:
