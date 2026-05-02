@@ -7,7 +7,8 @@ import yaml
 
 from akira.detect import Scanner, render_stack_markdown
 from akira.detect.models import Signal, StackInfo, ToolInfo
-from akira.detect.renderer import tool_label, tool_value
+from akira.detect.renderer import SKILL_HINTS, tool_label, tool_value
+from akira.skills.generator import SKILL_TEMPLATES
 
 
 def test_minimal_project_stack_markdown_has_frontmatter_and_runtime(
@@ -31,7 +32,8 @@ def test_minimal_project_stack_markdown_has_frontmatter_and_runtime(
     assert "- **Package manager**: uv" in content
     assert "## Framework" not in content
     assert "## Active Skills" in content
-    assert "- `python.md`" in content
+    assert "- `python/SKILL.md`" in content
+    assert "- `python/tooling/uv.md`" in content
 
 
 def test_fastapi_project_stack_markdown_renders_sections_and_active_skills(
@@ -66,17 +68,21 @@ def test_fastapi_project_stack_markdown_renders_sections_and_active_skills(
     assert "- **CI/CD**: GitHub Actions" in content
 
     for skill in (
-        "python.md",
-        "web_framework/fastapi.md",
-        "testing/pytest.md",
-        "database/sqlalchemy.md",
-        "database/alembic.md",
-        "tooling/ruff.md",
-        "tooling/mypy.md",
-        "infra/docker.md",
-        "ci_cd/github_actions.md",
+        "python/SKILL.md",
+        "python/tooling/uv.md",
+        "python/web_framework/fastapi.md",
+        "python/testing/pytest.md",
+        "python/database/sqlalchemy.md",
+        "python/database/alembic.md",
+        "python/tooling/ruff.md",
+        "python/tooling/mypy.md",
+        "python/infra/docker.md",
+        "python/ci_cd/github_actions.md",
     ):
         assert f"- `{skill}`" in content
+
+    assert "- `python/infra/docker.md`" in content
+    assert "- `python/infra/docker-compose.md`" not in content
 
 
 def _frontmatter(content: str) -> dict[str, str]:
@@ -127,11 +133,15 @@ def test_stack_markdown_renders_new_infra_ci_and_database_tools(
     ):
         assert row in content
 
-    for skill in (
-        "ci_cd/gitlab_ci.md",
-        "infra/gcp.md",
-        "infra/aws.md",
-        "infra/terraform.md",
-        "database/redis.md",
-    ):
-        assert f"- `{skill}`" in content
+    assert "- `python/infra/gcp.md`" in content
+    assert "- `python/ci_cd/gitlab_ci.md`" not in content
+    assert "- `python/infra/aws.md`" not in content
+    assert "- `python/infra/terraform.md`" not in content
+    assert "- `python/database/redis.md`" not in content
+
+
+def test_active_skill_hints_match_generated_skill_outputs() -> None:
+    generated_paths = {"python/SKILL.md"}
+    generated_paths.update(f"python/{template.output_path}" for template in SKILL_TEMPLATES)
+
+    assert set(SKILL_HINTS.values()) <= generated_paths
