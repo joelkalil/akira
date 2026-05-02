@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -20,8 +20,15 @@ class AgentInstallResult:
 class BaseAgentAdapter(ABC):
     """Install generated Akira artifacts for a specific coding agent."""
 
-    name: str
-    target_relative_dir: Path
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Return the supported agent name."""
+
+    @property
+    @abstractmethod
+    def target_relative_dir(self) -> Path:
+        """Return the project-relative install directory for this agent."""
 
     def target_directory(self, project_root: Path) -> Path:
         """Return the resolved project-local directory for this agent."""

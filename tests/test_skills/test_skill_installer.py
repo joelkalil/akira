@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from akira.skills.installer import install_claude_skills
+import pytest
+
+from akira.skills.installer import install_claude_skills, install_generated_skills
 
 
 def test_install_claude_skills_copies_generated_tree_and_project_references(
@@ -90,3 +92,22 @@ def test_install_claude_skills_removes_stale_akira_files_but_preserves_other_ski
     assert not (target / "akira" / "python" / "testing" / "old.md").exists()
     assert (target / "custom" / "SKILL.md").read_text(encoding="utf-8") == "custom"
     assert any(item.status == "removed" for item in installed)
+
+
+def test_install_generated_skills_rejects_targets_outside_project(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "project"
+    outside = tmp_path / "outside"
+    output = tmp_path / ".akira"
+    project.mkdir()
+    outside.mkdir()
+    (output / "skills").mkdir(parents=True)
+    (output / "skills" / "SKILL.md").write_text("router", encoding="utf-8")
+    (outside / "old.md").write_text("old", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="within the project"):
+        install_generated_skills(project, output, Path("..") / "outside")
+
+    assert (outside / "old.md").read_text(encoding="utf-8") == "old"
+    assert not (outside / "SKILL.md").exists()

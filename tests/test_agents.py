@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from akira.agents import SUPPORTED_AGENT_NAMES, UnsupportedAgent, get_agent_adapter
+from akira.agents.base import BaseAgentAdapter
 
 
 EXPECTED_TARGETS = {
@@ -35,6 +36,11 @@ def test_invalid_agent_lists_supported_names() -> None:
     assert "Unsupported agent 'unknown-agent'" in message
     for agent in EXPECTED_TARGETS:
         assert agent in message
+
+
+def test_base_agent_adapter_is_not_instantiable() -> None:
+    with pytest.raises(TypeError):
+        BaseAgentAdapter()
 
 
 @pytest.mark.parametrize("agent, relative_target", EXPECTED_TARGETS.items())

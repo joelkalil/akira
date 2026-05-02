@@ -31,7 +31,7 @@ class GeneratedSkillInstaller:
     ) -> tuple[InstalledSkillFile, ...]:
         """Copy generated Akira output into project_root/target_relative_dir."""
         source_files = _generated_source_files(output_dir)
-        target_dir = project_root / self.target_relative_dir
+        target_dir = _resolve_project_target(project_root, self.target_relative_dir)
         target_dir.mkdir(parents=True, exist_ok=True)
 
         results: list[InstalledSkillFile] = []
@@ -92,6 +92,17 @@ def _generated_source_files(output_dir: Path) -> dict[Path, Path]:
             files[Path(filename)] = path
 
     return files
+
+
+def _resolve_project_target(project_root: Path, target_relative_dir: Path) -> Path:
+    resolved_project = project_root.resolve()
+    target_dir = (resolved_project / target_relative_dir).resolve()
+    try:
+        target_dir.relative_to(resolved_project)
+    except ValueError as exc:
+        raise ValueError("Install target must stay within the project directory.") from exc
+
+    return target_dir
 
 
 def _copy_file(
