@@ -23,7 +23,11 @@ class ClaudeSkillInstaller:
 
     target_relative_dir = Path(".claude") / "skills" / "akira"
 
-    def install(self, project_root: Path, output_dir: Path) -> tuple[InstalledSkillFile, ...]:
+    def install(
+        self,
+        project_root: Path,
+        output_dir: Path,
+    ) -> tuple[InstalledSkillFile, ...]:
         """Copy generated Akira output into project_root/.claude/skills/akira."""
         source_files = _generated_source_files(output_dir)
         target_dir = project_root / self.target_relative_dir
@@ -101,7 +105,10 @@ def _rewrite_router_references_for_install(content: bytes) -> bytes:
     )
 
 
-def _stale_installed_files(target_dir: Path, desired_paths: set[Path]) -> tuple[Path, ...]:
+def _stale_installed_files(
+    target_dir: Path,
+    desired_paths: set[Path],
+) -> tuple[Path, ...]:
     if not target_dir.exists():
         return ()
 

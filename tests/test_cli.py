@@ -118,11 +118,23 @@ dependencies = ["pytest==8.0.0"]
 
     result = runner.invoke(
         app,
-        ["detect", "--path", str(project), "--output", str(output_dir)],
+        [
+            "detect",
+            "--path",
+            str(project),
+            "--output",
+            str(output_dir),
+            "--agent",
+            "claude-code",
+        ],
     )
 
-    installed_router = project / ".claude" / "skills" / "akira" / "SKILL.md"
-    installed_stack = project / ".claude" / "skills" / "akira" / "stack.md"
+    installed_router = (
+        project / ".claude" / "skills" / "akira" / "SKILL.md"
+    )
+    installed_stack = (
+        project / ".claude" / "skills" / "akira" / "stack.md"
+    )
     assert result.exit_code == 0
     assert installed_router.exists()
     assert installed_stack.exists()

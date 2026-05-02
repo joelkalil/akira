@@ -16,7 +16,10 @@ def test_install_claude_skills_copies_generated_tree_and_project_references(
         "Read ../stack.md and ../fingerprint.md",
         encoding="utf-8",
     )
-    (output / "skills" / "python" / "SKILL.md").write_text("python", encoding="utf-8")
+    (output / "skills" / "python" / "SKILL.md").write_text(
+        "python",
+        encoding="utf-8",
+    )
     (output / "skills" / "python" / "testing" / "pytest.md").write_text(
         "pytest",
         encoding="utf-8",
