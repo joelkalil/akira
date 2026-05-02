@@ -150,6 +150,23 @@ def _dependencies_from_pyproject(path: Path) -> list[str]:
     for values in optional_dependencies.values():
         dependencies.extend(values)
 
+    dependency_groups = data.get("dependency-groups", {})
+    if isinstance(dependency_groups, dict):
+        for values in dependency_groups.values():
+            if isinstance(values, list):
+                dependencies.extend(values)
+
+    uv = data.get("tool", {}).get("uv", {})
+    if isinstance(uv, dict):
+        uv_dev_dependencies = uv.get("dev-dependencies", [])
+        if isinstance(uv_dev_dependencies, list):
+            dependencies.extend(uv_dev_dependencies)
+        uv_dependency_groups = uv.get("dependency-groups", {})
+        if isinstance(uv_dependency_groups, dict):
+            for group in uv_dependency_groups.values():
+                if isinstance(group, list):
+                    dependencies.extend(group)
+
     poetry = data.get("tool", {}).get("poetry", {})
     for name, specifier in poetry.get("dependencies", {}).items():
         if name.lower() == "python":

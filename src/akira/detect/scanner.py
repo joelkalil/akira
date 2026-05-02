@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Iterable
 
 from akira.detect.detectors import (
+    CiCdDetector,
     DatabaseDetector,
     FrameworkDetector,
     InfrastructureDetector,
@@ -23,6 +24,7 @@ DEFAULT_DETECTORS = (
     TestingDetector,
     DatabaseDetector,
     InfrastructureDetector,
+    CiCdDetector,
 )
 
 
