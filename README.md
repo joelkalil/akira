@@ -14,3 +14,5 @@ python -m pip install -e ".[dev]"
 python -m pytest
 ```
 
+Sprint 1 detector fixtures live in `tests/fixtures/`. Manual release validation
+targets are recorded in `docs/VALIDATION.md`.

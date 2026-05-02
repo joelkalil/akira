@@ -6,22 +6,11 @@ from akira.detect import Scanner
 
 
 def test_minimal_pyproject_emits_runtime_and_package_manager_signals(
-    tmp_path: Path,
+    fixtures_dir: Path,
 ) -> None:
-    (tmp_path / "pyproject.toml").write_text(
-        """
-[project]
-requires-python = ">=3.12"
-dependencies = []
+    project_root = fixtures_dir / "minimal_project"
 
-[tool.uv]
-dev-dependencies = []
-""".strip(),
-        encoding="utf-8",
-    )
-    (tmp_path / "uv.lock").write_text("", encoding="utf-8")
-
-    stack = Scanner().scan(tmp_path)
+    stack = Scanner().scan(project_root)
 
     assert stack.has("python", category="runtime")
     assert stack.has("uv", category="package_manager")
@@ -30,6 +19,39 @@ dev-dependencies = []
     assert python_signal.version == "3.12"
     assert python_signal.source == "pyproject.toml"
     assert python_signal.confidence == 1.0
+
+
+def test_fastapi_fixture_emits_framework_testing_and_tooling_signals(
+    fixtures_dir: Path,
+) -> None:
+    stack = Scanner().scan(fixtures_dir / "fastapi_project")
+
+    expected_by_category = {
+        "web_framework": {"fastapi"},
+        "testing": {"pytest", "pytest-asyncio"},
+        "linting": {"ruff"},
+        "type_checking": {"mypy"},
+        "pre_commit": {"pre-commit"},
+        "package_manager": {"uv"},
+    }
+
+    for category, tools in expected_by_category.items():
+        assert tools <= {
+            signal.tool for signal in stack.signals if signal.category == category
+        }, category
+
+    fastapi_signal = next(signal for signal in stack.signals if signal.tool == "fastapi")
+    assert fastapi_signal.version == "0.115.0"
+    assert fastapi_signal.source == "dependencies"
+
+
+def test_django_fixture_emits_framework_signal(fixtures_dir: Path) -> None:
+    stack = Scanner().scan(fixtures_dir / "django_project")
+
+    assert stack.has("django", category="web_framework")
+    django_signal = next(signal for signal in stack.signals if signal.tool == "django")
+    assert django_signal.version == "5.0.0"
+    assert django_signal.source == "dependencies"
 
 
 def test_detects_frameworks_from_dependencies(tmp_path: Path) -> None:
