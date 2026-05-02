@@ -134,7 +134,7 @@ def fingerprint(
         ),
     ] = DEFAULT_OUTPUT_DIR,
 ) -> None:
-    """Collect source files for developer fingerprint analysis."""
+    """Analyze source files and write fingerprint.md output."""
     analysis = fingerprint_project(path, sample_size=sample_size, exclude=exclude or ())
     fingerprint_path = write_fingerprint_markdown(
         output,

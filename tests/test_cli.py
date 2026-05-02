@@ -38,6 +38,7 @@ def test_fingerprint_help_documents_options() -> None:
     result = runner.invoke(app, ["fingerprint", "--help"])
 
     assert result.exit_code == 0
+    assert "write fingerprint.md output" in result.stdout
     assert "--path" in result.stdout
     assert "--sample-size" in result.stdout
     assert "--exclude" in result.stdout
@@ -97,9 +98,9 @@ def load_value(name: str) -> str:
     )
 
     fingerprint_path = output_dir / "fingerprint.md"
-    content = fingerprint_path.read_text(encoding="utf-8")
     assert result.exit_code == 0
     assert fingerprint_path.exists()
+    content = fingerprint_path.read_text(encoding="utf-8")
     assert "sample_size: 5" in content
     assert '  - "module.py"' in content
     assert "confidence:" in content
@@ -146,6 +147,21 @@ def test_detect_rejects_output_file(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
         ["detect", "--path", str(tmp_path), "--output", str(output_file)],
+    )
+    output = f"{result.stdout}\n{result.stderr}"
+
+    assert result.exit_code != 0
+    assert output_file.name in output
+    assert "file" in output.lower()
+
+
+def test_fingerprint_rejects_output_file(tmp_path: Path) -> None:
+    output_file = tmp_path / "fingerprint.md"
+    output_file.write_text("", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["fingerprint", "--path", str(tmp_path), "--output", str(output_file)],
     )
     output = f"{result.stdout}\n{result.stderr}"
 

@@ -1,10 +1,14 @@
 ---
 generated_at: {{ generated_at | tojson }}
 sample_size: {{ sample_size }}
+{% if files_analyzed %}
 files_analyzed:
 {% for file in files_analyzed %}
   - {{ file | tojson }}
 {% endfor %}
+{% else %}
+files_analyzed: []
+{% endif %}
 confidence: {{ "%.2f"|format(confidence) }}
 ---
 

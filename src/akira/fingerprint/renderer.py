@@ -37,7 +37,7 @@ SECTION_ORDER = (
     ("naming", "Naming", ("functions", "variables", "classes", "constants", "private_helpers", "boolean_prefixes")),
     ("imports", "Imports", ("grouping_order", "alphabetical_order", "one_import_per_line", "wildcard_usage", "relative_imports")),
     ("typing", "Type Hints", ("signature_coverage", "return_hints", "optional_syntax", "complex_type_imports")),
-    ("docstrings", "Docstrings", ("docstring_style", "public_docstrings", "class_docstrings", "private_docstring_behavior")),
+    ("docstrings", "Docstrings", ("docstring_style", "public_docstrings", "class_docstrings", "function_docstrings", "private_docstring_behavior")),
     ("error_handling", "Error Handling", ("exception_specificity", "logging_on_catch", "reraising")),
     ("organization", "Organization", ("module_order", "helper_placement", "class_member_order", "main_block")),
     ("strings", "Strings", ("quote_style", "interpolation_style", "multiline_strings")),
@@ -56,6 +56,7 @@ PATTERN_LABELS = {
     "early_returns": "Early returns",
     "exception_specificity": "Exceptions",
     "function_length": "Function length",
+    "function_docstrings": "Functions",
     "functions": "Functions",
     "grouping_order": "Order",
     "guard_clauses": "Guard clauses",
@@ -108,6 +109,7 @@ VALUE_LABELS = {
     "rare": "Rare",
     "single": "Single quotes `'`",
     "single_leading_underscore": "Single leading underscore",
+    "sparse": "Sparse",
     "snake_case": "snake_case",
     "triple_double": 'Triple double quotes `"""`',
     "under_30_lines": "Prefers functions under 30 lines",
@@ -184,29 +186,39 @@ def build_fingerprint_sections(
 
 def _line_for_pattern(pattern: StylePattern) -> FingerprintLine:
     return FingerprintLine(
-        label=PATTERN_LABELS.get(pattern.name, _humanize(pattern.name)),
-        value=_format_value(pattern.value),
+        label=PATTERN_LABELS.get(pattern.name, _humanize_label(pattern.name)),
+        value=_format_value(pattern),
         confidence=pattern.confidence,
         samples=pattern.samples,
     )
 
 
-def _format_value(value: Any) -> str:
+def _format_value(pattern: StylePattern) -> str:
+    if isinstance(pattern.value, int) and pattern.dimension == "spacing":
+        noun = "blank line" if pattern.value == 1 else "blank lines"
+        return f"{pattern.value} {noun}"
+    if pattern.name == "nesting_depth" and isinstance(pattern.value, int):
+        noun = "level" if pattern.value == 1 else "levels"
+        return f"{pattern.value} {noun}"
+
+    return _format_raw_value(pattern.value)
+
+
+def _format_raw_value(value: Any) -> str:
     if isinstance(value, tuple):
-        return " -> ".join(_format_value(item) for item in value)
+        return " -> ".join(_format_raw_value(item) for item in value)
     if isinstance(value, list):
-        return ", ".join(_format_value(item) for item in value)
+        return ", ".join(_format_raw_value(item) for item in value)
     if isinstance(value, bool):
         return "yes" if value else "no"
     if isinstance(value, int):
-        noun = "blank line" if value == 1 else "blank lines"
-        return f"{value} {noun}"
+        return str(value)
     if isinstance(value, float):
         return f"{value:.2f}"
 
     text = str(value)
-    return VALUE_LABELS.get(text, _humanize(text))
+    return VALUE_LABELS.get(text, text)
 
 
-def _humanize(value: str) -> str:
+def _humanize_label(value: str) -> str:
     return value.replace("_", " ").replace("-", " ").title()
