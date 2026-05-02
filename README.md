@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/akira-logo.svg" alt="Akira logo" width="360" />
+  <img src="docs/assets/akira_logo_horizontal.png" alt="Akira logo" width="360" />
 </p>
 
 <h1 align="center">Akira</h1>
