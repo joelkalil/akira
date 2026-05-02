@@ -9,6 +9,7 @@ import typer
 
 from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR, SUPPORTED_AGENTS
 from akira.detect import scan_project, write_stack_markdown
+from akira.fingerprint import analyze_project
 from akira.skills import generate_skills, install_claude_skills
 
 app = typer.Typer(
@@ -86,6 +87,51 @@ def detect(
     for installed in installed_paths:
         if installed.status in {"installed", "updated"}:
             typer.echo(f"{installed.status.title()}: {installed.path}")
+
+
+@app.command()
+def fingerprint(
+    path: Annotated[
+        Path,
+        typer.Option(
+            "--path",
+            "-p",
+            help="Project directory to analyze.",
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            readable=True,
+            resolve_path=True,
+        ),
+    ] = Path("."),
+    sample_size: Annotated[
+        int,
+        typer.Option(
+            "--sample-size",
+            "-s",
+            min=0,
+            help="Maximum number of Python files to sample.",
+        ),
+    ] = 20,
+    exclude: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--exclude",
+            "-x",
+            help="Project-relative path or glob to exclude. May be passed multiple times.",
+        ),
+    ] = None,
+) -> None:
+    """Collect source files for developer fingerprint analysis."""
+    analysis = analyze_project(path, sample_size=sample_size, exclude=exclude or ())
+
+    typer.echo(f"Project path: {path}")
+    typer.echo(f"Sample size: {sample_size}")
+    for pattern in exclude or ():
+        typer.echo(f"Exclude: {pattern}")
+    typer.echo(f"Files analyzed: {len(analysis.files)}")
+    typer.echo(f"Parsed: {len(analysis.parsed_files)}")
+    typer.echo(f"Parse failures: {len(analysis.failed_files)}")
 
 
 def main() -> None:

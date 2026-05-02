@@ -22,6 +22,7 @@ def test_help_lists_detect_command() -> None:
     assert result.exit_code == 0
     assert "Akira detects project context" in result.stdout
     assert "detect" in result.stdout
+    assert "fingerprint" in result.stdout
 
 
 def test_detect_help_documents_options() -> None:
@@ -31,6 +32,33 @@ def test_detect_help_documents_options() -> None:
     assert "--path" in result.stdout
     assert "--agent" in result.stdout
     assert "--output" in result.stdout
+
+
+def test_fingerprint_help_documents_options() -> None:
+    result = runner.invoke(app, ["fingerprint", "--help"])
+
+    assert result.exit_code == 0
+    assert "--path" in result.stdout
+    assert "--sample-size" in result.stdout
+    assert "--exclude" in result.stdout
+
+
+def test_fingerprint_command_collects_files_and_parse_failures(tmp_path: Path) -> None:
+    (tmp_path / "valid.py").write_text("VALUE = 1\n", encoding="utf-8")
+    (tmp_path / "broken.py").write_text("def broken(:\n    pass\n", encoding="utf-8")
+    tests_dir = tmp_path / "tests"
+    tests_dir.mkdir()
+    (tests_dir / "test_valid.py").write_text("def test_valid():\n    pass\n", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["fingerprint", "--path", str(tmp_path), "--exclude", "tests/"],
+    )
+
+    assert result.exit_code == 0
+    assert "Files analyzed: 2" in result.stdout
+    assert "Parsed: 1" in result.stdout
+    assert "Parse failures: 1" in result.stdout
 
 
 def test_detect_rejects_invalid_path() -> None:
