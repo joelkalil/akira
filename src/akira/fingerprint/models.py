@@ -59,4 +59,7 @@ class FingerprintAnalysis:
         """Return the average confidence across extracted patterns."""
         if not self.patterns:
             return 0.0
-        return round(sum(pattern.confidence for pattern in self.patterns) / len(self.patterns), 2)
+        return round(
+            sum(pattern.confidence for pattern in self.patterns) / len(self.patterns),
+            2,
+        )

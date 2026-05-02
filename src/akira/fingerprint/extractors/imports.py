@@ -32,9 +32,9 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     no_relative = sum(1 for item in all_imports if not item["relative"])
     group_sequences = [tuple(dict.fromkeys(item["group"] for item in imports)) for imports in non_empty]
     sequence_counts = Counter(group_sequences)
-    dominant_sequence, dominant_count = sorted(
+    dominant_sequence = sorted(
         sequence_counts.items(), key=lambda item: (-item[1], item[0])
-    )[0]
+    )[0][0]
 
     return (
         make_pattern(
