@@ -21,7 +21,7 @@ from akira.fingerprint.extractors import (
     structure,
     typing,
 )
-from akira.fingerprint.models import FingerprintAnalysis, StylePattern
+from akira.fingerprint.models import StylePattern
 from akira.skills.generator import generate_skills
 
 
