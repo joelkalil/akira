@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 
 from akira.detect import Scanner, render_stack_markdown
-from akira.detect.models import ToolInfo
+from akira.detect.models import Signal, StackInfo, ToolInfo
 from akira.detect.renderer import tool_label, tool_value
 
 
@@ -94,3 +94,44 @@ def test_pre_commit_value_ignores_version_for_boolean_presence() -> None:
     tool = ToolInfo(name="pre-commit", category="pre_commit", version="3.8.0")
 
     assert tool_value(tool) == "yes"
+
+
+def test_stack_markdown_renders_new_infra_ci_and_database_tools(
+    tmp_path: Path,
+) -> None:
+    stack = StackInfo.from_signals(
+        tmp_path,
+        [
+            Signal(tool="gitlab-ci", category="ci_cd", source=".gitlab-ci.yml"),
+            Signal(tool="gcp", category="infrastructure", source="cloud hints"),
+            Signal(tool="aws", category="infrastructure", source="cloud hints"),
+            Signal(tool="terraform", category="infrastructure", source="infra/main.tf"),
+            Signal(tool="psycopg3", category="database", version="3.2.3"),
+            Signal(tool="redis", category="database"),
+        ],
+    )
+
+    content = render_stack_markdown(
+        stack,
+        generated_at=datetime(2026, 5, 1, 15, 30, tzinfo=timezone.utc),
+        akira_version="1.0.0",
+    )
+
+    for row in (
+        "- **CI/CD**: GitLab CI",
+        "- **Cloud**: GCP",
+        "- **Cloud**: AWS",
+        "- **Infrastructure as code**: Terraform",
+        "- **Driver**: psycopg3 3.2.3",
+        "- **Cache**: Redis",
+    ):
+        assert row in content
+
+    for skill in (
+        "ci_cd/gitlab_ci.md",
+        "infra/gcp.md",
+        "infra/aws.md",
+        "infra/terraform.md",
+        "database/redis.md",
+    ):
+        assert f"- `{skill}`" in content

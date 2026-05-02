@@ -25,6 +25,8 @@ class TestingDetector(BaseDetector):
         "coverage": ("coverage", "coverage"),
         "nox": ("nox", "nox"),
         "pytest": ("pytest", "pytest"),
+        "pytest-asyncio": ("pytest-asyncio", "pytest_asyncio"),
+        "pytest-cov": ("pytest-cov", "pytest_cov"),
         "tox": ("tox", "tox"),
     }
 

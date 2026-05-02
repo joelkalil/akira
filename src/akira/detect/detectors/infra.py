@@ -27,7 +27,12 @@ class InfrastructureDetector(BaseDetector):
                 )
             )
 
-        for filename in ("docker-compose.yml", "docker-compose.yaml", "compose.yml"):
+        for filename in (
+            "docker-compose.yml",
+            "docker-compose.yaml",
+            "compose.yml",
+            "compose.yaml",
+        ):
             path = project_root / filename
             if path.exists():
                 services = _compose_services(path)
@@ -167,7 +172,11 @@ def _cloud_signals(project_root: Path) -> list[Signal]:
 
 def _read_infra_hint_text(project_root: Path) -> str:
     paths: list[Path] = []
-    paths.extend(project_root.glob("*.tf"))
+    paths.extend(
+        path
+        for path in project_root.rglob("*.tf")
+        if ".terraform" not in path.relative_to(project_root).parts
+    )
     paths.extend((project_root / ".github" / "workflows").glob("*.yml"))
     paths.extend((project_root / ".github" / "workflows").glob("*.yaml"))
 

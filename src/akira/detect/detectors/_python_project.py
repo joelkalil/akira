@@ -144,28 +144,26 @@ def _dependencies_from_pyproject(path: Path) -> list[str]:
 
     dependencies: list[str] = []
     project = data.get("project", {})
-    dependencies.extend(project.get("dependencies", []))
+    dependencies.extend(_string_items(project.get("dependencies", [])))
 
     optional_dependencies = project.get("optional-dependencies", {})
-    for values in optional_dependencies.values():
-        dependencies.extend(values)
+    if isinstance(optional_dependencies, dict):
+        for values in optional_dependencies.values():
+            dependencies.extend(_string_items(values))
 
     dependency_groups = data.get("dependency-groups", {})
     if isinstance(dependency_groups, dict):
         for values in dependency_groups.values():
-            if isinstance(values, list):
-                dependencies.extend(values)
+            dependencies.extend(_string_items(values))
 
     uv = data.get("tool", {}).get("uv", {})
     if isinstance(uv, dict):
         uv_dev_dependencies = uv.get("dev-dependencies", [])
-        if isinstance(uv_dev_dependencies, list):
-            dependencies.extend(uv_dev_dependencies)
+        dependencies.extend(_string_items(uv_dev_dependencies))
         uv_dependency_groups = uv.get("dependency-groups", {})
         if isinstance(uv_dependency_groups, dict):
             for group in uv_dependency_groups.values():
-                if isinstance(group, list):
-                    dependencies.extend(group)
+                dependencies.extend(_string_items(group))
 
     poetry = data.get("tool", {}).get("poetry", {})
     for name, specifier in poetry.get("dependencies", {}).items():
@@ -228,6 +226,14 @@ def _poetry_dependency_to_requirement(name: str, specifier: object) -> str:
             return f"{name}{version if version.startswith(('=', '<', '>', '~', '!')) else ''}"
 
     return name
+
+
+def _string_items(value: object) -> list[str]:
+    """Return only string dependency entries from a pyproject sequence."""
+    if not isinstance(value, list):
+        return []
+
+    return [item for item in value if isinstance(item, str)]
 
 
 def _add_requirement(dependencies: dict[str, str | None], requirement: str) -> None:

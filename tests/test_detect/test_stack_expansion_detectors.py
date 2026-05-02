@@ -46,6 +46,41 @@ branch = true
     assert plugin.confidence == 0.9
 
 
+def test_detects_pytest_plugins_from_source_imports(tmp_path: Path) -> None:
+    package = tmp_path / "tests"
+    package.mkdir()
+    (package / "test_async.py").write_text(
+        "import pytest_asyncio\nimport pytest_cov\n",
+        encoding="utf-8",
+    )
+
+    stack = Scanner().scan(tmp_path)
+
+    assert stack.has("pytest-asyncio", category="testing")
+    assert stack.has("pytest-cov", category="testing")
+
+
+def test_dependency_group_include_objects_do_not_crash_detection(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[dependency-groups]
+dev = [
+    "pytest==8.3.0",
+    { include-group = "lint" },
+]
+lint = ["ruff==0.8.0"]
+""".strip(),
+        encoding="utf-8",
+    )
+
+    stack = Scanner().scan(tmp_path)
+
+    assert stack.has("pytest", category="testing")
+    assert stack.has("ruff", category="linting")
+
+
 def test_detects_database_libraries_migrations_and_postgres_hints(
     tmp_path: Path,
 ) -> None:
@@ -88,7 +123,7 @@ dependencies = [
 
 def test_detects_docker_compose_database_services(tmp_path: Path) -> None:
     (tmp_path / "Dockerfile").write_text("FROM python:3.12-slim\n", encoding="utf-8")
-    (tmp_path / "docker-compose.yml").write_text(
+    (tmp_path / "compose.yaml").write_text(
         """
 services:
   db:
@@ -108,6 +143,7 @@ services:
 
     compose = next(signal for signal in stack.signals if signal.tool == "docker-compose")
     assert compose.metadata["services"] == ("postgres", "redis")
+    assert compose.source == "compose.yaml"
 
 
 def test_detects_cloud_terraform_and_ci_cd_hints(tmp_path: Path) -> None:
@@ -124,7 +160,9 @@ jobs:
         encoding="utf-8",
     )
     (tmp_path / ".gitlab-ci.yml").write_text("test:\n  script: pytest\n", encoding="utf-8")
-    (tmp_path / "main.tf").write_text(
+    terraform_dir = tmp_path / "infra" / "prod"
+    terraform_dir.mkdir(parents=True)
+    (terraform_dir / "main.tf").write_text(
         """
 provider "google" {}
 provider "aws" {}
