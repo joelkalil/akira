@@ -6,6 +6,7 @@ from pathlib import Path
 
 from akira.detect.detectors._python_project import (
     extract_dependencies,
+    iter_python_files,
     package_to_import_name,
     read_setup_cfg,
     read_toml,
@@ -21,12 +22,12 @@ class TestingDetector(BaseDetector):
     order = 40
 
     TESTING_TOOLS = {
-        "pytest",
-        "pytest-asyncio",
-        "pytest-cov",
-        "tox",
-        "nox",
-        "coverage",
+        "coverage": ("coverage", "coverage"),
+        "nox": ("nox", "nox"),
+        "pytest": ("pytest", "pytest"),
+        "pytest-asyncio": ("pytest-asyncio", "pytest_asyncio"),
+        "pytest-cov": ("pytest-cov", "pytest_cov"),
+        "tox": ("tox", "tox"),
     }
 
     def detect(self, project_root: Path) -> list[Signal]:
@@ -35,7 +36,14 @@ class TestingDetector(BaseDetector):
         detected: set[str] = set()
         dependencies = extract_dependencies(project_root)
 
-        def emit(tool: str, source: str, confidence: float) -> None:
+        def emit(
+            tool: str,
+            source: str,
+            confidence: float,
+            *,
+            package: str | None = None,
+            metadata: dict | None = None,
+        ) -> None:
             if tool in detected:
                 return
             detected.add(tool)
@@ -43,9 +51,10 @@ class TestingDetector(BaseDetector):
                 Signal(
                     tool=tool,
                     category="testing",
-                    version=dependencies.get(tool),
+                    version=dependencies.get(package or tool),
                     confidence=confidence,
                     source=source,
+                    metadata=metadata or {},
                 )
             )
 
@@ -55,6 +64,10 @@ class TestingDetector(BaseDetector):
             emit("pytest", "pyproject.toml", 1.0)
         if "coverage" in pyproject_tools:
             emit("coverage", "pyproject.toml", 1.0)
+        if "tox" in pyproject_tools:
+            emit("tox", "pyproject.toml", 1.0)
+        if "nox" in pyproject_tools:
+            emit("nox", "pyproject.toml", 1.0)
 
         setup_cfg = read_setup_cfg(project_root / "setup.cfg")
         if setup_cfg.has_section("tool:pytest"):
@@ -62,27 +75,41 @@ class TestingDetector(BaseDetector):
         if setup_cfg.has_section("coverage:run"):
             emit("coverage", "setup.cfg", 1.0)
 
-        for filename, tool in (("tox.ini", "tox"), ("nox.py", "nox")):
+        if (project_root / "pytest.ini").exists():
+            emit("pytest", "pytest.ini", 1.0)
+        if (project_root / ".coveragerc").exists():
+            emit("coverage", ".coveragerc", 1.0)
+
+        for filename, tool in (
+            ("tox.ini", "tox"),
+            ("nox.py", "nox"),
+            ("noxfile.py", "nox"),
+        ):
             if (project_root / filename).exists():
                 emit(tool, filename, 1.0)
 
-        for tool in self.TESTING_TOOLS:
-            if tool in dependencies:
-                emit(tool, "dependencies", 0.9)
+        for package, (tool, import_name) in self.TESTING_TOOLS.items():
+            if package in dependencies:
+                emit(tool, "dependencies", 0.9, package=package)
 
-        if detected:
+        for package in sorted(dependencies):
+            if package.startswith("pytest-"):
+                emit(
+                    package,
+                    "dependencies",
+                    0.9,
+                    package=package,
+                    metadata={"plugin": True, "framework": "pytest"},
+                )
+
+        if not any(iter_python_files(project_root)):
             return signals
 
-        remaining_import_signals = {"unittest", *self.TESTING_TOOLS}
-        if remaining_import_signals:
-            imports = scan_imports(project_root)
-            if "unittest" in remaining_import_signals and "unittest" in imports:
-                emit("unittest", "source imports", 0.75)
-            for tool in self.TESTING_TOOLS:
-                if (
-                    tool in remaining_import_signals
-                    and package_to_import_name(tool) in imports
-                ):
-                    emit(tool, "source imports", 0.75)
+        imports = scan_imports(project_root)
+        if "unittest" in imports:
+            emit("unittest", "source imports", 0.75)
+        for package, (tool, import_name) in self.TESTING_TOOLS.items():
+            if package_to_import_name(import_name) in imports:
+                emit(tool, "source imports", 0.75, package=package)
 
         return signals

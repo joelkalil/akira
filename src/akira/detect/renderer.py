@@ -30,6 +30,7 @@ class ActiveSkill:
 TOOL_LABELS = {
     "alembic": "Migrations",
     "asyncpg": "Driver",
+    "aws": "Cloud",
     "black": "Formatter",
     "click": "CLI",
     "django": "Web",
@@ -38,12 +39,16 @@ TOOL_LABELS = {
     "fastapi": "Web",
     "flake8": "Linter",
     "flask": "Web",
+    "gcp": "Cloud",
     "github-actions": "CI/CD",
+    "gitlab-ci": "CI/CD",
     "isort": "Import sorter",
     "mypy": "Type checker",
     "pip": "Package manager",
     "poetry": "Package manager",
     "postgres": "Engine",
+    "psycopg2": "Driver",
+    "psycopg3": "Driver",
     "pre-commit": "Pre-commit",
     "pytest": "Framework",
     "pytest-asyncio": "Plugin",
@@ -55,6 +60,7 @@ TOOL_LABELS = {
     "ruff": "Linter/Formatter",
     "sqlalchemy": "ORM",
     "streamlit": "Web",
+    "terraform": "Infrastructure as code",
     "tox": "Runner",
     "typer": "CLI",
     "uv": "Package manager",
@@ -80,12 +86,17 @@ SKILL_HINTS = {
     ("database", "sqlalchemy"): "database/sqlalchemy.md",
     ("database", "alembic"): "database/alembic.md",
     ("database", "postgres"): "database/postgres.md",
+    ("database", "redis"): "database/redis.md",
     ("tooling", "ruff"): "tooling/ruff.md",
     ("tooling", "mypy"): "tooling/mypy.md",
     ("tooling", "pyright"): "tooling/pyright.md",
     ("infrastructure", "docker"): "infra/docker.md",
     ("infrastructure", "docker-compose"): "infra/docker-compose.md",
+    ("infrastructure", "gcp"): "infra/gcp.md",
+    ("infrastructure", "aws"): "infra/aws.md",
+    ("infrastructure", "terraform"): "infra/terraform.md",
     ("ci_cd", "github-actions"): "ci_cd/github_actions.md",
+    ("ci_cd", "gitlab-ci"): "ci_cd/gitlab_ci.md",
 }
 
 TOOLING_CATEGORIES = {"linting", "formatting", "type_checking", "pre_commit"}
@@ -172,11 +183,19 @@ def tool_value(tool: ToolInfo) -> str:
         name = "FastAPI"
     elif tool.name == "github-actions":
         name = "GitHub Actions"
+    elif tool.name == "gitlab-ci":
+        name = "GitLab CI"
     elif tool.name == "pre-commit":
         return "yes"
     elif tool.name == "sqlalchemy":
         name = "SQLAlchemy"
     elif tool.name == "docker-compose":
         name = "Docker Compose"
+    elif tool.name == "gcp":
+        name = "GCP"
+    elif tool.name == "aws":
+        name = "AWS"
+    elif tool.name == "psycopg3":
+        name = "psycopg3"
 
     return f"{name} {tool.version}" if tool.version else name
