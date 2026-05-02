@@ -132,13 +132,11 @@ SKILL_TEMPLATES: tuple[SkillTemplate, ...] = (
     ),
 )
 
-_TEMPLATE_BY_SIGNAL = {
-    (item.category, item.tool): item for item in SKILL_TEMPLATES
-}
 _MANAGED_OUTPUTS = {
     Path("SKILL.md"),
     *(Path(item.output_path) for item in SKILL_TEMPLATES),
 }
+_ROOT_ROUTER_OUTPUT = Path("SKILL.md")
 
 
 class SkillGenerator:
@@ -155,15 +153,26 @@ class SkillGenerator:
         )
 
     def generate(self, stack: StackInfo, output_dir: Path) -> tuple[GeneratedSkill, ...]:
-        """Generate Python skills under output_dir/skills/python."""
+        """Generate the Akira router and Python skills under output_dir/skills."""
+        skills_dir = output_dir / "skills"
         python_dir = output_dir / "skills" / "python"
+        skills_dir.mkdir(parents=True, exist_ok=True)
         python_dir.mkdir(parents=True, exist_ok=True)
 
         selected = self.select_templates(stack)
         self._remove_stale_skills(python_dir, selected)
 
-        context = build_template_context(stack, selected)
+        context = build_template_context(
+            stack,
+            selected,
+            fingerprint_exists=(output_dir / "fingerprint.md").exists(),
+        )
         generated = [
+            self._render_to_file(
+                "base.md.j2",
+                skills_dir / _ROOT_ROUTER_OUTPUT,
+                context,
+            ),
             self._render_to_file(
                 "python/python.md.j2",
                 python_dir / "SKILL.md",
@@ -184,15 +193,16 @@ class SkillGenerator:
 
     def select_templates(self, stack: StackInfo) -> tuple[SkillTemplate, ...]:
         """Return skill templates relevant to the detected stack."""
-        selected: list[SkillTemplate] = []
+        detected = {
+            (normalize_skill_category(signal.category), signal.tool)
+            for signal in stack.signals
+        }
 
-        for signal in stack.signals:
-            category = normalize_skill_category(signal.category)
-            skill_template = _TEMPLATE_BY_SIGNAL.get((category, signal.tool))
-            if skill_template and skill_template not in selected:
-                selected.append(skill_template)
-
-        return tuple(selected)
+        return tuple(
+            skill_template
+            for skill_template in SKILL_TEMPLATES
+            if (skill_template.category, skill_template.tool) in detected
+        )
 
     def _remove_stale_skills(
         self,
@@ -238,21 +248,26 @@ def generate_skills(stack: StackInfo, output_dir: Path) -> tuple[GeneratedSkill,
 def build_template_context(
     stack: StackInfo,
     selected: tuple[SkillTemplate, ...] = (),
+    fingerprint_exists: bool = False,
 ) -> dict[str, Any]:
     """Build the shared Jinja context for all skill templates."""
     tools = {tool.name: tool for category in stack.categories for tool in category.tools}
+    active_skills = [
+        {"path": item.output_path, "reason": item.reason} for item in selected
+    ]
     context: dict[str, Any] = {
         "project_name": stack.project_name,
         "project_root": stack.project_root,
         "stack": stack,
         "signals": stack.signals,
         "metadata": _merged_metadata(stack),
-        "active_skills": [
-            {"path": item.output_path, "reason": item.reason} for item in selected
-        ],
+        "active_skills": active_skills,
+        "fingerprint_exists": fingerprint_exists,
         "python_version": _version(tools, "python"),
         "package_manager": _first_tool_name(stack, "package_manager"),
+        "root_active_skills": _root_active_skills(active_skills),
         "source_layout": _source_layout(stack.project_root),
+        "stack_summary": _stack_summary(stack),
         "uses_docker": stack.has("docker", category="infrastructure"),
     }
 
@@ -372,6 +387,65 @@ def _merged_metadata(stack: StackInfo) -> dict[str, Any]:
     for signal in stack.signals:
         metadata.update(signal.metadata)
     return metadata
+
+
+def _root_active_skills(
+    active_skills: list[dict[str, str]],
+) -> list[dict[str, str]]:
+    return [
+        {
+            "path": "python/SKILL.md",
+            "reason": "Python modules, imports, typing, or shared code",
+        },
+        *(
+            {"path": f"python/{skill['path']}", "reason": skill["reason"]}
+            for skill in active_skills
+        ),
+    ]
+
+
+def _stack_summary(stack: StackInfo) -> str:
+    priority = (
+        ("web_framework", ("fastapi", "django", "flask")),
+        ("database", ("sqlalchemy", "postgres", "alembic")),
+        ("testing", ("pytest", "unittest")),
+        ("tooling", ("ruff", "mypy")),
+        ("package_manager", ("uv", "poetry", "pip")),
+        ("infrastructure", ("docker", "gcp")),
+        ("ci_cd", ("github-actions",)),
+    )
+    labels = {
+        "django": "Django",
+        "fastapi": "FastAPI",
+        "flask": "Flask",
+        "github-actions": "GitHub Actions",
+        "gcp": "GCP",
+        "mypy": "mypy",
+        "postgres": "PostgreSQL",
+        "pytest": "pytest",
+        "ruff": "ruff",
+        "sqlalchemy": "SQLAlchemy",
+        "unittest": "unittest",
+        "uv": "uv",
+    }
+    selected: list[str] = []
+
+    for category, tools in priority:
+        for tool in tools:
+            if _has_skill_tool(stack, tool, category=category):
+                selected.append(labels.get(tool, tool.title()))
+
+    if not selected:
+        return "Python"
+
+    return " + ".join(dict.fromkeys(selected))
+
+
+def _has_skill_tool(stack: StackInfo, tool: str, category: str) -> bool:
+    return any(
+        signal.tool == tool and normalize_skill_category(signal.category) == category
+        for signal in stack.signals
+    )
 
 
 def _source_layout(project_root: Path) -> str | None:

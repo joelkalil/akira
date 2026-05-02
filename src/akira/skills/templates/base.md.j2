@@ -1,50 +1,64 @@
 ---
 name: akira
 description: >
-  Project-aware coding guidance for {{ project_name | default("this Python project") }}.
-  Consult this router before writing or modifying code, then open the
-  stack-specific sub-skill that matches the task.
+  Project-aware coding conventions for {{ project_name | default("this Python project") }}.
+  Detected stack: {{ stack_summary | default("Python") }}.
+  Always consult this skill before writing or modifying code. Read stack.md
+  for project context, fingerprint.md for style, and task-specific sub-skills
+  for implementation patterns.
 user-invocable: false
 ---
 
-# Akira Project Guidance
+# Akira - {{ project_name | default("Project") }}
 
-Use this skill as the entry point for generated Akira guidance. It summarizes
-the active project context and points the agent toward narrower skills for the
-detected stack.
+Use this router as the entry point for generated Akira guidance.
+
+Before writing code, consult:
+
+1. `stack.md` for detected project tools, versions, and sources.
+2. `fingerprint.md` for developer coding style and preferences.
+3. The active sub-skill that matches the current task.
 
 ## Project Context
 
 - Project: {{ project_name | default("unknown") }}
+- Detected stack: {{ stack_summary | default("Python") }}
 - Runtime: Python {{ python_version | default("detected by Akira") }}
 - Package manager: {{ package_manager | default("detected by Akira") }}
 
-{% if active_skills | default([]) %}
 ## Active Sub-Skills
 
-{% for skill in active_skills %}
+{% for skill in root_active_skills | default([]) %}
 - Read `{{ skill.path }}` when working with {{ skill.reason }}.
 {% endfor %}
+
+## Core Rules From Fingerprint
+
+{% if fingerprint_exists | default(false) %}
+- Treat `fingerprint.md` as the source of truth for naming, spacing, imports,
+  typing, comments, docstrings, control flow, and organization.
+- Apply fingerprint rules before generic defaults when they conflict.
 {% else %}
-## Active Sub-Skills
-
-- Read `python/python.md` before changing Python code.
-- Read narrower skills under `python/` when a task mentions a framework,
-  database, test runner, tool, container, cloud target, or CI workflow.
+- `fingerprint.md` may not exist yet. Until it is generated, preserve the
+  conventions already present in nearby files.
+- Keep naming, imports, spacing, comments, and type hints consistent with the
+  edited module.
+- Prefer small, explicit changes over broad style rewrites.
 {% endif %}
-
-## Core Rules
-
 - Prefer the conventions already present in the repository.
-- Keep generated code offline, deterministic, and inspectable.
-- Use stack-specific skills for APIs, tests, database code, tooling, infra, and CI.
-- Do not introduce LLM calls, network dependencies, or remote generation into
-  generated skills.
+- Keep generated code offline, deterministic, and inspectable unless the task
+  explicitly requires integration with an external service.
+
+{% include "_partials/pep8_base.md.j2" %}
+
+{% include "_partials/error_handling.md.j2" %}
+
+{% include "_partials/logging_patterns.md.j2" %}
 
 ## When To Drill Down
 
-- API endpoint or middleware work: use the web framework skill.
-- Tests and fixtures: use the pytest or unittest skill.
-- Models, sessions, migrations, or SQL: use the database skills.
-- Formatting, linting, typing, or packaging: use the tooling skills.
-- Docker, GCP, or GitHub Actions: use the infrastructure and CI skills.
+- API endpoint or middleware work: read the web framework skill first.
+- Tests and fixtures: read the pytest or unittest skill first.
+- Models, sessions, migrations, or SQL: read the database skills first.
+- Formatting, linting, typing, or packaging: read the tooling skills first.
+- Docker, GCP, or GitHub Actions: read the infrastructure and CI skills first.
