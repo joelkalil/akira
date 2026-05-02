@@ -96,6 +96,44 @@ strict = true
         assert signal.confidence == 1.0
 
 
+def test_later_pinned_dependency_updates_unpinned_dependency(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "requirements.txt").write_text("fastapi\n", encoding="utf-8")
+    (tmp_path / "requirements-dev.txt").write_text(
+        "fastapi==0.115.0\n",
+        encoding="utf-8",
+    )
+
+    stack = Scanner().scan(tmp_path)
+
+    fastapi_signal = next(signal for signal in stack.signals if signal.tool == "fastapi")
+    assert fastapi_signal.version == "0.115.0"
+
+
+def test_tooling_config_signal_uses_dependency_version_without_duplicate(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+dependencies = ["ruff==0.8.0"]
+
+[tool.ruff]
+line-length = 88
+""".strip(),
+        encoding="utf-8",
+    )
+
+    stack = Scanner().scan(tmp_path)
+
+    ruff_signals = [signal for signal in stack.signals if signal.tool == "ruff"]
+    assert len(ruff_signals) == 1
+    assert ruff_signals[0].version == "0.8.0"
+    assert ruff_signals[0].source == "pyproject.toml"
+    assert ruff_signals[0].confidence == 1.0
+
+
 def test_parse_setup_cfg_setup_py_and_requirements_txt(tmp_path: Path) -> None:
     (tmp_path / "setup.cfg").write_text(
         """

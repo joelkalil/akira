@@ -52,18 +52,18 @@ class ToolingDetector(BaseDetector):
     def detect(self, project_root: Path) -> list[Signal]:
         """Scan metadata and configuration files for tool signals."""
         signals: list[Signal] = []
-        detected: set[tuple[str, str]] = set()
+        detected: set[str] = set()
+        dependencies = extract_dependencies(project_root)
 
-        def emit(tool: str, source: str, confidence: float, version: str | None = None) -> None:
-            key = (tool, source)
-            if key in detected:
+        def emit(tool: str, source: str, confidence: float) -> None:
+            if tool in detected:
                 return
-            detected.add(key)
+            detected.add(tool)
             signals.append(
                 Signal(
                     tool=tool,
                     category=self.TOOL_CATEGORIES[tool],
-                    version=version,
+                    version=dependencies.get(tool),
                     confidence=confidence,
                     source=source,
                 )
@@ -86,9 +86,8 @@ class ToolingDetector(BaseDetector):
                     emit(tool, filename, 1.0)
                     break
 
-        dependencies = extract_dependencies(project_root)
         for tool in self.TOOL_CATEGORIES:
             if tool in dependencies:
-                emit(tool, "dependencies", 0.9, version=dependencies[tool])
+                emit(tool, "dependencies", 0.9)
 
         return signals

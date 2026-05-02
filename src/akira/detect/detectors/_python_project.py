@@ -219,4 +219,6 @@ def _add_requirement(dependencies: dict[str, str | None], requirement: str) -> N
         return
 
     name, version = parsed
-    dependencies.setdefault(name, version)
+    existing_version = dependencies.get(name)
+    if name not in dependencies or (existing_version is None and version is not None):
+        dependencies[name] = version
