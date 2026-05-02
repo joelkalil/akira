@@ -6,6 +6,7 @@ import yaml
 
 from akira.detect import scan_project
 from akira.detect.models import Signal, StackInfo
+from akira.fingerprint import fingerprint_project
 from akira.skills.generator import generate_skills
 
 
@@ -159,6 +160,66 @@ def test_root_router_uses_fingerprint_placeholder_when_missing(
     assert "`fingerprint.md` may not exist yet" in router
     assert "preserve the" in router
     assert "conventions already present in nearby files" in router
+
+
+def test_root_router_includes_core_rules_from_structured_fingerprint(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "project"
+    project.mkdir()
+    (project / "module.py").write_text(
+        '''from __future__ import annotations
+
+import os
+import sys
+
+
+def build_name(value: str | None) -> str:
+    if value is None:
+        return "anonymous"
+
+    return f"{value}"
+''',
+        encoding="utf-8",
+    )
+    stack = StackInfo.from_signals(
+        project,
+        [Signal("python", "runtime", version="3.12", source="test")],
+    )
+    output = tmp_path / ".akira"
+    analysis = fingerprint_project(project)
+
+    generate_skills(stack, output, fingerprint=analysis)
+
+    router = (output / "skills" / "SKILL.md").read_text(encoding="utf-8")
+    assert "## Core Rules From Fingerprint" in router
+    assert "- Prefer early returns over deeply nested branches." in router
+    assert "- Put guard clauses near the top of functions." in router
+    assert "- Use full type hints on function signatures." in router
+    assert "- Use `X | None` syntax for optional values." in router
+    assert "Treat `fingerprint.md` as the source of truth" not in router
+    assert "`fingerprint.md` may not exist yet" not in router
+
+
+def test_root_router_handles_existing_fingerprint_without_stable_rules(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "project"
+    project.mkdir()
+    output = tmp_path / ".akira"
+    output.mkdir()
+    (output / "fingerprint.md").write_text("# Developer Fingerprint\n", encoding="utf-8")
+    stack = StackInfo.from_signals(
+        project,
+        [Signal("python", "runtime", version="3.12", source="test")],
+    )
+
+    generate_skills(stack, output)
+
+    router = (output / "skills" / "SKILL.md").read_text(encoding="utf-8")
+    assert "`fingerprint.md` exists" in router
+    assert "enough high-confidence" in router
+    assert "`fingerprint.md` may not exist yet" not in router
 
 
 def test_root_router_changes_active_sub_skills_for_different_stacks(

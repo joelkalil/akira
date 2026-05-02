@@ -10,6 +10,8 @@ from jinja2 import Environment, PackageLoader, StrictUndefined
 
 from akira.detect.categories import normalize_skill_category
 from akira.detect.models import StackInfo, ToolInfo
+from akira.fingerprint import fingerprint_project, format_fingerprint_value
+from akira.fingerprint.models import FingerprintAnalysis, StylePattern
 
 
 @dataclass(frozen=True)
@@ -152,7 +154,13 @@ class SkillGenerator:
             undefined=StrictUndefined,
         )
 
-    def generate(self, stack: StackInfo, output_dir: Path) -> tuple[GeneratedSkill, ...]:
+    def generate(
+        self,
+        stack: StackInfo,
+        output_dir: Path,
+        *,
+        fingerprint: FingerprintAnalysis | None = None,
+    ) -> tuple[GeneratedSkill, ...]:
         """Generate the Akira router and Python skills under output_dir/skills."""
         skills_dir = output_dir / "skills"
         python_dir = output_dir / "skills" / "python"
@@ -161,11 +169,16 @@ class SkillGenerator:
 
         selected = self.select_templates(stack)
         self._remove_stale_skills(python_dir, selected)
+        fingerprint_path = output_dir / "fingerprint.md"
+        fingerprint_exists = fingerprint is not None or fingerprint_path.exists()
+        if fingerprint is None and fingerprint_path.exists():
+            fingerprint = fingerprint_project(stack.project_root)
 
         context = build_template_context(
             stack,
             selected,
-            fingerprint_exists=(output_dir / "fingerprint.md").exists(),
+            fingerprint_exists=fingerprint_exists,
+            fingerprint=fingerprint,
         )
         generated = [
             self._render_to_file(
@@ -240,15 +253,21 @@ class SkillGenerator:
         return GeneratedSkill(path=output_path, template_path=template_path)
 
 
-def generate_skills(stack: StackInfo, output_dir: Path) -> tuple[GeneratedSkill, ...]:
+def generate_skills(
+    stack: StackInfo,
+    output_dir: Path,
+    *,
+    fingerprint: FingerprintAnalysis | None = None,
+) -> tuple[GeneratedSkill, ...]:
     """Generate Akira skills for a detected stack."""
-    return SkillGenerator().generate(stack, output_dir)
+    return SkillGenerator().generate(stack, output_dir, fingerprint=fingerprint)
 
 
 def build_template_context(
     stack: StackInfo,
     selected: tuple[SkillTemplate, ...] = (),
     fingerprint_exists: bool = False,
+    fingerprint: FingerprintAnalysis | None = None,
 ) -> dict[str, Any]:
     """Build the shared Jinja context for all skill templates."""
     tools = {tool.name: tool for category in stack.categories for tool in category.tools}
@@ -263,6 +282,7 @@ def build_template_context(
         "metadata": _merged_metadata(stack),
         "active_skills": active_skills,
         "fingerprint_exists": fingerprint_exists,
+        "fingerprint_core_rules": select_fingerprint_core_rules(fingerprint),
         "python_version": _version(tools, "python"),
         "package_manager": _first_tool_name(stack, "package_manager"),
         "root_active_skills": _root_active_skills(active_skills),
@@ -279,6 +299,107 @@ def build_template_context(
     context.update(_infra_context(stack, tools))
     context.update(_ci_context(stack))
     return {key: value for key, value in context.items() if value is not None}
+
+
+def select_fingerprint_core_rules(
+    fingerprint: FingerprintAnalysis | None,
+    *,
+    limit: int = 5,
+    minimum_confidence: float = 0.7,
+) -> tuple[str, ...]:
+    """Select concise router rules from high-confidence fingerprint patterns."""
+    if fingerprint is None:
+        return ()
+
+    by_key = {
+        (pattern.dimension, pattern.name): pattern
+        for pattern in fingerprint.patterns
+        if pattern.confidence >= minimum_confidence and pattern.samples > 0
+    }
+    rules: list[str] = []
+
+    for dimension, name in _CORE_RULE_PRIORITY:
+        pattern = by_key.get((dimension, name))
+        if pattern is None:
+            continue
+        rule = _core_rule_for_pattern(pattern)
+        if rule and rule not in rules:
+            rules.append(rule)
+        if len(rules) >= limit:
+            break
+
+    return tuple(rules)
+
+
+_CORE_RULE_PRIORITY = (
+    ("structure", "early_returns"),
+    ("structure", "guard_clauses"),
+    ("comments", "section_separators"),
+    ("comments", "inline_comment_frequency"),
+    ("spacing", "logical_blocks"),
+    ("typing", "signature_coverage"),
+    ("typing", "optional_syntax"),
+    ("structure", "nesting_depth"),
+    ("imports", "grouping_order"),
+    ("imports", "relative_imports"),
+    ("imports", "wildcard_usage"),
+    ("docstrings", "docstring_style"),
+    ("docstrings", "public_docstrings"),
+    ("docstrings", "private_docstring_behavior"),
+    ("strings", "quote_style"),
+    ("strings", "interpolation_style"),
+    ("structure", "function_length"),
+)
+
+
+def _core_rule_for_pattern(pattern: StylePattern) -> str | None:
+    key = (pattern.dimension, pattern.name)
+    value = pattern.value
+
+    if key == ("structure", "early_returns") and value == "preferred":
+        return "Prefer early returns over deeply nested branches."
+    if key == ("structure", "guard_clauses") and value == "preferred":
+        return "Put guard clauses near the top of functions."
+    if key == ("structure", "nesting_depth") and isinstance(value, int):
+        return f"Keep control-flow nesting to {value} {_plural('level', value)} or less."
+    if key == ("comments", "section_separators"):
+        return f"Use {format_fingerprint_value(value)} comments as section separators."
+    if key == ("comments", "inline_comment_frequency") and value in {"low", "rare"}:
+        return "Keep inline comments rare; prefer self-documenting code."
+    if key == ("spacing", "logical_blocks") and isinstance(value, int):
+        return (
+            f"Use {value} {_plural('blank line', value)} between logical blocks "
+            "inside functions."
+        )
+    if key == ("typing", "signature_coverage") and value == "full_signature_hints":
+        return "Use full type hints on function signatures."
+    if key == ("typing", "optional_syntax"):
+        return f"Use {format_fingerprint_value(value)} syntax for optional values."
+    if key == ("imports", "grouping_order"):
+        return f"Keep imports grouped in this order: {format_fingerprint_value(value)}."
+    if key == ("imports", "relative_imports") and value == "avoid_relative_imports":
+        return "Prefer absolute imports over relative imports."
+    if key == ("imports", "wildcard_usage") and value == "avoid_wildcards":
+        return "Avoid wildcard imports."
+    if key == ("docstrings", "docstring_style"):
+        return f"Write {format_fingerprint_value(value)} docstrings."
+    if key == ("docstrings", "public_docstrings") and value == "documented":
+        return "Document public functions and classes."
+    if key == ("docstrings", "private_docstring_behavior") and value == "omit_private_docstrings":
+        return "Omit docstrings on private helpers when names are descriptive."
+    if key == ("strings", "quote_style"):
+        return f"Use {format_fingerprint_value(value)} for string literals."
+    if key == ("strings", "interpolation_style") and value == "f_strings":
+        return "Prefer f-strings for string interpolation."
+    if key == ("structure", "function_length") and value == "under_30_lines":
+        return "Prefer functions under 30 lines."
+
+    return None
+
+
+def _plural(noun: str, count: int) -> str:
+    return noun if count == 1 else f"{noun}s"
+
 
 def _version_context(tools: Mapping[str, ToolInfo]) -> dict[str, str | None]:
     return {
