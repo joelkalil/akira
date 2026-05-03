@@ -17,11 +17,29 @@ user-invocable: false
 
 ## Dockerfiles
 
-- Keep build stages purposeful and easy to audit.
-- Install only runtime dependencies in the final image.
-- Pin base images according to the project's release policy.
-- Copy dependency metadata before application code to preserve layer caching.
-- Run the application as a non-root user when practical.
+- Use multi-stage builds to separate build-time from runtime dependencies. The
+  builder stage installs compilers and build tools; the final stage copies only
+  what is needed to run.
+
+  ```dockerfile
+  FROM python:3.12-slim AS builder
+  COPY pyproject.toml uv.lock ./
+  RUN pip install uv && uv sync --frozen --no-dev
+
+  FROM python:3.12-slim
+  COPY --from=builder /app/.venv /app/.venv
+  COPY src/ src/
+  ENV PATH="/app/.venv/bin:$PATH"
+  ```
+
+- Copy dependency files before application code to maximize layer cache hits.
+  If only application code changes, the dependency installation layer is reused.
+- Pin base images with a digest, such as `python:3.12-slim@sha256:...`, in
+  production builds. Tags are mutable.
+- Run as a non-root user: create a dedicated user in the Dockerfile and switch
+  to it before `CMD`.
+- Keep the final image small: remove build caches with `--no-cache-dir`, avoid
+  copying `.git`, `tests/`, or documentation into the image.
 
 {% if package_manager | default("") == "uv" %}
 ## uv In Containers

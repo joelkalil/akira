@@ -1,0 +1,54 @@
+---
+name: akira-pre-commit
+description: >
+  pre-commit guidance for {{ project_name | default("this project") }}.
+  Consult when editing pre-commit hooks, .pre-commit-config.yaml, local hooks,
+  hook versions, or CI integration.
+user-invocable: false
+---
+
+# pre-commit Guidance
+
+## Project Context
+
+- Config file: {{ config_file | default(".pre-commit-config.yaml") }}
+- Package manager: {{ package_manager | default("detected by Akira") }}
+
+## Configuration
+
+- Keep `.pre-commit-config.yaml` organized by repository, then hook ID, with
+  hook-specific `args`, `files`, and `exclude` values close to the hook.
+- Pin `rev` to a released tag, never a branch such as `main` or `master`.
+- Prefer hook-level `files` filters over broad repo-level excludes when only one
+  hook needs special treatment.
+- Update hook revisions deliberately with `pre-commit autoupdate` and review
+  generated file changes before committing.
+
+## Hook Authoring
+
+- Use `repo: local` for project-specific checks that must run in the project's
+  existing environment.
+- Use published hooks when isolation and reproducible installation matter; each
+  published hook creates its own environment.
+- Make local hooks idempotent: running the hook twice should either produce no
+  further changes or the same failure.
+- Keep entry commands short and route complex behavior through checked-in
+  scripts.
+
+## CI Integration
+
+- Run `pre-commit run --all-files` in CI; the default only checks staged files
+  and is for developer workstations.
+- Cache `PRE_COMMIT_HOME` in CI so isolated hook environments do not rebuild on
+  every run.
+- Keep CI hook versions and local hook versions from the same config file.
+- Treat generated hook edits as a failed check that developers apply locally,
+  not as hidden CI mutations.
+
+## Avoid
+
+- `rev: main` or `rev: master`; always use a tag.
+- Hooks that modify files without being idempotent.
+- Slow hooks such as type checkers or the full test suite as default
+  pre-commit hooks.
+- Skipping hooks with `--no-verify` as a habit.

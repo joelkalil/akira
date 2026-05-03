@@ -34,6 +34,22 @@ user-invocable: false
 - Keep request and response models separate when fields differ.
 {% endif %}
 
+## Pydantic v2 Models
+
+- Separate request models from response models when the fields differ; do not
+  reuse ORM models as API schemas.
+- Use `model_validate(obj)` to construct a Pydantic model from a dict or ORM
+  object. Use `model_dump()` to convert back. The v1 `.from_orm()` and
+  `.dict()` methods are removed.
+- Use `model_config = ConfigDict(from_attributes=True)` on response models
+  that are constructed from ORM objects.
+- Field validators use `@field_validator("field_name")` with `@classmethod`.
+  The v1 `@validator` decorator is removed.
+- `Annotated[str, Field(min_length=1)]` is the canonical style for constrained
+  fields.
+- Avoid `Optional[X]` on request body fields that are truly required; use
+  `X | None = None` only when the field is intentionally nullable.
+
 {% if is_async_app | default(false) %}
 ## Async Rules
 

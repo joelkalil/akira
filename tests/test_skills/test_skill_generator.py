@@ -6,6 +6,7 @@ Tests for skill generator.
 from __future__ import annotations
 
 from pathlib import Path
+from textwrap import dedent
 
 # Third-Party Libraries
 import yaml
@@ -53,6 +54,7 @@ class TestDetectedToolsGenerateExpectedSkillPaths:
             "skills/python/infra/docker.md",
             "skills/python/testing/pytest.md",
             "skills/python/tooling/mypy.md",
+            "skills/python/tooling/pre_commit.md",
             "skills/python/tooling/ruff.md",
             "skills/python/tooling/uv.md",
             "skills/python/web_framework/fastapi.md",
@@ -300,7 +302,8 @@ class TestRootRouterIncludesCoreRulesFromStructuredFingerprint:
         project.mkdir()
 
         (project / "module.py").write_text(
-            """
+            dedent(
+                """
             from __future__ import annotations
 
             import os
@@ -313,6 +316,7 @@ class TestRootRouterIncludesCoreRulesFromStructuredFingerprint:
 
                 return f"{value}"
             """,
+            ),
             encoding="utf-8",
         )
 

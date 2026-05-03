@@ -1,0 +1,55 @@
+---
+name: akira-coverage
+description: >
+  coverage.py guidance for {{ project_name | default("this project") }}.
+  Consult when editing coverage configuration, branch coverage, omit/source
+  rules, HTML reports, or CI threshold enforcement.
+user-invocable: false
+---
+
+# Coverage Guidance
+
+## Configuration
+
+- Keep coverage config in `.coveragerc` or `[tool.coverage]` in
+  `pyproject.toml`; avoid splitting run and report settings across files.
+- Set `source` to the project package so installed dependencies and tests do
+  not inflate results.
+- Use `omit` for generated files, migrations, or platform-specific glue that
+  the project intentionally excludes.
+- Enable `branch = true`; line coverage alone misses untaken branches.
+
+## Branch Coverage
+
+- Branch coverage is almost always the right default because conditionals,
+  early returns, and exception paths are where regressions hide.
+- Review missing branches before raising thresholds; a high line percentage can
+  still leave failure paths unexecuted.
+- Keep pragmas such as `# pragma: no cover` rare and explain them when the
+  reason is not obvious.
+
+## Thresholds In CI
+
+- Use `fail_under = 80` or the project's configured threshold so regressions
+  fail consistently.
+- Prefer `coverage report --fail-under=80` in CI when the threshold is managed
+  by the workflow.
+- Enforce the same threshold locally and in CI; CI-only thresholds create
+  avoidable friction during pull requests.
+- Keep threshold changes separate from large test rewrites so reviewers can see
+  whether coverage actually improved.
+
+## HTML Reports
+
+- Use `coverage html` for local inspection of missed lines and branches.
+- Keep `htmlcov/`, `.coverage`, and parallel coverage data files out of source
+  control.
+- Link or upload HTML reports only when CI consumers need them.
+
+## Avoid
+
+- Measuring coverage without branch coverage enabled.
+- Committing `htmlcov/` or `.coverage` to the repository.
+- Treating 100% coverage as the goal; coverage measures execution, not
+  correctness.
+- Omitting `__init__.py` files from source coverage.

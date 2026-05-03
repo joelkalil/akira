@@ -421,24 +421,18 @@ class TestDocstringExtractorReportsStyleAndVisibility:
                 """
                 Load user-facing values.
 
-                Parameters
-                ----------
-                source: str
-                    Source name.
+                Args:
+                    source: Source name.
                 """
 
                 def public_method(self, source: str) -> str:
                     """
                     Return a normalized value.
 
-                    Parameters
-                    ----------
-                    source: str 
-                        Source name.
+                    Args:
+                        source: Source name.
 
-                    Returns
-                    -------
-                    str
+                    Returns:
                         Normalized source.
                     """
 
@@ -694,6 +688,7 @@ class TestConfidenceDecreasesForIntentionallyMixedStyle:
             """
             import os
 
+
             def first_function():
                 return 1
 
@@ -710,6 +705,7 @@ class TestConfidenceDecreasesForIntentionallyMixedStyle:
 
             def first_function():
                 return 1
+
 
             def secondFunction():
                 return 2

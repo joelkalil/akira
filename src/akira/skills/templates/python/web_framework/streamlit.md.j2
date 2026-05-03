@@ -1,0 +1,68 @@
+---
+name: akira-streamlit
+description: >
+  Streamlit guidance for {{ project_name | default("this project") }}.
+  Consult when editing Streamlit apps, pages, widgets, caching, session state,
+  rerun behavior, or deployment configuration.
+user-invocable: false
+---
+
+# Streamlit Guidance
+
+## Project Context
+
+- Python version: {{ python_version | default("detected by Akira") }}
+- Package manager: {{ package_manager | default("detected by Akira") }}
+- Dockerized: {{ uses_docker | default("detected by Akira") }}
+
+## Execution Model
+
+- Streamlit reruns the entire script on every widget interaction; module
+  variables are recreated unless the value lives in `st.session_state` or
+  behind a cache decorator.
+- Initialize session state with a guard before any widget or callback reads it:
+  `if "key" not in st.session_state: st.session_state.key = default`.
+- Treat callbacks as event adapters: update session state, then let the next
+  script rerun render the new state.
+- Never perform expensive computation, database connection setup, or network
+  I/O at module scope unless the call is wrapped in the correct Streamlit
+  cache decorator.
+
+## Caching
+
+- Use `st.cache_resource` for shared process objects such as database
+  connections, API clients, ML models, and thread-safe connection pools.
+- Use `st.cache_data` for DataFrames, query results, parsed files, and other
+  values that should be copied when returned to the caller.
+- Keep cached function inputs explicit and hashable; use leading-underscore
+  parameters only for objects that should not participate in cache keys.
+- `st.cache_data` copies the top-level return value, but mutations to nested
+  mutable objects can be invisible to Streamlit and create stale state; return
+  immutable or freshly normalized structures when nested data may change.
+
+{% if uses_docker | default(false) %}
+## Cloud Run / Scale-to-Zero
+
+- Streamlit keeps browser sessions alive over WebSockets with a persistent ping
+  loop; on Cloud Run this can prevent scale-to-zero even when no user is
+  actively interacting with the app.
+- Set `server.headless = true` and `server.baseUrlPath` deliberately when the
+  app is served behind a routed container path or reverse proxy.
+- Use a startup probe so the container is not routed traffic before Streamlit is
+  ready.
+- If scale-to-zero is not required, configure minimum instances and resource
+  limits explicitly instead of relying on incidental WebSocket behavior.
+{% endif %}
+
+{% include "_partials/error_handling.md.j2" %}
+
+## Avoid
+
+- Module-level database connections or HTTP clients that are recreated on every
+  rerun.
+- Calling `st.rerun()` inside loops or callbacks that immediately trigger the
+  same condition again.
+- Mixing callback wiring with business logic inside widget callbacks.
+- Mutable default arguments in cached functions.
+- Calling `st.write()`, `st.dataframe()`, or other render functions inside a
+  cached function.

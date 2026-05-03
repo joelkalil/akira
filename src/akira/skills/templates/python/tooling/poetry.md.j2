@@ -1,0 +1,58 @@
+---
+name: akira-poetry
+description: >
+  Poetry guidance for {{ project_name | default("this project") }}.
+  Consult when changing pyproject.toml, dependency constraints, groups,
+  poetry.lock, packaging metadata, builds, or publishing.
+user-invocable: false
+---
+
+# Poetry Guidance
+
+## pyproject.toml Structure
+
+- Keep package metadata in `[tool.poetry]`, runtime dependencies in
+  `[tool.poetry.dependencies]`, and development dependencies in
+  `[tool.poetry.group.dev.dependencies]`.
+- Use caret constraints intentionally: `^1.2` allows compatible releases below
+  `2.0`.
+- Use tilde constraints for narrower ranges: `~1.2` allows releases below
+  `1.3`.
+- Use lower bounds such as `>=1.2` only when the project also has another
+  mechanism that prevents untested future major versions.
+
+## Lock File Discipline
+
+- Commit `poetry.lock`; it is part of the reproducible environment contract.
+- Use `poetry install` to install from the lock file.
+- Use `poetry update` only when intentionally refreshing locked dependency
+  versions.
+- After changing dependency declarations, run `poetry lock` and review the lock
+  diff.
+
+## Groups
+
+- Add development tools with `poetry add --group dev`.
+- Install optional groups with `poetry install --with dev` or the specific
+  group needed by CI.
+- Use optional groups for docs, benchmarking, or integration-test dependencies
+  that should not be installed by default.
+- Keep runtime extras distinct from development groups when package consumers
+  need optional features.
+
+## Publishing
+
+- Build artifacts with `poetry build` and publish with `poetry publish` through
+  the project's configured repository.
+- Keep package version metadata single-sourced.
+- Prefer `importlib.metadata.version("package-name")` for `__version__`
+  instead of duplicating the version string in package code.
+- Validate the built wheel before publishing when package data or entry points
+  changed.
+
+## Avoid
+
+- `^` constraints for packages that do not follow semver strictly.
+- Committing dependency changes without running `poetry lock`.
+- `poetry run` in CI when the environment is already activated.
+- Mixing pip and poetry dependency installation in the same project.

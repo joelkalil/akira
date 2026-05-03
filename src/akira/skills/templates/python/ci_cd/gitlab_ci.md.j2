@@ -1,0 +1,72 @@
+---
+name: akira-gitlab-ci
+description: >
+  GitLab CI guidance for {{ project_name | default("this project") }}.
+  Consult when editing .gitlab-ci.yml pipelines, jobs, stages, rules,
+  artifacts, caches, runners, or deployment variables.
+user-invocable: false
+---
+
+# GitLab CI Guidance
+
+## Project Context
+
+- Workflow path: {{ workflow_path | default(".gitlab-ci.yml") }}
+- Python versions: {{ python_versions | default("configured in CI") }}
+- Package manager: {{ package_manager | default("detected by Akira") }}
+
+## Pipeline Shape
+
+- Structure `.gitlab-ci.yml` around `stages` and jobs; jobs in later stages
+  implicitly wait for earlier stages unless `needs` changes the graph.
+- Keep jobs focused: install, lint, type-check, test, build, and deploy should
+  be easy to scan.
+- Use `rules` for branch, tag, merge request, and file-change conditions;
+  `only` and `except` are legacy and should not be added to new jobs.
+- Use `needs` for DAG pipelines when a job can start before all jobs in the
+  previous stage finish.
+
+{% if package_manager | default("") == "uv" %}
+## uv In CI
+
+- Install uv before syncing dependencies.
+- Cache uv-managed dependencies when the runner cache is already configured.
+- Use locked installs for repeatable CI runs.
+{% endif %}
+
+## Artifacts And Caching
+
+- Use `cache` for dependencies reused between pipeline runs, such as package
+  manager caches.
+- Use `artifacts` to pass files between jobs in the same pipeline, such as
+  coverage reports, build outputs, or test logs.
+- Set artifact expiration intentionally so large build outputs do not persist
+  indefinitely.
+- Keep cache keys tied to lock files when dependencies should refresh after
+  lock changes.
+
+## Containers And Runners
+
+- Choose Docker-in-Docker only when the runner is configured for it and the
+  security tradeoff is acceptable.
+- Prefer socket binding only on runners where host Docker access is an explicit
+  operational decision.
+- Keep runner tags and image names stable so jobs land on expected executors.
+- Separate container build jobs from test jobs unless they genuinely share the
+  same image contract.
+
+## Variables And Releases
+
+- Use protected variables for values available only to protected branches or
+  tags.
+- Use masked variables for secrets that must never appear in job logs.
+- Separate merge request validation from release and deployment jobs.
+- Keep environment names and deployment URLs explicit for GitLab environments.
+
+## Avoid
+
+- Adding `only` or `except` to new jobs instead of `rules`.
+- Using `cache` to pass build artifacts between jobs.
+- Printing variables that may contain tokens or cloud credentials.
+- Jobs that depend on implicit runner state outside the repository and CI
+  variables.

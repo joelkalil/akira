@@ -1,0 +1,59 @@
+---
+name: akira-click
+description: >
+  Click CLI guidance for {{ project_name | default("this project") }}.
+  Consult when editing Click groups, commands, options, arguments, command
+  context, error handling, or CLI tests.
+user-invocable: false
+---
+
+# Click Guidance
+
+## App Structure
+
+- Use `@click.group()` for the root command and `@group.command()` for
+  subcommands; keep command registration close enough to the group to audit.
+- Pass shared state with `@click.pass_context` and initialize `ctx.obj` as a
+  small dict containing parsed config, clients, or service objects.
+- Use nested groups only when the command tree has distinct domains or shared
+  group-level options.
+- Keep command functions as adapters around project code rather than the place
+  where business rules live.
+
+## Decorators As The Interface
+
+- Decorator order matters because Python applies decorators bottom-up:
+  `@click.argument` closest to the function, then `@click.option`, then
+  `@click.command` or `@group.command`.
+- Add new options near related options and preserve the existing help order;
+  Click exposes decorator order directly to users.
+- Use `click.Path`, `click.Choice`, and typed options instead of parsing raw
+  strings in the command body.
+- Use `required=True` for required options only when a named option is clearer
+  than a positional argument.
+
+## Output And Error Handling
+
+- Use `click.echo()` for stdout and `click.echo(..., err=True)` for stderr so
+  tests can capture streams consistently.
+- Raise `click.ClickException` for operational failures and `click.UsageError`
+  for invalid CLI usage.
+- Let Click produce the exit code and message format; avoid `sys.exit()` and
+  bare `raise` for expected CLI failures.
+- Use `standalone_mode=False` when embedding a Click command in a larger Python
+  application so exceptions propagate to the caller.
+
+## Testing
+
+- Use `click.testing.CliRunner` for command behavior and filesystem isolation.
+- During development, pass `catch_exceptions=False` so real tracebacks are not
+  hidden behind Click's result object.
+- Assert `result.exit_code`, `result.output`, and any filesystem effects.
+
+## Avoid
+
+- `sys.exit()` instead of `raise click.ClickException(...)`.
+- Parsing arguments manually when Click options or parameter types exist.
+- Global state mutated inside commands, which breaks `CliRunner` isolation.
+- Missing `standalone_mode=False` when embedding Click in a larger app.
+- Forgetting `invoke_without_command=True` on groups that have default behavior.

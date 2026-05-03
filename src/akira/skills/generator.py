@@ -64,6 +64,13 @@ SKILL_TEMPLATES: tuple[SkillTemplate, ...] = (
         "Python package and environment work",
     ),
     SkillTemplate(
+        "package_manager",
+        "poetry",
+        "python/tooling/poetry.md.j2",
+        "tooling/poetry.md",
+        "Poetry dependency management, packaging, or publishing",
+    ),
+    SkillTemplate(
         "web_framework",
         "fastapi",
         "python/web_framework/fastapi.md.j2",
@@ -85,6 +92,27 @@ SKILL_TEMPLATES: tuple[SkillTemplate, ...] = (
         "Django apps, settings, models, views, or migrations",
     ),
     SkillTemplate(
+        "web_framework",
+        "streamlit",
+        "python/web_framework/streamlit.md.j2",
+        "web_framework/streamlit.md",
+        "Streamlit apps, pages, caching, session state, or deployment",
+    ),
+    SkillTemplate(
+        "cli_framework",
+        "typer",
+        "python/cli_framework/typer.md.j2",
+        "cli_framework/typer.md",
+        "Typer CLI commands, options, arguments, or app structure",
+    ),
+    SkillTemplate(
+        "cli_framework",
+        "click",
+        "python/cli_framework/click.md.j2",
+        "cli_framework/click.md",
+        "Click CLI commands, groups, options, or arguments",
+    ),
+    SkillTemplate(
         "testing",
         "pytest",
         "python/testing/pytest.md.j2",
@@ -97,6 +125,27 @@ SKILL_TEMPLATES: tuple[SkillTemplate, ...] = (
         "python/testing/unittest.md.j2",
         "testing/unittest.md",
         "unittest suites, cases, assertions, or test runners",
+    ),
+    SkillTemplate(
+        "testing",
+        "tox",
+        "python/testing/tox.md.j2",
+        "testing/tox.md",
+        "tox environments, multi-version testing, or test orchestration",
+    ),
+    SkillTemplate(
+        "testing",
+        "nox",
+        "python/testing/nox.md.j2",
+        "testing/nox.md",
+        "nox sessions, multi-environment testing, or task automation",
+    ),
+    SkillTemplate(
+        "testing",
+        "coverage",
+        "python/testing/coverage.md.j2",
+        "testing/coverage.md",
+        "coverage measurement, reporting, or threshold enforcement",
     ),
     SkillTemplate(
         "database",
@@ -120,6 +169,13 @@ SKILL_TEMPLATES: tuple[SkillTemplate, ...] = (
         "PostgreSQL schema, queries, drivers, or database behavior",
     ),
     SkillTemplate(
+        "database",
+        "redis",
+        "python/database/redis.md.j2",
+        "database/redis.md",
+        "Redis caching, pub/sub, queues, or session storage",
+    ),
+    SkillTemplate(
         "tooling",
         "ruff",
         "python/tooling/ruff.md.j2",
@@ -132,6 +188,20 @@ SKILL_TEMPLATES: tuple[SkillTemplate, ...] = (
         "python/tooling/mypy.md.j2",
         "tooling/mypy.md",
         "mypy typing, annotations, or static analysis",
+    ),
+    SkillTemplate(
+        "tooling",
+        "pyright",
+        "python/tooling/pyright.md.j2",
+        "tooling/pyright.md",
+        "pyright type checking, configuration, or strict mode",
+    ),
+    SkillTemplate(
+        "tooling",
+        "pre-commit",
+        "python/tooling/pre_commit.md.j2",
+        "tooling/pre_commit.md",
+        "pre-commit hooks, configuration, or CI integration",
     ),
     SkillTemplate(
         "infrastructure",
@@ -148,11 +218,25 @@ SKILL_TEMPLATES: tuple[SkillTemplate, ...] = (
         "Google Cloud deployment, runtime, or service configuration",
     ),
     SkillTemplate(
+        "infrastructure",
+        "aws",
+        "python/infra/aws.md.j2",
+        "infra/aws.md",
+        "AWS deployment, Lambda, S3, IAM, or service configuration",
+    ),
+    SkillTemplate(
         "ci_cd",
         "github-actions",
         "python/ci_cd/github_actions.md.j2",
         "ci_cd/github_actions.md",
         "GitHub Actions workflows or CI/CD automation",
+    ),
+    SkillTemplate(
+        "ci_cd",
+        "gitlab-ci",
+        "python/ci_cd/gitlab_ci.md.j2",
+        "ci_cd/gitlab_ci.md",
+        "GitLab CI pipelines, jobs, stages, or runners",
     ),
 )
 

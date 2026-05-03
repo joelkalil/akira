@@ -1,0 +1,68 @@
+---
+name: akira-redis
+description: >
+  Redis guidance for {{ project_name | default("this project") }}.
+  Consult when adding or changing Redis caching, key design, pub/sub, queues,
+  session storage, connection management, or serialization boundaries.
+user-invocable: false
+---
+
+# Redis Guidance
+
+## Project Context
+
+- Python version: {{ python_version | default("detected by Akira") }}
+- Session style: {{ session_style | default("sync or async detected by Akira") }}
+
+## Connection Management
+
+- Create one Redis client at application startup and reuse it; do not create a
+  `Redis()` client per request or helper call.
+- For async code, use `redis.asyncio.Redis` consistently and close the client
+  during application shutdown.
+- Size async connection pools for FastAPI concurrency: pool limits should cover
+  expected concurrent requests plus background tasks, not just worker count.
+- Keep Redis clients behind a small application boundary so tests can replace
+  them without connecting to a real server.
+
+## Key Design
+
+- Use `:`-separated namespaces such as `app:user:123:session`; this is a
+  convention for readability, not Redis syntax.
+- Every key representing transient state must have a TTL via `ex=` or `px=`.
+- Keep key components stable and explicit; avoid keys derived from raw reprs or
+  unordered dicts.
+- Prefer one documented ownership boundary per prefix so cleanup scripts and
+  dashboards remain understandable.
+
+## Serialization
+
+- Redis stores bytes; make the JSON boundary explicit with `json.dumps()` on
+  write and `json.loads()` on read.
+- Normalize datetimes, Decimals, and UUIDs before serialization instead of
+  relying on implicit encoder behavior.
+- Avoid `pickle` for data that crosses deployments: pickled objects couple the
+  cache to Python versions, module paths, and class layouts.
+- Treat cache misses and malformed payloads as expected operational cases with
+  logging and fallback behavior.
+
+{% if session_style | default("") == "async" %}
+## Async
+
+- Await all operations: `await client.get()`, `await client.set()`, and
+  `await client.delete()`.
+- Batch related commands with
+  `async with client.pipeline(transaction=True) as pipe`.
+- Never use the sync Redis client in an async request path.
+- Keep pub/sub consumers in managed background tasks with explicit shutdown.
+{% endif %}
+
+{% include "_partials/error_handling.md.j2" %}
+
+## Avoid
+
+- Creating a new connection per request or per function call.
+- Keys without TTLs for session or cache data.
+- Pickled Python objects for data that crosses deployments.
+- Using Redis as a primary database for relational data.
+- Catching `redis.RedisError` silently without logging or fallback.

@@ -1,0 +1,59 @@
+---
+name: akira-tox
+description: >
+  tox guidance for {{ project_name | default("this project") }}.
+  Consult when editing tox environments, multi-version Python test matrices,
+  dependency installation, passenv, or CI test orchestration.
+user-invocable: false
+---
+
+# tox Guidance
+
+## tox.ini / pyproject.toml Config
+
+- Keep tox configuration either in `tox.ini` or under `[tool.tox]` in
+  `pyproject.toml`; avoid splitting one tox setup across both.
+- Use `[tox]` for `envlist`, package behavior, and global tox settings.
+- Use `[testenv]` for shared defaults such as `deps`, `extras`, `commands`, and
+  `passenv`.
+- Put environment-specific overrides in `[testenv:name]` rather than branching
+  inside test commands.
+
+## Multi-Python Testing
+
+- Use matrix syntax such as `{py311,py312,py313}-pytest` when the project
+  declares support for multiple Python versions.
+- Each tox environment gets its own virtualenv and dependency installation; do
+  not assume packages installed in one env are visible in another.
+- Keep the envlist aligned with `requires-python`, classifiers, and CI Python
+  setup.
+- Run pytest directly during local edit loops; use tox for CI and final
+  multi-version verification.
+
+## Passing Through Environment Variables
+
+- Use `passenv` for CI-provided values the test suite needs, such as database
+  URLs, service endpoints, or feature flags.
+- Keep secrets out of tox config; pass their names through and let CI inject the
+  values.
+- Prefer explicit `setenv` for deterministic non-secret settings used by tests.
+
+{% if package_manager | default("") == "uv" %}
+## Integration With uv
+
+- Require tox's uv integration with `requires = ["tox-uv"]`.
+- Use the uv backend option such as `uv_sync = true` when tox should install
+  through uv instead of pip.
+- Keep lock-file behavior explicit so tox and local development resolve the
+  same dependency set.
+{% endif %}
+
+## Avoid
+
+- Testing only one Python version in a project that declares multiple versions
+  in `requires-python`.
+- Importing test dependencies from the project's main dependencies instead of
+  test extras.
+- Running tox locally on every save instead of pytest directly.
+- Hiding CI-only environment requirements inside shell scripts instead of
+  `passenv`.

@@ -1,0 +1,63 @@
+---
+name: akira-pyright
+description: >
+  pyright guidance for {{ project_name | default("this project") }}.
+  Consult when changing pyright configuration, strictness, import/stub errors,
+  Pylance behavior, annotations, or static type suppressions.
+user-invocable: false
+---
+
+# pyright Guidance
+
+## Project Context
+
+- pyright version: {{ pyright_version | default("detected by Akira") }}
+- Config file: {{ config_file | default("pyrightconfig.json or pyproject.toml") }}
+- Python version: {{ python_version | default("detected by Akira") }}
+
+## Configuration
+
+- Keep configuration in `pyrightconfig.json` or `[tool.pyright]` in
+  `pyproject.toml`; avoid duplicate settings in both.
+- Set `typeCheckingMode` deliberately: `off`, `basic`, `standard`, or
+  `strict`.
+- Keep `include`, `exclude`, and virtual environment settings aligned with the
+  project source layout.
+- Remember that VSCode Pylance uses pyright, so config changes affect editor
+  diagnostics as well as CI.
+
+## Type Errors
+
+- Fix the source of the mismatch before relaxing `typeCheckingMode`.
+- Use `reportMissingImports` and stub packages to handle third-party libraries
+  without types.
+- Use `useLibraryCodeForTypes` when a package has no stubs but useful inline
+  annotations or inspectable source.
+- Keep casts and protocol boundaries close to the dynamic API they describe.
+
+{% set _python_version = python_version | default("") %}
+{% set _python_version_parts = _python_version.split(".") if _python_version is string else [] %}
+{% set _python_major = (_python_version_parts[0] | int) if (_python_version_parts | length) > 0 else 0 %}
+{% set _python_minor = (_python_version_parts[1] | int) if (_python_version_parts | length) > 1 else 0 %}
+{% if _python_major > 3 or (_python_major == 3 and _python_minor >= 10) %}
+## Python 3.10+
+
+- Prefer `X | None` over `Optional[X]`.
+- Use built-in collection generics such as `list[str]`.
+{% endif %}
+
+## Suppressions
+
+- Pyright-specific suppressions use
+  `# pyright: ignore[reportMissingImports]` or the precise report code.
+- Do not rely on mypy-style `# type: ignore` for pyright-only suppressions.
+- Keep suppressions narrow and local; document dynamic behavior when it is not
+  obvious from the code.
+
+## Avoid
+
+- Disabling `reportMissingImports` globally when a stub package or targeted
+  ignore would solve the issue.
+- Lowering `typeCheckingMode` to hide errors in newly edited code.
+- Blanket pyright ignores without a report code.
+- Assuming Pylance diagnostics are separate from pyright configuration.

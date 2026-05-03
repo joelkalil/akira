@@ -9,6 +9,7 @@ import ast
 import fnmatch
 import os
 import tokenize
+from inspect import cleandoc
 from pathlib import Path
 from typing import Iterable
 
@@ -265,18 +266,26 @@ def _read_source_file(path: Path, project_root: Path) -> SourceFile:
             parse_error=f"unreadable file: {read_result.strerror or read_result}",
         )
 
-    text = read_result
-
     try:
+        text = read_result
+
         tree = ast.parse(text, filename=str(path))
 
     except SyntaxError as error:
-        return SourceFile(
-            path=path,
-            relative_path=relative_path,
-            text=text,
-            parse_error=_format_syntax_error(error),
-        )
+        cleaned_text = cleandoc(read_result)
+
+        try:
+            tree = ast.parse(cleaned_text, filename=str(path))
+
+        except SyntaxError:
+            return SourceFile(
+                path=path,
+                relative_path=relative_path,
+                text=read_result,
+                parse_error=_format_syntax_error(error),
+            )
+
+        text = cleaned_text
 
     return SourceFile(path=path, relative_path=relative_path, text=text, tree=tree)
 

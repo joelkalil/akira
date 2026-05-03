@@ -1,0 +1,72 @@
+---
+name: akira-aws
+description: >
+  AWS guidance for {{ project_name | default("this project") }}.
+  Consult when changing Lambda, S3, IAM, boto3 clients, deployment
+  configuration, secrets, or AWS service integrations.
+user-invocable: false
+---
+
+# AWS Guidance
+
+## Project Context
+
+- AWS target: {{ aws_target | default("Lambda, S3, IAM, or detected service") }}
+- Config files: {{ aws_config_files | default("template.yaml, serverless.yml, Terraform, or project config") }}
+- Containerized: {{ uses_docker | default("detected by Akira") }}
+
+## Configuration
+
+- Write IAM policies with least privilege; avoid `*` actions on `*` resources
+  unless the surrounding infrastructure already documents why.
+- Store environment-specific configuration in SSM Parameter Store or Secrets
+  Manager rather than hardcoded values or committed `.env` files.
+- Keep deployment config reviewable in source control without secret values.
+- Prefer IAM roles and platform credentials over long-lived access keys.
+- Keep IAM changes separate enough that reviewers can audit permissions.
+
+## Runtime
+
+- For Python Lambda, avoid heavy imports and client construction at module
+  import time unless they are intentional warm-start caches.
+- Use lazy initialization for expensive clients and models so cold starts stay
+  predictable.
+- Emit logs to stdout/stderr without credentials, tokens, request signatures, or
+  presigned URLs.
+- Keep timeouts, memory, and retry behavior aligned with downstream service
+  latency.
+
+{% include "_partials/error_handling.md.j2" %}
+
+{% include "_partials/logging_patterns.md.j2" %}
+
+## S3 Patterns
+
+- Use presigned URLs for client-direct uploads and downloads when users move
+  large files.
+- Do not proxy large files through Lambda unless the product requirement
+  explicitly needs inspection or transformation.
+- Keep bucket names, prefixes, encryption, and lifecycle policies explicit.
+- Validate content type, size, and key prefix before generating presigned URLs.
+
+## boto3 Boundaries
+
+- Use `boto3.Session` for credential and region context.
+- Use clients for low-level AWS API calls and resources only when the project
+  already relies on boto3's higher-level resource abstractions.
+- Create clients at application boundaries so tests can stub them with
+  `botocore.stub.Stubber` or local fakes.
+
+## Testing
+
+- Mock AWS clients at the boundary in unit tests.
+- Reserve real AWS calls for explicit integration tests with isolated accounts
+  or disposable resources.
+
+## Avoid
+
+- IAM policies with broad `Action: "*"` and `Resource: "*"`.
+- Committing `.aws/credentials`, access keys, or session tokens.
+- Logging credentials, authorization headers, request signatures, or presigned
+  URLs.
+- Assuming local AWS credentials exist in tests.

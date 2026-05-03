@@ -77,6 +77,7 @@ class TestDetectGenerateAndInstallClaudeSkillsForRepresentativeStack:
             "skills/python/infra/docker.md",
             "skills/python/testing/pytest.md",
             "skills/python/tooling/mypy.md",
+            "skills/python/tooling/pre_commit.md",
             "skills/python/tooling/ruff.md",
             "skills/python/tooling/uv.md",
             "skills/python/web_framework/fastapi.md",

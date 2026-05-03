@@ -41,6 +41,31 @@ user-invocable: false
 {% endif %}
 - Avoid `Any` unless the boundary is genuinely dynamic.
 
+## File Paths
+
+- Use `pathlib.Path` for all file and directory operations. Never use
+  `os.path` functions or string concatenation for paths.
+- Construct paths with `/` operator: `Path(__file__).parent / "config.json"`.
+- Read and write with `path.read_text(encoding="utf-8")` and
+  `path.write_text(content, encoding="utf-8")`, not `open()`.
+- Check existence with `path.exists()`, `path.is_file()`, `path.is_dir()`.
+- Iterate directories with `path.iterdir()` or `path.glob("*.py")`.
+- Use `Path(__file__).parent` for paths relative to the current module.
+
+## Logging
+
+- Create a module-level logger with `logger = logging.getLogger(__name__)`.
+  Never create loggers inside functions or classes.
+- Never call `logging.basicConfig()` in library or application module code.
+  Configure logging once at the application entry point.
+- Use `%`-style formatting in log calls, not f-strings:
+  `logger.info("Loading %s", path)`; this defers string formatting until the
+  log record is actually emitted.
+- Use `logger.exception("message")` inside `except` blocks; it automatically
+  attaches the current exception traceback. Do not use `logger.error()` for
+  exceptions.
+- Never use `print()` for diagnostics in non-CLI code.
+
 {% include "_partials/error_handling.md.j2" %}
 
 {% include "_partials/logging_patterns.md.j2" %}

@@ -1,0 +1,46 @@
+---
+name: akira-nox
+description: >
+  nox guidance for {{ project_name | default("this project") }}.
+  Consult when editing nox sessions, multi-environment test runs, reusable
+  session helpers, lint/type/test automation, or CI orchestration.
+user-invocable: false
+---
+
+# nox Guidance
+
+## noxfile.py Structure
+
+- Define sessions with `@nox.session`, install dependencies with
+  `session.install()`, and run commands with `session.run()`.
+- Use nox's Python-native structure for shared helper functions instead of
+  duplicating command lists between sessions.
+- Parametrize Python versions with
+  `@nox.session(python=["3.11", "3.12", "3.13"])` when the project supports a
+  version matrix.
+- Keep CI sessions deterministic by pinning tool versions in
+  `session.install()`.
+
+## Reusing Environments
+
+- Use `@nox.session(reuse_venv=True)` for development sessions where speed is
+  more valuable than a clean install.
+- Prefer clean environments in CI so dependency declarations are exercised.
+- Keep generated caches and virtualenvs outside source-controlled paths.
+
+## Selective Execution
+
+- Run a specific session with `nox -s lint` when iterating on one check.
+- Use `nox -k "not slow"` for keyword filtering when sessions are named or
+  tagged consistently.
+- Keep session names stable because CI configs and developer docs often call
+  them directly.
+
+## Avoid
+
+- Duplicating logic between sessions instead of shared helper functions.
+- Leaving tool versions unpinned in `session.install()` for CI sessions.
+- Using nox for tasks that belong in a Makefile or script; nox is for
+  environments, not general task running.
+- Hiding failures with `external=True` commands that are not guaranteed to
+  exist in CI.

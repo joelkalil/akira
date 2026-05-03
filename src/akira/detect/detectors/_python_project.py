@@ -9,6 +9,7 @@ import ast
 import configparser
 import re
 import tomllib
+from inspect import cleandoc
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -250,7 +251,7 @@ def scan_imports(
 
     for path in iter_python_files(project_root, exclude_dirs=exclude_dirs):
         try:
-            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+            tree = _parse_python_file(path)
 
         except (SyntaxError, UnicodeDecodeError):
             continue
@@ -449,7 +450,7 @@ def _dependencies_from_setup_py(path: Path) -> list[str]:
         return []
 
     try:
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        tree = _parse_python_file(path)
 
     except (SyntaxError, UnicodeDecodeError):
         return []
@@ -479,6 +480,30 @@ def _dependencies_from_setup_py(path: Path) -> list[str]:
                     dependencies.extend(item for item in value if isinstance(item, str))
 
     return dependencies
+
+
+def _parse_python_file(path: Path) -> ast.Module:
+    """
+    Parse Python source, tolerating indented snippets when necessary.
+
+    Parameters
+    ----------
+    path : Path
+        The path value.
+
+    Returns
+    -------
+    ast.Module
+        The parsed module.
+    """
+
+    text = path.read_text(encoding="utf-8")
+
+    try:
+        return ast.parse(text, filename=str(path))
+
+    except SyntaxError:
+        return ast.parse(cleandoc(text), filename=str(path))
 
 
 def _poetry_dependency_to_requirement(name: str, specifier: object) -> str:

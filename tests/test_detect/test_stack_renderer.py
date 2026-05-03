@@ -237,13 +237,13 @@ class TestStackMarkdownRendersNewInfraCiAndDatabaseTools:
 
         assert "- `python/infra/gcp.md`" in content
 
-        assert "- `python/ci_cd/gitlab_ci.md`" not in content
+        assert "- `python/ci_cd/gitlab_ci.md`" in content
 
-        assert "- `python/infra/aws.md`" not in content
+        assert "- `python/infra/aws.md`" in content
 
         assert "- `python/infra/terraform.md`" not in content
 
-        assert "- `python/database/redis.md`" not in content
+        assert "- `python/database/redis.md`" in content
 
 
 class TestActiveSkillHintsMatchGeneratedSkillOutputs:

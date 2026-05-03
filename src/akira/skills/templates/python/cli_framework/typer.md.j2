@@ -1,0 +1,65 @@
+---
+name: akira-typer
+description: >
+  Typer CLI guidance for {{ project_name | default("this project") }}.
+  Consult when adding CLI commands, options, arguments, callbacks, shared
+  command state, output formatting, or CLI tests.
+user-invocable: false
+---
+
+# Typer Guidance
+
+## Project Context
+
+- Python version: {{ python_version | default("detected by Akira") }}
+- Package manager: {{ package_manager | default("detected by Akira") }}
+
+## App Structure
+
+- Use a single `typer.Typer()` app for small CLIs; introduce nested subapps only
+  when command groups have separate lifecycles, options, or help surfaces.
+- Put global options in an app callback and store shared state on
+  `typer.Context.obj` so subcommands do not re-parse configuration.
+- Use `no_args_is_help=True` for CLIs where running the bare command should
+  show guidance instead of doing work.
+- Keep command functions thin: parse CLI values, call application code, and
+  translate results into user-facing output.
+
+## Type Annotations As The Interface
+
+- Prefer `Annotated[type, typer.Option(...)]` and
+  `Annotated[type, typer.Argument(...)]`; avoid the older
+  `param: type = typer.Option(...)` default style in new code.
+- `Optional[str] = None` models an omitted value cleanly and avoids displaying a
+  misleading default for flags that are intentionally absent.
+- Use `typer.Argument` for required positional input with a stable meaning; use
+  `typer.Option` for optional values, toggles, and anything with a default.
+- Use option callback validators for cross-field validation that Typer cannot
+  express with a single annotation.
+
+## Output
+
+- Use a module-level `console = Console()` and Rich methods throughout when the
+  project has Rich available.
+- Reserve `typer.echo()` for projects that intentionally avoid Rich.
+- For failure paths, raise `typer.Exit(1)` after writing the error message;
+  never call `sys.exit()` from command code.
+- Keep JSON or machine-readable output isolated from styled console output so
+  tests and automation can assert it reliably.
+
+## Testing
+
+- Use `typer.testing.CliRunner` instead of subprocess tests for command
+  behavior.
+- Pass `mix_stderr=False` when tests need to assert stdout and stderr
+  separately.
+- Assert exit code, stdout/stderr, and filesystem side effects; keep business
+  logic tests below the CLI layer.
+
+## Avoid
+
+- `typer.echo()` when Rich is already part of the CLI stack.
+- `sys.exit()` instead of `raise typer.Exit(code=1)`.
+- Business logic embedded inside command functions.
+- Positional `Argument` values for anything optional or with a default.
+- Importing from `click` directly when Typer provides the equivalent.
