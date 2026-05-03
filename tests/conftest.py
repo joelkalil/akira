@@ -12,13 +12,12 @@ import pytest
 # Local Libraries
 
 
-@pytest.fixture
-
 # -----------------------------------------------------------------------------
 # Public Functions
 # -----------------------------------------------------------------------------
 
 
+@pytest.fixture
 def fixtures_dir() -> Path:
     """
     Return the root directory for project fixtures.

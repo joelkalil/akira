@@ -6,8 +6,6 @@ GitHub Copilot adapter for Akira context installation.
 from __future__ import annotations
 from pathlib import Path
 
-# Third-Party Libraries
-
 # Local Libraries
 from akira.agents.base import BaseAgentAdapter
 

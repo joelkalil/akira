@@ -11,8 +11,6 @@ import tokenize
 from pathlib import Path
 from typing import Iterable
 
-# Third-Party Libraries
-
 # Local Libraries
 from akira.fingerprint.extractors import (
     comments,
@@ -24,7 +22,7 @@ from akira.fingerprint.extractors import (
     spacing,
     strings,
     structure,
-    typing,
+    typing as typing_extractor,
 )
 from akira.fingerprint.models import FingerprintAnalysis, SourceFile, StylePattern
 
@@ -94,7 +92,7 @@ def extract_style_patterns(analysis: FingerprintAnalysis) -> tuple[StylePattern,
         naming.extract,
         imports.extract,
         comments.extract,
-        typing.extract,
+        typing_extractor.extract,
         structure.extract,
         docstrings.extract,
         organization.extract,

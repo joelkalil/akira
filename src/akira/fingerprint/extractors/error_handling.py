@@ -3,8 +3,8 @@ Error-handling style extractor.
 """
 
 # Standard Libraries
-import ast
 from __future__ import annotations
+import ast
 
 # Local Libraries
 from akira.fingerprint.extractors._common import make_pattern

@@ -6,16 +6,6 @@ Base contracts for stack detectors.
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any
-
-# Third-Party Libraries
-try:
-
-    import tomllib
-
-except ModuleNotFoundError:
-
-    import tomli as tomllib
 
 # Local Libraries
 from akira.detect.models import Signal
@@ -69,26 +59,3 @@ class BaseDetector(ABC):
             A list of detected signals.
         """
 
-    def _read_toml(self, path: Path) -> dict[str, Any]:
-        """
-        Read a TOML file, returning an empty mapping when it is absent.
-
-        Parameters
-        ----------
-        path : Path
-            The path to the TOML file to read.
-
-        Returns
-        -------
-        dict[str, Any]
-            The contents of the TOML file as a dictionary, or an empty dictionary if the file
-            does not exist.
-        """
-
-        if not path.exists():
-
-            return {}
-
-        with path.open("rb") as file:
-
-            return tomllib.load(file)

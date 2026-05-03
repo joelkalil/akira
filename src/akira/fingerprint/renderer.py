@@ -16,13 +16,12 @@ from jinja2 import Environment, PackageLoader, StrictUndefined
 from akira.fingerprint.models import FingerprintAnalysis, StylePattern
 
 
-@dataclass(frozen=True)
-
 # -----------------------------------------------------------------------------
 # Classes
 # -----------------------------------------------------------------------------
 
 
+@dataclass(frozen=True)
 class FingerprintLine:
     """
     A readable fingerprint assertion derived from a style pattern.
@@ -298,6 +297,36 @@ def build_fingerprint_sections(
     return tuple(sections)
 
 
+def format_fingerprint_value(value: Any) -> str:
+    """
+    Format a structured fingerprint value for human-readable Markdown.
+    """
+
+    if isinstance(value, tuple):
+
+        return " -> ".join(format_fingerprint_value(item) for item in value)
+
+    if isinstance(value, list):
+
+        return ", ".join(format_fingerprint_value(item) for item in value)
+
+    if isinstance(value, bool):
+
+        return "yes" if value else "no"
+
+    if isinstance(value, int):
+
+        return str(value)
+
+    if isinstance(value, float):
+
+        return f"{value:.2f}"
+
+    text = str(value)
+
+    return VALUE_LABELS.get(text, text)
+
+
 # -----------------------------------------------------------------------------
 # Private Functions
 # -----------------------------------------------------------------------------
@@ -333,46 +362,6 @@ def _format_value(pattern: StylePattern) -> str:
 def _format_raw_value(value: Any) -> str:
 
     return format_fingerprint_value(value)
-
-
-# -----------------------------------------------------------------------------
-# Public Functions
-# -----------------------------------------------------------------------------
-
-
-def format_fingerprint_value(value: Any) -> str:
-    """
-    Format a structured fingerprint value for human-readable Markdown.
-    """
-
-    if isinstance(value, tuple):
-
-        return " -> ".join(format_fingerprint_value(item) for item in value)
-
-    if isinstance(value, list):
-
-        return ", ".join(format_fingerprint_value(item) for item in value)
-
-    if isinstance(value, bool):
-
-        return "yes" if value else "no"
-
-    if isinstance(value, int):
-
-        return str(value)
-
-    if isinstance(value, float):
-
-        return f"{value:.2f}"
-
-    text = str(value)
-
-    return VALUE_LABELS.get(text, text)
-
-
-# -----------------------------------------------------------------------------
-# Private Functions
-# -----------------------------------------------------------------------------
 
 
 def _humanize_label(value: str) -> str:

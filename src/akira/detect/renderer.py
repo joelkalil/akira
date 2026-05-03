@@ -89,13 +89,12 @@ SKILL_HINTS = {
 }
 
 
-@dataclass(frozen=True)
-
 # -----------------------------------------------------------------------------
 # Classes
 # -----------------------------------------------------------------------------
 
 
+@dataclass(frozen=True)
 class StackSection:
     """
     A rendered stack.md section.

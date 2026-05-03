@@ -128,73 +128,6 @@ class ReviewResult:
 
 
 # -----------------------------------------------------------------------------
-# Public Functions
-# -----------------------------------------------------------------------------
-
-
-def analyze_stack(
-    stack: StackInfo,
-    rules: tuple[Rule, ...] | None = None,
-) -> ReviewResult:
-    """
-    Apply review rules to a detected project stack.
-    """
-
-    active_rules = INITIAL_RULES if rules is None else rules
-
-    findings = tuple(
-        Finding(
-            rule_id=rule.id,
-            category=rule.category,
-            message=rule.message,
-            migration=rule.migration,
-            safe_change=rule.safe_change,
-        )
-        for rule in active_rules
-        if rule.evaluate(stack)
-    )
-
-    return ReviewResult(stack=stack, findings=findings)
-
-
-# -----------------------------------------------------------------------------
-# Private Functions
-# -----------------------------------------------------------------------------
-
-
-def _python_version_at_least(stack: StackInfo, minimum: tuple[int, int]) -> bool:
-
-    python_tools = stack.by_category("runtime")
-
-    version = next(
-        (
-            tool.version
-            for tool in python_tools
-            if tool.name == "python" and tool.version
-        ),
-        None,
-    )
-
-    if version is None:
-
-        return False
-
-    parts = version.split(".")
-
-    try:
-
-        major = int(parts[0])
-
-        minor = int(parts[1]) if len(parts) > 1 else 0
-
-    except ValueError:
-
-        return False
-
-    return (major, minor) >= minimum
-
-
-# -----------------------------------------------------------------------------
 # Constants
 # -----------------------------------------------------------------------------
 
@@ -286,3 +219,70 @@ INITIAL_RULES: tuple[Rule, ...] = (
         message="FastAPI is async-first, but psycopg2 is synchronous. Consider asyncpg or psycopg3.",
     ),
 )
+
+
+# -----------------------------------------------------------------------------
+# Public Functions
+# -----------------------------------------------------------------------------
+
+
+def analyze_stack(
+    stack: StackInfo,
+    rules: tuple[Rule, ...] | None = None,
+) -> ReviewResult:
+    """
+    Apply review rules to a detected project stack.
+    """
+
+    active_rules = INITIAL_RULES if rules is None else rules
+
+    findings = tuple(
+        Finding(
+            rule_id=rule.id,
+            category=rule.category,
+            message=rule.message,
+            migration=rule.migration,
+            safe_change=rule.safe_change,
+        )
+        for rule in active_rules
+        if rule.evaluate(stack)
+    )
+
+    return ReviewResult(stack=stack, findings=findings)
+
+
+# -----------------------------------------------------------------------------
+# Private Functions
+# -----------------------------------------------------------------------------
+
+
+def _python_version_at_least(stack: StackInfo, minimum: tuple[int, int]) -> bool:
+
+    python_tools = stack.by_category("runtime")
+
+    version = next(
+        (
+            tool.version
+            for tool in python_tools
+            if tool.name == "python" and tool.version
+        ),
+        None,
+    )
+
+    if version is None:
+
+        return False
+
+    parts = version.split(".")
+
+    try:
+
+        major = int(parts[0])
+
+        minor = int(parts[1]) if len(parts) > 1 else 0
+
+    except ValueError:
+
+        return False
+
+    return (major, minor) >= minimum

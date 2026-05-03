@@ -22,6 +22,18 @@ _ADAPTERS: tuple[type[BaseAgentAdapter], ...] = (
 
 SUPPORTED_AGENT_NAMES = tuple(adapter.name for adapter in _ADAPTERS)
 
+__all__ = [
+    "AgentInstallResult",
+    "BaseAgentAdapter",
+    "ClaudeCodeAdapter",
+    "CodexAdapter",
+    "CopilotAdapter",
+    "CursorAdapter",
+    "SUPPORTED_AGENT_NAMES",
+    "UnsupportedAgent",
+    "get_agent_adapter",
+]
+
 
 # -----------------------------------------------------------------------------
 # Classes
@@ -95,20 +107,3 @@ def get_agent_adapter(agent: str) -> BaseAgentAdapter:
             return adapter_type()
 
     raise UnsupportedAgent(agent, SUPPORTED_AGENT_NAMES)
-
-
-# -----------------------------------------------------------------------------
-# Constants
-# -----------------------------------------------------------------------------
-
-__all__ = [
-    "AgentInstallResult",
-    "BaseAgentAdapter",
-    "ClaudeCodeAdapter",
-    "CodexAdapter",
-    "CopilotAdapter",
-    "CursorAdapter",
-    "SUPPORTED_AGENT_NAMES",
-    "UnsupportedAgent",
-    "get_agent_adapter",
-]

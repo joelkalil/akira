@@ -3,8 +3,8 @@ Control-flow and function-shape extractor.
 """
 
 # Standard Libraries
-import ast
 from __future__ import annotations
+import ast
 from collections import Counter
 from statistics import median
 

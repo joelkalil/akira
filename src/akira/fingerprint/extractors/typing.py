@@ -3,8 +3,8 @@ Type hint style extractor.
 """
 
 # Standard Libraries
-import ast
 from __future__ import annotations
+import ast
 from collections import Counter
 
 # Local Libraries

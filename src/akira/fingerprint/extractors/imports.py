@@ -3,9 +3,9 @@ Import style extractor.
 """
 
 # Standard Libraries
+from __future__ import annotations
 import ast
 import sys
-from __future__ import annotations
 from collections import Counter, defaultdict
 
 # Local Libraries

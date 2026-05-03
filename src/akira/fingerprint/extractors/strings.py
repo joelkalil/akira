@@ -3,11 +3,11 @@ String literal and interpolation style extractor.
 """
 
 # Standard Libraries
+from __future__ import annotations
 import ast
 import io
 import re
 import tokenize
-from __future__ import annotations
 from collections import Counter
 
 # Local Libraries

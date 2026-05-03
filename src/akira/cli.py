@@ -42,30 +42,11 @@ app = typer.Typer(
 
 
 # -----------------------------------------------------------------------------
-# Private Functions
-# -----------------------------------------------------------------------------
-
-
-def _validate_agent(agent: str) -> str:
-
-    if agent not in SUPPORTED_AGENT_NAMES:
-
-        supported = ", ".join(SUPPORTED_AGENT_NAMES)
-
-        raise typer.BadParameter(
-            f"Unsupported agent '{agent}'. Choose one of: {supported}."
-        )
-
-    return agent
-
-
-@app.callback()
-
-# -----------------------------------------------------------------------------
 # Public Functions
 # -----------------------------------------------------------------------------
 
 
+@app.callback()
 def cli() -> None:
     """
     Akira detects project context and generates agent skills.
@@ -389,9 +370,30 @@ def review(
     )
 
 
+def main() -> None:
+    """
+    Run the Akira CLI.
+    """
+
+    app()
+
+
 # -----------------------------------------------------------------------------
 # Private Functions
 # -----------------------------------------------------------------------------
+
+
+def _validate_agent(agent: str) -> str:
+
+    if agent not in SUPPORTED_AGENT_NAMES:
+
+        supported = ", ".join(SUPPORTED_AGENT_NAMES)
+
+        raise typer.BadParameter(
+            f"Unsupported agent '{agent}'. Choose one of: {supported}."
+        )
+
+    return agent
 
 
 def _collect_review_decisions(
@@ -569,16 +571,3 @@ def _render_review_summary(
         console.print(f"Updated artifacts in: {output}")
 
         console.print("Regenerated affected skills.")
-
-
-# -----------------------------------------------------------------------------
-# Public Functions
-# -----------------------------------------------------------------------------
-
-
-def main() -> None:
-    """
-    Run the Akira CLI.
-    """
-
-    app()

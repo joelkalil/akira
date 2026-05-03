@@ -15,13 +15,12 @@ from typing import Literal
 InstallStatus = Literal["installed", "updated", "unchanged", "removed"]
 
 
-@dataclass(frozen=True)
-
 # -----------------------------------------------------------------------------
 # Classes
 # -----------------------------------------------------------------------------
 
 
+@dataclass(frozen=True)
 class InstalledSkillFile:
     """
     A file touched while installing generated skills.

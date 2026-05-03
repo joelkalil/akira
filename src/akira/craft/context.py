@@ -17,13 +17,12 @@ from akira.agents import (
 from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR
 
 
-@dataclass(frozen=True)
-
 # -----------------------------------------------------------------------------
 # Classes
 # -----------------------------------------------------------------------------
 
 
+@dataclass(frozen=True)
 class CraftPrerequisite:
     """
     A generated Akira artifact required before crafting agent context.

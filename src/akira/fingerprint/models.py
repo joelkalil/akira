@@ -8,18 +8,13 @@ import ast
 from dataclasses import dataclass, field
 from pathlib import Path
 
-# Third-Party Libraries
-
-# Local Libraries
-
-
-@dataclass(frozen=True)
 
 # -----------------------------------------------------------------------------
 # Classes
 # -----------------------------------------------------------------------------
 
 
+@dataclass(frozen=True)
 class SourceFile:
     """
     A Python source file prepared for style extractors.

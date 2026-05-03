@@ -3,8 +3,8 @@ Detect Python runtime and package manager signals.
 """
 
 # Standard Libraries
-import re
 from __future__ import annotations
+import re
 from pathlib import Path
 
 # Local Libraries

@@ -26,7 +26,6 @@ classifiers = [
     "Topic :: Software Development",
 ]
 dependencies = [
-    "black>=26.3.1",
     "jinja2>=3.1",
     "pyyaml>=6.0",
     "rich>=13.0",
@@ -67,6 +66,9 @@ exclude = [
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
 
 [tool.black]
 line-length = 88

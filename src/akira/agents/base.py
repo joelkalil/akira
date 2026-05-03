@@ -12,13 +12,12 @@ from pathlib import Path
 from akira.skills.installer import InstalledSkillFile, install_generated_skills
 
 
-@dataclass(frozen=True)
-
 # -----------------------------------------------------------------------------
 # Classes
 # -----------------------------------------------------------------------------
 
 
+@dataclass(frozen=True)
 class AgentInstallResult:
     """
     Result returned by an agent adapter installation.

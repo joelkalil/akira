@@ -18,13 +18,12 @@ from akira.fingerprint import format_fingerprint_value
 from akira.fingerprint.models import FingerprintAnalysis, StylePattern
 
 
-@dataclass(frozen=True)
-
 # -----------------------------------------------------------------------------
 # Classes
 # -----------------------------------------------------------------------------
 
 
+@dataclass(frozen=True)
 class SkillTemplate:
     """
     Mapping from a detected tool to a rendered skill artifact.
@@ -163,6 +162,26 @@ _MANAGED_OUTPUTS = {
 }
 
 _ROOT_ROUTER_OUTPUT = Path("SKILL.md")
+
+_CORE_RULE_PRIORITY = (
+    ("structure", "early_returns"),
+    ("structure", "guard_clauses"),
+    ("comments", "section_separators"),
+    ("comments", "inline_comment_frequency"),
+    ("spacing", "logical_blocks"),
+    ("typing", "signature_coverage"),
+    ("typing", "optional_syntax"),
+    ("structure", "nesting_depth"),
+    ("imports", "grouping_order"),
+    ("imports", "relative_imports"),
+    ("imports", "wildcard_usage"),
+    ("docstrings", "docstring_style"),
+    ("docstrings", "public_docstrings"),
+    ("docstrings", "private_docstring_behavior"),
+    ("strings", "quote_style"),
+    ("strings", "interpolation_style"),
+    ("structure", "function_length"),
+)
 
 
 # -----------------------------------------------------------------------------
@@ -424,31 +443,6 @@ def select_fingerprint_core_rules(
             break
 
     return tuple(rules)
-
-
-# -----------------------------------------------------------------------------
-# Constants
-# -----------------------------------------------------------------------------
-
-_CORE_RULE_PRIORITY = (
-    ("structure", "early_returns"),
-    ("structure", "guard_clauses"),
-    ("comments", "section_separators"),
-    ("comments", "inline_comment_frequency"),
-    ("spacing", "logical_blocks"),
-    ("typing", "signature_coverage"),
-    ("typing", "optional_syntax"),
-    ("structure", "nesting_depth"),
-    ("imports", "grouping_order"),
-    ("imports", "relative_imports"),
-    ("imports", "wildcard_usage"),
-    ("docstrings", "docstring_style"),
-    ("docstrings", "public_docstrings"),
-    ("docstrings", "private_docstring_behavior"),
-    ("strings", "quote_style"),
-    ("strings", "interpolation_style"),
-    ("structure", "function_length"),
-)
 
 
 # -----------------------------------------------------------------------------

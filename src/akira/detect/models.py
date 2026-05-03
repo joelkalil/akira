@@ -10,13 +10,12 @@ from types import MappingProxyType
 from typing import Any, Mapping
 
 
-@dataclass(frozen=True)
-
 # -----------------------------------------------------------------------------
 # Classes
 # -----------------------------------------------------------------------------
 
 
+@dataclass(frozen=True)
 class Signal:
     """
     A single detection signal emitted by a detector.

@@ -1,8 +1,8 @@
 # Standard Libraries
+from __future__ import annotations
 import shutil
 import subprocess
 import tarfile
-from __future__ import annotations
 from pathlib import Path
 from zipfile import ZipFile
 

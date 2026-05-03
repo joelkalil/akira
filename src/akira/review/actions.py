@@ -14,13 +14,12 @@ from akira.review.analyzer import Finding
 from akira.skills.generator import GeneratedSkill, generate_skills
 
 
-@dataclass(frozen=True)
-
 # -----------------------------------------------------------------------------
 # Classes
 # -----------------------------------------------------------------------------
 
 
+@dataclass(frozen=True)
 class AppliedReviewChange:
     """
     A review finding that changed generated Akira artifacts.
