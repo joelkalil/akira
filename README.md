@@ -27,9 +27,8 @@ Coding agents are usually dropped into a repository cold. Akira gives them the
 missing orientation layer: what stack this project uses, how this developer
 writes code, and which guidance should be active before the first edit happens.
 
-> One scan gives an agent the project map. One fingerprint gives it the local
-> style. One craft step installs the context where the agent can actually use
-> it.
+> One install gives an agent the project map, local coding style, and context
+> files where the agent can actually use them.
 
 ## What Akira Does
 
@@ -47,7 +46,7 @@ Project --> Akira CLI --> Detectors --> Stack Model --> Skills
 | Coding fingerprint | Extracts style signals from source files: spacing, imports, naming, comments, docstrings, typing, errors, strings, and structure. |
 | Agent Skills | Generates stack-aware Markdown skills with YAML frontmatter from deterministic Jinja2 templates. |
 | Stack review | Reports compatibility and cleanup findings, with optional metadata-only auto-apply behavior. |
-| Agent install | Crafts generated context into supported agent targets: `claude-code`, `cursor`, `copilot`, and `codex`. |
+| Agent install | Installs generated context into supported agent targets: `claude-code`, `cursor`, `copilot`, and `codex`. |
 
 ## Quick Start
 
@@ -61,20 +60,18 @@ uv tool install akira
 pip install akira
 
 # Or run once
-uvx akira detect
+uvx akira install
 ```
 
-### Generate Agent Context
+### Install Agent Context
 
 ```bash
-akira detect --path .
-akira fingerprint --path .
-akira review --path .
-akira craft --path .
+akira install --path .
 ```
 
-After the flow finishes, Akira writes local artifacts under `.akira/` and
-installs the generated skills for the selected agent.
+After the flow finishes, Akira detects the stack, captures coding style,
+generates skills, installs them for the selected agent, and updates `CLAUDE.md`
+with Akira slash commands when appropriate.
 
 ```text
 .akira/
@@ -91,18 +88,27 @@ installs the generated skills for the selected agent.
         `-- ...
 ```
 
-> New to Akira? Start with `akira detect --path .`. It scans the project,
-> writes `.akira/stack.md`, generates matching skills, and installs them for the
-> default agent target.
+> New to Akira? Start with `akira install --path .`. It runs the full setup
+> flow and prompts for agent targets when needed.
 
 ---
 
 ## Commands
 
+### `akira install`
+
+Runs the full v2 setup flow: stack detection, fingerprinting, skill generation,
+agent installation, and optional `CLAUDE.md` slash command setup.
+
+```bash
+akira install --path . --agent claude-code --output .akira
+akira install --path . --no-claude-md
+```
+
 ### `akira detect`
 
 Scans a Python project, writes `.akira/stack.md`, generates matching skills, and
-installs them for the selected agent.
+installs them for selected agents.
 
 ```bash
 akira detect --path . --agent claude-code --output .akira
@@ -124,14 +130,6 @@ Reviews detected stack metadata for compatibility and best-practice findings.
 akira review --path .
 akira review --path . --strict
 akira review --path . --auto-apply
-```
-
-### `akira craft`
-
-Installs previously generated Akira artifacts into the selected agent context.
-
-```bash
-akira craft --path . --agent claude-code --output .akira
 ```
 
 <details>
@@ -167,12 +165,12 @@ Example outputs:
 
 ## Scope
 
-Akira v1.0 is intentionally narrow and deterministic.
+Akira v2.0 is intentionally narrow, deterministic, and local-first.
 
-| In scope | Out of scope for v1.0 |
+| In scope | Out of scope for v2.0 |
 | --- | --- |
 | Python ecosystem detection | JavaScript, TypeScript, Go, Rust, or polyglot detection |
-| Four CLI commands: `detect`, `fingerprint`, `review`, `craft` | Hosted dashboard or web UI |
+| Full setup through `install`, plus focused `detect`, `fingerprint`, and `review` commands | Hosted dashboard or web UI |
 | Offline stack and style analysis | LLM-generated or API-enriched skills |
 | Template-based skill generation | Watch mode |
 | Local agent skill installation | MCP server behavior |
@@ -206,6 +204,7 @@ Run the CLI from the working tree:
 ```bash
 uv run akira detect --path tests/fixtures/fastapi_project --output .akira
 uv run akira fingerprint --path tests/fixtures/style_projects/consistent --output .akira
+uv run akira install --path tests/fixtures/fastapi_project --output .akira --agent claude-code
 ```
 
 ## Documentation

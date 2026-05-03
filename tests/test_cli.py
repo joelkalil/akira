@@ -884,6 +884,10 @@ class TestInstallRunsFullFlow:
 
         assert "<!-- akira:start -->" in claude_content
 
+        assert claude_content.startswith("<!-- akira:start -->")
+
+        assert "\n        <!-- akira:start -->" not in claude_content
+
         assert "/akira detect" in claude_content
 
         assert "bright, clear, intelligent" in result.stdout

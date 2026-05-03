@@ -22,7 +22,7 @@ from akira.agents.detector import detect_configured_agents
 EXPECTED_TARGETS = {
     "claude-code": Path(".claude") / "skills" / "akira",
     "cursor": Path(".cursor") / "skills" / "akira",
-    "copilot": Path(".agents") / "skills" / "akira",
+    "copilot": Path(".github") / "copilot-instructions",
     "codex": Path(".codex") / "skills" / "akira",
 }
 

@@ -5,6 +5,7 @@ CLAUDE.md integration for Akira slash command instructions.
 # Standard Libraries
 from __future__ import annotations
 
+import textwrap
 from pathlib import Path
 
 # Local Libraries
@@ -95,9 +96,10 @@ def _akira_section(agents: tuple[str, ...]) -> str:
 
     skill_path = _claude_skill_path(agents)
 
-    return f"""\
+    return textwrap.dedent(
+        f"""\
         {START_MARKER}
-        ## Akira — Stack Intelligence
+        ## Akira - Stack Intelligence
 
         Akira skills are installed at `{skill_path}`. Read `SKILL.md`
         before any coding task in this project.
@@ -118,7 +120,8 @@ def _akira_section(agents: tuple[str, ...]) -> str:
         3. Present findings with suggested fixes
         4. Ask the user which changes to apply
         {END_MARKER}
-    """
+        """
+    ).strip()
 
 
 def _claude_skill_path(agents: tuple[str, ...]) -> str:
