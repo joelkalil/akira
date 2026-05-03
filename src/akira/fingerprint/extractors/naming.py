@@ -4,6 +4,7 @@ Naming convention extractor.
 
 # Standard Libraries
 from __future__ import annotations
+
 import ast
 from collections import Counter
 
@@ -170,7 +171,8 @@ def _private_helper_pattern(values: list[str]) -> tuple[StylePattern, ...]:
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple containing a StylePattern describing the use of single leading underscores,
+        A tuple containing a StylePattern describing the use of single leading
+        underscores,
         or an empty tuple if no values are provided.
     """
 
@@ -202,12 +204,14 @@ def _boolean_prefix_pattern(values: list[str]) -> tuple[StylePattern, ...]:
     Parameters
     ----------
     values: list[str]
-        The list of boolean-like names (e.g., variables that look like they represent boolean values).
+        The list of boolean-like names (e.g., variables that look like they
+        represent boolean values).
 
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple containing a StylePattern describing the use of readable predicate prefixes,
+        A tuple containing a StylePattern describing the use of readable
+        predicate prefixes,
         or an empty tuple if no values are provided.
     """
 
@@ -246,7 +250,8 @@ def _classify_name(name: str, category: str) -> str:
     Returns
     -------
     str
-        The identified naming convention (e.g., "snake_case", "PascalCase", "UPPER_SNAKE_CASE",
+        The identified naming convention (e.g., "snake_case", "PascalCase",
+        "UPPER_SNAKE_CASE",
         "camelCase", or "mixed_or_other").
     """
 
@@ -279,7 +284,9 @@ def _classify_name(name: str, category: str) -> str:
 
 def _assignment_targets(node: ast.Assign | ast.AnnAssign) -> list[str]:
     """
-    Extract target names from an assignment node, handling both simple and annotated assignments.
+    Extract target names from an assignment node, handling both simple and annotated.
+
+    assignments.
 
     Parameters
     ----------
@@ -307,7 +314,9 @@ def _assignment_targets(node: ast.Assign | ast.AnnAssign) -> list[str]:
 
 def _target_names(target: ast.AST) -> list[str]:
     """
-    Recursively extract target names from an assignment target, handling various patterns.
+    Recursively extract target names from an assignment target, handling various.
+
+    patterns.
 
     Parameters
     ----------
@@ -339,7 +348,9 @@ def _target_names(target: ast.AST) -> list[str]:
 
 def _is_module_level_constant(module: ast.Module, node: ast.AST, name: str) -> bool:
     """
-    Determine if an assignment is likely a module-level constant based on its position and naming.
+    Determine if an assignment is likely a module-level constant based on its.
+
+    position and naming.
 
     Parameters
     ----------
@@ -361,7 +372,10 @@ def _is_module_level_constant(module: ast.Module, node: ast.AST, name: str) -> b
 
 def _looks_boolean(node: ast.Assign | ast.AnnAssign, name: str) -> bool:
     """
-    Heuristically determine if an assignment looks like it represents a boolean value based on
+    Heuristically determine if an assignment looks like it represents a boolean.
+
+    value based on.
+
     its name and assigned value.
 
     Parameters
@@ -374,7 +388,8 @@ def _looks_boolean(node: ast.Assign | ast.AnnAssign, name: str) -> bool:
     Returns
     -------
     bool
-        True if the assignment looks like it represents a boolean value, False otherwise.
+        True if the assignment looks like it represents a boolean value, False
+        otherwise.
     """
 
     value = getattr(node, "value", None)

@@ -31,7 +31,11 @@ CATEGORY_STYLES = {
 # -----------------------------------------------------------------------------
 
 
-def render_review(result: ReviewResult, console: Console | None = None) -> None:
+def render_review(
+    result: ReviewResult,
+    *,
+    console: Console | None = None,
+) -> None:
     """
     Display categorized review findings with Rich.
     """

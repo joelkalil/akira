@@ -1,5 +1,10 @@
+"""
+Tests for skill integration.
+"""
+
 # Standard Libraries
 from __future__ import annotations
+
 from pathlib import Path
 from shutil import copytree
 
@@ -16,115 +21,129 @@ from akira.skills.installer import install_claude_skills
 # -----------------------------------------------------------------------------
 
 
-def test_detect_generate_and_install_claude_skills_for_representative_stack(
-    fixtures_dir: Path,
-    tmp_path: Path,
-) -> None:
-    source_project = fixtures_dir / "fastapi_project"
+class TestDetectGenerateAndInstallClaudeSkillsForRepresentativeStack:
+    """
+    Verify detect generate and install claude skills for representative stack cases.
+    """
 
-    project = tmp_path / "fastapi_project"
+    def test_detect_generate_and_install_claude_skills_for_representative_stack(
+        self,
+        fixtures_dir: Path,
+        tmp_path: Path,
+    ) -> None:
+        """
+        Verify detect generate and install claude skills for representative.
 
-    output = tmp_path / ".akira"
+        stack behavior.
+        """
 
-    copytree(source_project, project, ignore=_ignore_generated_cache_dirs)
+        source_project = fixtures_dir / "fastapi_project"
 
-    stack = scan_project(project)
+        project = tmp_path / "fastapi_project"
 
-    expected_tools = {
-        ("fastapi", "web_framework"),
-        ("pytest", "testing"),
-        ("sqlalchemy", "database"),
-        ("alembic", "database"),
-        ("postgres", "database"),
-        ("docker", "infrastructure"),
-        ("github-actions", "ci_cd"),
-    }
+        output = tmp_path / ".akira"
 
-    for tool, category in expected_tools:
-        assert stack.has(tool, category=category)
+        copytree(source_project, project, ignore=_ignore_generated_cache_dirs)
 
-    generated = generate_skills(stack, output)
+        stack = scan_project(project)
 
-    generated_paths = {path.path.relative_to(output).as_posix() for path in generated}
+        expected_tools = {
+            ("fastapi", "web_framework"),
+            ("pytest", "testing"),
+            ("sqlalchemy", "database"),
+            ("alembic", "database"),
+            ("postgres", "database"),
+            ("docker", "infrastructure"),
+            ("github-actions", "ci_cd"),
+        }
 
-    assert generated_paths == {
-        "skills/SKILL.md",
-        "skills/python/SKILL.md",
-        "skills/python/ci_cd/github_actions.md",
-        "skills/python/database/alembic.md",
-        "skills/python/database/postgres.md",
-        "skills/python/database/sqlalchemy.md",
-        "skills/python/infra/docker.md",
-        "skills/python/testing/pytest.md",
-        "skills/python/tooling/mypy.md",
-        "skills/python/tooling/ruff.md",
-        "skills/python/tooling/uv.md",
-        "skills/python/web_framework/fastapi.md",
-    }
+        for tool, category in expected_tools:
+            assert stack.has(tool, category=category)
 
-    for skill in generated:
-        frontmatter = _frontmatter(skill.path.read_text(encoding="utf-8"))
+        generated = generate_skills(stack, output)
 
-        assert isinstance(frontmatter["name"], str)
+        generated_paths = {
+            path.path.relative_to(output).as_posix() for path in generated
+        }
 
-        assert isinstance(frontmatter["description"], str)
+        assert generated_paths == {
+            "skills/SKILL.md",
+            "skills/python/SKILL.md",
+            "skills/python/ci_cd/github_actions.md",
+            "skills/python/database/alembic.md",
+            "skills/python/database/postgres.md",
+            "skills/python/database/sqlalchemy.md",
+            "skills/python/infra/docker.md",
+            "skills/python/testing/pytest.md",
+            "skills/python/tooling/mypy.md",
+            "skills/python/tooling/ruff.md",
+            "skills/python/tooling/uv.md",
+            "skills/python/web_framework/fastapi.md",
+        }
 
-        assert frontmatter["user-invocable"] is False
+        for skill in generated:
+            frontmatter = _frontmatter(skill.path.read_text(encoding="utf-8"))
 
-    router = (output / "skills" / "SKILL.md").read_text(encoding="utf-8")
+            assert isinstance(frontmatter["name"], str)
 
-    assert "Read `python/web_framework/fastapi.md`" in router
+            assert isinstance(frontmatter["description"], str)
 
-    assert "Read `python/testing/pytest.md`" in router
+            assert frontmatter["user-invocable"] is False
 
-    assert "Read `python/database/sqlalchemy.md`" in router
+        router = (output / "skills" / "SKILL.md").read_text(encoding="utf-8")
 
-    assert "Read `python/database/alembic.md`" in router
+        assert "Read `python/web_framework/fastapi.md`" in router
 
-    assert "Read `python/database/postgres.md`" in router
+        assert "Read `python/testing/pytest.md`" in router
 
-    assert "Read `python/infra/docker.md`" in router
+        assert "Read `python/database/sqlalchemy.md`" in router
 
-    assert "Read `python/ci_cd/github_actions.md`" in router
+        assert "Read `python/database/alembic.md`" in router
 
-    (output / "stack.md").write_text("# Stack\n", encoding="utf-8")
+        assert "Read `python/database/postgres.md`" in router
 
-    (output / "fingerprint.md").write_text("# Fingerprint\n", encoding="utf-8")
+        assert "Read `python/infra/docker.md`" in router
 
-    installed = install_claude_skills(project, output)
+        assert "Read `python/ci_cd/github_actions.md`" in router
 
-    install_root = project / ".claude" / "skills" / "akira"
+        (output / "stack.md").write_text("# Stack\n", encoding="utf-8")
 
-    installed_paths = {
-        item.path.relative_to(install_root).as_posix() for item in installed
-    }
+        (output / "fingerprint.md").write_text("# Fingerprint\n", encoding="utf-8")
 
-    assert "SKILL.md" in installed_paths
+        installed = install_claude_skills(project, output)
 
-    assert "stack.md" in installed_paths
+        install_root = project / ".claude" / "skills" / "akira"
 
-    assert "fingerprint.md" in installed_paths
+        installed_paths = {
+            item.path.relative_to(install_root).as_posix() for item in installed
+        }
 
-    assert "python/web_framework/fastapi.md" in installed_paths
+        assert "SKILL.md" in installed_paths
 
-    assert "python/testing/pytest.md" in installed_paths
+        assert "stack.md" in installed_paths
 
-    assert all(
-        _is_relative_to(item.path.resolve(), install_root.resolve())
-        for item in installed
-    )
+        assert "fingerprint.md" in installed_paths
 
-    assert not (source_project / ".claude").exists()
+        assert "python/web_framework/fastapi.md" in installed_paths
 
-    installed_router = (install_root / "SKILL.md").read_text(encoding="utf-8")
+        assert "python/testing/pytest.md" in installed_paths
 
-    assert "`stack.md`" in installed_router
+        assert all(
+            _is_relative_to(item.path.resolve(), install_root.resolve())
+            for item in installed
+        )
 
-    assert "`fingerprint.md`" in installed_router
+        assert not (source_project / ".claude").exists()
 
-    assert "`../stack.md`" not in installed_router
+        installed_router = (install_root / "SKILL.md").read_text(encoding="utf-8")
 
-    assert "`../fingerprint.md`" not in installed_router
+        assert "`stack.md`" in installed_router
+
+        assert "`fingerprint.md`" in installed_router
+
+        assert "`../stack.md`" not in installed_router
+
+        assert "`../fingerprint.md`" not in installed_router
 
 
 # -----------------------------------------------------------------------------

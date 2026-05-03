@@ -4,6 +4,7 @@ Module and class organization extractor.
 
 # Standard Libraries
 from __future__ import annotations
+
 import ast
 from collections import Counter
 
@@ -141,14 +142,16 @@ def _module_order_pattern(
     Parameters
     ----------
     sequences : list[tuple[str, ...]]
-        A list of tuples representing the sequence of top-level element categories in each module.
+        A list of tuples representing the sequence of top-level element
+        categories in each module.
     ordered_modules : int
         The count of modules that follow the defined ordering pattern.
 
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple containing a StylePattern instance if a common ordering pattern is found, otherwise
+        A tuple containing a StylePattern instance if a common ordering pattern
+        is found, otherwise
         an empty tuple.
     """
 
@@ -177,19 +180,24 @@ def _module_order_pattern(
 
 def _helper_placement_pattern(before: int, samples: int) -> tuple[StylePattern, ...]:
     """
-    Analyze the placement of private helper functions relative to public functions in modules.
+    Analyze the placement of private helper functions relative to public functions.
+
+    in modules.
 
     Parameters
     ----------
     before : int
-        The count of modules where private helper functions are placed before public functions.
+        The count of modules where private helper functions are placed before
+        public functions.
     samples : int
-        The total count of modules that contain both private helper functions and public functions.
+        The total count of modules that contain both private helper functions
+        and public functions.
 
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple containing a StylePattern instance if a common helper placement pattern is found,
+        A tuple containing a StylePattern instance if a common helper placement
+        pattern is found,
         otherwise an empty tuple.
     """
 
@@ -214,18 +222,23 @@ def _class_member_order_pattern(
     sequences: list[tuple[str, ...]],
 ) -> tuple[StylePattern, ...]:
     """
-    Analyze the ordering of class members (attributes, constructor, public methods, private methods)
+    Analyze the ordering of class members (attributes, constructor, public methods,.
+
+    private methods).
+
     to identify common patterns.
 
     Parameters
     ----------
     sequences : list[tuple[str, ...]]
-        A list of tuples representing the sequence of class member categories in each class.
+        A list of tuples representing the sequence of class member categories in
+        each class.
 
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple containing a StylePattern instance if a common class member ordering pattern is found,
+        A tuple containing a StylePattern instance if a common class member
+        ordering pattern is found,
         otherwise an empty tuple.
     """
 
@@ -242,7 +255,9 @@ def _class_member_order_pattern(
             value=sequence,
             confidence=share,
             samples=samples,
-            description="Class members follow a repeatable constructor/public/private order.",
+            description=(
+                "Class members follow a repeatable constructor/public/private order."
+            ),
             evidence={
                 "distribution": {
                     " > ".join(key): count for key, count in Counter(sequences).items()
@@ -254,12 +269,15 @@ def _class_member_order_pattern(
 
 def _main_block_pattern(at_end: int, samples: int) -> tuple[StylePattern, ...]:
     """
-    Analyze the placement of `if __name__ == '__main__'` blocks to identify common patterns.
+    Analyze the placement of `if __name__ == '__main__'` blocks to identify common.
+
+    patterns.
 
     Parameters
     ----------
     at_end : int
-        The count of modules where the `if __name__ == '__main__'` block is placed at the end of
+        The count of modules where the `if __name__ == '__main__'` block is
+        placed at the end of
         the module.
     samples : int
         The total count of modules that contain the `if __name__ == '__main__'` block.
@@ -267,7 +285,8 @@ def _main_block_pattern(at_end: int, samples: int) -> tuple[StylePattern, ...]:
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple containing a StylePattern instance if a common main block placement pattern is found,
+        A tuple containing a StylePattern instance if a common main block
+        placement pattern is found,
         otherwise an empty tuple.
     """
 
@@ -300,7 +319,8 @@ def _module_sequence(module: ast.Module) -> tuple[str, ...]:
     Returns
     -------
     tuple[str, ...]
-        A tuple of strings representing the sequence of top-level element categories in the module.
+        A tuple of strings representing the sequence of top-level element
+        categories in the module.
     """
 
     categories = [_module_category(node) for node in module.body]
@@ -310,7 +330,9 @@ def _module_sequence(module: ast.Module) -> tuple[str, ...]:
 
 def _module_category(node: ast.stmt) -> str | None:
     """
-    Categorize a top-level AST node in a module into a specific category for organizational analysis.
+    Categorize a top-level AST node in a module into a specific category for.
+
+    organizational analysis.
 
     Parameters
     ----------
@@ -320,7 +342,8 @@ def _module_category(node: ast.stmt) -> str | None:
     Returns
     -------
     str | None
-        A string representing the category of the node, or None if it does not fit any category.
+        A string representing the category of the node, or None if it does not
+        fit any category.
     """
 
     if _is_docstring_expr(node):
@@ -362,7 +385,8 @@ def _class_member_sequence(node: ast.ClassDef) -> tuple[str, ...]:
     Returns
     -------
     tuple[str, ...]
-        A tuple of strings representing the sequence of member categories within the class.
+        A tuple of strings representing the sequence of member categories within
+        the class.
     """
 
     categories: list[str] = []
@@ -392,7 +416,9 @@ def _class_member_sequence(node: ast.ClassDef) -> tuple[str, ...]:
 
 def _helper_placement(module: ast.Module) -> bool | None:
     """
-    Determine if private helper functions are placed before public functions in a module.
+    Determine if private helper functions are placed before public functions in a.
+
+    module.
 
     Parameters
     ----------
@@ -402,7 +428,8 @@ def _helper_placement(module: ast.Module) -> bool | None:
     Returns
     -------
     bool | None
-        True if private helpers are before public functions, False if not, or None if the module
+        True if private helpers are before public functions, False if not, or
+        None if the module
         does not contain both private helper functions and public functions.
     """
 
@@ -429,7 +456,9 @@ def _helper_placement(module: ast.Module) -> bool | None:
 
 def _main_block_index(module: ast.Module) -> int | None:
     """
-    Determine the index of the `if __name__ == '__main__'` block in a module, if it exists.
+    Determine the index of the `if __name__ == '__main__'` block in a module, if it.
+
+    exists.
 
     Parameters
     ----------
@@ -439,7 +468,8 @@ def _main_block_index(module: ast.Module) -> int | None:
     Returns
     -------
     int | None
-        The index of the `if __name__ == '__main__'` block in the module body, or None if it does
+        The index of the `if __name__ == '__main__'` block in the module body,
+        or None if it does
         not exist.
     """
 
@@ -526,7 +556,8 @@ def _base_name(node: ast.AST) -> str:
     Returns
     -------
     str
-        The base name extracted from the node, or an empty string if it cannot be determined.
+        The base name extracted from the node, or an empty string if it cannot
+        be determined.
     """
 
     if isinstance(node, ast.Name):
@@ -546,7 +577,10 @@ def _base_name(node: ast.AST) -> str:
 
 def _is_docstring_expr(node: ast.stmt) -> bool:
     """
-    Check if a given AST node is an expression containing a string constant, which is typically used
+    Check if a given AST node is an expression containing a string constant, which.
+
+    is typically used.
+
     for docstrings.
 
     Parameters

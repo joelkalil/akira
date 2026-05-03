@@ -18,7 +18,10 @@ def _normalize_name(name: str | None) -> str:
     return name.strip().lower()
 
 
-def build_tags(tags: Iterable[str] | None = None) -> list[str]:
+def build_tags(*, tags: Iterable[str] | None = None) -> list[str]:
+    """
+    Return build tags result.
+    """
 
     if tags is None:
 

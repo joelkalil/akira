@@ -1,1 +1,3 @@
-"""Tiny Django fixture package."""
+"""
+Django project fixture package.
+"""

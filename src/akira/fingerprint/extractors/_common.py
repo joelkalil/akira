@@ -4,6 +4,7 @@ Shared helpers for fingerprint extractor implementations.
 
 # Standard Libraries
 from __future__ import annotations
+
 import ast
 import re
 from collections import Counter
@@ -101,16 +102,19 @@ def make_pattern(
         A short, human-readable name for the specific pattern (e.g., "snake_case",
         "4_spaces").
     value : object
-        The raw value representing the observed pattern (e.g., True for boolean patterns,
+        The raw value representing the observed pattern (e.g., True for boolean
+        patterns,
         or a specific string or number).
     confidence : float
-        A confidence score between 0 and 1 indicating how strongly the evidence supports this pattern.
+        A confidence score between 0 and 1 indicating how strongly the evidence
+        supports this pattern.
     samples : int
         The number of observations that contributed to this pattern.
     description : str
         A detailed description of the pattern and its implications for code style.
     evidence : dict[str, object] | None
-        Optional additional data that supports the pattern, which can be used for debugging or
+        Optional additional data that supports the pattern, which can be used
+        for debugging or
         display purposes.
 
     Returns
@@ -222,7 +226,8 @@ def module_name_from_path(relative_path: Path) -> str:
     Returns
     -------
     str
-        The inferred module name, which can be used as a key for grouping files by import root.
+        The inferred module name, which can be used as a key for grouping files
+        by import root.
     """
 
     parts = relative_path.with_suffix("").parts

@@ -6,6 +6,7 @@ Stack detector implementations.
 from akira.detect.detectors.base import BaseDetector
 from akira.detect.detectors.ci_cd import CiCdDetector
 from akira.detect.detectors.database import DatabaseDetector
+from akira.detect.detectors.docs import DocsDetector
 from akira.detect.detectors.frameworks import FrameworkDetector
 from akira.detect.detectors.infra import InfrastructureDetector
 from akira.detect.detectors.python import PythonDetector
@@ -20,6 +21,7 @@ __all__ = [
     "BaseDetector",
     "CiCdDetector",
     "DatabaseDetector",
+    "DocsDetector",
     "FrameworkDetector",
     "InfrastructureDetector",
     "PythonDetector",

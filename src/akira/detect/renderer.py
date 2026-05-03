@@ -4,6 +4,7 @@ Render detected stack information into durable project artifacts.
 
 # Standard Libraries
 from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -37,6 +38,8 @@ TOOL_LABELS = {
     "gitlab-ci": "CI/CD",
     "isort": "Import sorter",
     "mypy": "Type checker",
+    "mkdocs": "Documentation",
+    "pdoc": "Documentation",
     "pip": "Package manager",
     "poetry": "Package manager",
     "postgres": "Engine",
@@ -52,6 +55,7 @@ TOOL_LABELS = {
     "redis": "Cache",
     "ruff": "Linter/Formatter",
     "sqlalchemy": "ORM",
+    "sphinx": "Documentation",
     "streamlit": "Web",
     "terraform": "Infrastructure as code",
     "tox": "Runner",
@@ -67,6 +71,7 @@ SECTION_CATEGORIES = {
     "Testing": ("testing",),
     "Tooling": ("linting", "formatting", "type_checking", "pre_commit"),
     "Infrastructure": ("infrastructure", "ci_cd"),
+    "Documentation": ("documentation",),
 }
 
 SKILL_HINTS = {
@@ -335,6 +340,18 @@ def tool_value(tool: ToolInfo) -> str:
     elif tool.name == "aws":
 
         name = "AWS"
+
+    elif tool.name == "mkdocs":
+
+        name = "MkDocs"
+
+    elif tool.name == "pdoc":
+
+        name = "pdoc"
+
+    elif tool.name == "sphinx":
+
+        name = "Sphinx"
 
     elif tool.name == "psycopg3":
 

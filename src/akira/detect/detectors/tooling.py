@@ -4,6 +4,7 @@ Detect Python linting, formatting, type checking, and hook tooling.
 
 # Standard Libraries
 from __future__ import annotations
+
 from pathlib import Path
 
 # Local Libraries
@@ -102,6 +103,9 @@ class ToolingDetector(BaseDetector):
         dependencies = extract_dependencies(project_root)
 
         def emit(tool: str, source: str, confidence: float) -> None:
+            """
+            Return emit result.
+            """
 
             if tool in detected:
 

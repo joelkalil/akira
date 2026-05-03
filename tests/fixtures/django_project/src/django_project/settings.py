@@ -1,3 +1,7 @@
+"""
+Tests for settings.
+"""
+
 SECRET_KEY = "fixture-only"
 
 INSTALLED_APPS = []

@@ -304,7 +304,7 @@ akira review [--path .] [--auto-apply] [--strict]
 ```
 
 **O que faz:**
-1. Lê `.akira/stack.md`
+1. Escaneia o projeto e monta o modelo de stack atual
 2. Aplica regras de compatibilidade e boas práticas
 3. Apresenta sugestões interativas (via Rich prompts no terminal)
 4. Atualiza `stack.md` e regenera skills afetadas se o usuário aceitar

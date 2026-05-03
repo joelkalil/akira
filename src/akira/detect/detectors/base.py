@@ -4,6 +4,7 @@ Base contracts for stack detectors.
 
 # Standard Libraries
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -22,8 +23,10 @@ class BaseDetector(ABC):
     Attributes
     ----------
     order : int
-        The order in which this detector should be run relative to other detectors. Detectors with
-        lower order values will be run before those with higher values. The default order is 100.
+        The order in which this detector should be run relative to other
+        detectors. Detectors with
+        lower order values will be run before those with higher values. The
+        default order is 100.
 
     Methods
     -------
@@ -46,7 +49,7 @@ class BaseDetector(ABC):
     @abstractmethod
     def detect(self, project_root: Path) -> list[Signal]:
         """
-        Scan a project and return detected signals
+        Scan a project and return detected signals.
 
         Parameters
         ----------
@@ -58,4 +61,3 @@ class BaseDetector(ABC):
         list[Signal]
             A list of detected signals.
         """
-

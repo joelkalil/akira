@@ -4,6 +4,7 @@ Spacing style extractor.
 
 # Standard Libraries
 from __future__ import annotations
+
 import ast
 from collections import Counter
 
@@ -117,7 +118,9 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
         _dominant_blank_line_pattern(
             name="after_imports",
             values=after_imports,
-            description="Blank lines between the import section and the next statement.",
+            description=(
+                "Blank lines between the import section and the next statement."
+            ),
         )
     )
 
@@ -125,7 +128,9 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
         _dominant_blank_line_pattern(
             name="logical_blocks",
             values=logical_blocks,
-            description="Blank lines used between logical statement groups inside functions.",
+            description=(
+                "Blank lines used between logical statement groups inside functions."
+            ),
         )
     )
 
@@ -185,7 +190,9 @@ def _blank_lines_after_import_section(
     module: ast.Module, lines: list[str]
 ) -> int | None:
     """
-    Determine the number of blank lines between the last import statement and the next code statement.
+    Determine the number of blank lines between the last import statement and the.
+
+    next code statement.
 
     Parameters
     ----------
@@ -197,7 +204,8 @@ def _blank_lines_after_import_section(
     Returns
     -------
     int | None
-        The number of blank lines between the last import and the next statement, or None if no imports
+        The number of blank lines between the last import and the next
+        statement, or None if no imports
         are found.
     """
 

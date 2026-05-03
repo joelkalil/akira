@@ -4,6 +4,7 @@ Detect Python database libraries and services.
 
 # Standard Libraries
 from __future__ import annotations
+
 from pathlib import Path
 
 # Local Libraries
@@ -27,10 +28,14 @@ class DatabaseDetector(BaseDetector):
     Attributes
     ----------
     order : int
-        The order in which this detector should be run relative to other detectors. Detectors with
-        lower order values will be run before those with higher values. The default order is 50.
+        The order in which this detector should be run relative to other
+        detectors. Detectors with
+        lower order values will be run before those with higher values. The
+        default order is 50.
     DATABASE_PACKAGES : dict[str, str]
-        A mapping of Python package names to their corresponding database tools or services. This is used to identify which database-related tools are likely being used based on the project's dependencies and imports.
+        A mapping of Python package names to their corresponding database tools
+        or services. This is used to identify which database-related tools are
+        likely being used based on the project's dependencies and imports.
     POSTGRES_DRIVERS : set[str]
         A set of package names that are known PostgreSQL drivers.
 
@@ -85,6 +90,9 @@ class DatabaseDetector(BaseDetector):
             package: str | None = None,
             metadata: dict | None = None,
         ) -> None:
+            """
+            Return emit result.
+            """
 
             if tool in detected:
 

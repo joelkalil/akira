@@ -1,1 +1,5 @@
+"""
+Tests for urls.
+"""
+
 urlpatterns = []

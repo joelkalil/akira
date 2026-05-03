@@ -4,6 +4,7 @@ Apply accepted review findings to generated Akira artifacts.
 
 # Standard Libraries
 from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -12,7 +13,6 @@ from akira.detect.models import Signal, StackInfo
 from akira.detect.renderer import write_stack_markdown
 from akira.review.analyzer import Finding
 from akira.skills.generator import GeneratedSkill, generate_skills
-
 
 # -----------------------------------------------------------------------------
 # Classes

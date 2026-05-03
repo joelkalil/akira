@@ -4,6 +4,7 @@ Error-handling style extractor.
 
 # Standard Libraries
 from __future__ import annotations
+
 import ast
 
 # Local Libraries
@@ -36,7 +37,8 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple of StylePattern instances representing the extracted error-handling patterns.
+        A tuple of StylePattern instances representing the extracted
+        error-handling patterns.
     """
 
     handlers: list[ast.ExceptHandler] = []
@@ -68,7 +70,9 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
             value="specific_exceptions",
             confidence=specific / len(handlers),
             samples=len(handlers),
-            description="Except handlers avoid bare except and generic Exception catches.",
+            description=(
+                "Except handlers avoid bare except and generic Exception catches."
+            ),
             evidence={"specific": specific, "handlers": len(handlers)},
         ),
         make_pattern(
@@ -99,7 +103,10 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
 
 def _is_specific_exception(handler: ast.ExceptHandler) -> bool:
     """
-    Determine if an except handler catches specific exceptions rather than using a bare except or
+    Determine if an except handler catches specific exceptions rather than using a.
+
+    bare except or.
+
     generic Exception.
 
     Parameters
@@ -110,7 +117,8 @@ def _is_specific_exception(handler: ast.ExceptHandler) -> bool:
     Returns
     -------
     bool
-        True if the handler catches specific exceptions, False if it uses a bare except or generic
+        True if the handler catches specific exceptions, False if it uses a bare
+        except or generic
         Exception.
     """
 
@@ -125,7 +133,10 @@ def _is_specific_exception(handler: ast.ExceptHandler) -> bool:
 
 def _exception_names(node: ast.AST) -> list[str]:
     """
-    Recursively extract exception names from an AST node representing an exception type in an except
+    Recursively extract exception names from an AST node representing an exception.
+
+    type in an except.
+
     handler.
 
     Parameters
@@ -162,7 +173,10 @@ def _exception_names(node: ast.AST) -> list[str]:
 
 def _logs_on_catch(handler: ast.ExceptHandler) -> bool:
     """
-    Determine if an except handler logs caught exceptions by checking for calls to logging methods
+    Determine if an except handler logs caught exceptions by checking for calls to.
+
+    logging methods.
+
     within the handler body.
 
     Parameters
@@ -193,7 +207,10 @@ def _logs_on_catch(handler: ast.ExceptHandler) -> bool:
 
 def _reraises(handler: ast.ExceptHandler) -> bool:
     """
-    Determine if an except handler re-raises exceptions after local handling by checking for raise
+    Determine if an except handler re-raises exceptions after local handling by.
+
+    checking for raise.
+
     statements within the handler body.
 
     Parameters

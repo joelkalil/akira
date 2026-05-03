@@ -4,6 +4,7 @@ Collect Python source files and extract developer fingerprint patterns.
 
 # Standard Libraries
 from __future__ import annotations
+
 import ast
 import fnmatch
 import os
@@ -22,6 +23,8 @@ from akira.fingerprint.extractors import (
     spacing,
     strings,
     structure,
+)
+from akira.fingerprint.extractors import (
     typing as typing_extractor,
 )
 from akira.fingerprint.models import FingerprintAnalysis, SourceFile, StylePattern

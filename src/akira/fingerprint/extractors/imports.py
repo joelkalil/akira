@@ -4,6 +4,7 @@ Import style extractor.
 
 # Standard Libraries
 from __future__ import annotations
+
 import ast
 import sys
 from collections import Counter, defaultdict
@@ -36,7 +37,8 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple of StylePattern instances representing the extracted import style patterns.
+        A tuple of StylePattern instances representing the extracted import
+        style patterns.
     """
 
     local_roots = {
@@ -86,7 +88,9 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
             value=dominant_sequence,
             confidence=ordered_files / len(non_empty),
             samples=len(non_empty),
-            description="Import groups follow a stable stdlib, third-party, local order.",
+            description=(
+                "Import groups follow a stable stdlib, third-party, local order."
+            ),
             evidence={
                 "sequences": {
                     " > ".join(key): count for key, count in sequence_counts.items()
@@ -184,7 +188,9 @@ def _file_imports(source: SourceFile, local_roots: set[str]) -> list[dict[str, o
 
 def _imported_module_name(node: ast.Import | ast.ImportFrom) -> str:
     """
-    Extract the full module name being imported from an ast.Import or ast.ImportFrom node.
+    Extract the full module name being imported from an ast.Import or ast.ImportFrom.
+
+    node.
 
     Parameters
     ----------
@@ -194,7 +200,8 @@ def _imported_module_name(node: ast.Import | ast.ImportFrom) -> str:
     Returns
     -------
     str
-        The full module name being imported, including any relative dots for ast.ImportFrom nodes.
+        The full module name being imported, including any relative dots for
+        ast.ImportFrom nodes.
     """
 
     if isinstance(node, ast.Import):
@@ -219,7 +226,8 @@ def _classify_import(
     node : ast.Import | ast.ImportFrom
         The AST node representing the import statement.
     module_name : str
-        The full module name being imported, including any relative dots for ast.ImportFrom nodes.
+        The full module name being imported, including any relative dots for
+        ast.ImportFrom nodes.
     local_roots : set[str]
         A set of local module root names to help classify imports as local.
 
@@ -248,7 +256,10 @@ def _classify_import(
 
 def _groups_are_ordered(imports: list[dict[str, object]]) -> bool:
     """
-    Check if the import groups in a file follow the standard stdlib, third-party, local order without
+    Check if the import groups in a file follow the standard stdlib, third-party,.
+
+    local order without.
+
     any violations.
 
     Parameters

@@ -4,6 +4,7 @@ Detect Python testing tools.
 
 # Standard Libraries
 from __future__ import annotations
+
 from pathlib import Path
 
 # Local Libraries
@@ -30,9 +31,11 @@ class TestingDetector(BaseDetector):
     Attributes
     ----------
     order : int
-        The order in which this detector should be run relative to others. Lower numbers run first.
+        The order in which this detector should be run relative to others. Lower
+        numbers run first.
     TESTING_TOOLS : dict[str, tuple[str, str]]
-        A mapping of package names to tuples containing the tool name and its import name.
+        A mapping of package names to tuples containing the tool name and its
+        import name.
 
     Methods
     -------
@@ -90,7 +93,8 @@ class TestingDetector(BaseDetector):
             source : str
                 The source of the detection (e.g., "pyproject.toml", "dependencies").
             confidence : float
-                A confidence score between 0 and 1 indicating the strength of the signal.
+                A confidence score between 0 and 1 indicating the
+                strength of the signal.
             package : str | None, optional
                 The specific package that led to the detection, if applicable.
             metadata : dict | None, optional

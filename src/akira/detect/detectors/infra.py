@@ -4,7 +4,11 @@ Detect infrastructure, cloud, and service hints.
 
 # Standard Libraries
 from __future__ import annotations
+
 from pathlib import Path
+
+# Third-Party Libraries
+import yaml
 
 # Local Libraries
 from akira.detect.detectors.base import BaseDetector
@@ -44,7 +48,8 @@ class InfrastructureDetector(BaseDetector):
         Returns
         -------
         list[Signal]
-            A list of detected infrastructure signals, including containers, compose services,
+            A list of detected infrastructure signals, including containers,
+            compose services,
             cloud hints, and Terraform
         """
 
@@ -112,16 +117,9 @@ def _compose_services(path: Path) -> set[str]:
     Returns
     -------
     set[str]
-        A set of normalized service hints detected in the compose file, such as "postgres" or "redis".
+        A set of normalized service hints detected in the compose file, such as
+        "postgres" or "redis".
     """
-
-    try:
-
-        import yaml
-
-    except ImportError:
-
-        return _compose_services_from_text(path)
 
     try:
 
@@ -164,7 +162,9 @@ def _compose_services(path: Path) -> set[str]:
 
 def _compose_services_from_text(path: Path) -> set[str]:
     """
-    Fallback method to extract service hints from a docker compose file by reading it as text.
+    Fallback method to extract service hints from a docker compose file by reading.
+
+    it as text.
 
     Parameters
     ----------
@@ -174,7 +174,8 @@ def _compose_services_from_text(path: Path) -> set[str]:
     Returns
     -------
     set[str]
-        A set of normalized service hints detected in the compose file, such as "postgres" or "redis".
+        A set of normalized service hints detected in the compose file, such as
+        "postgres" or "redis".
     """
 
     try:
@@ -205,15 +206,18 @@ def _database_service_signals(source: str, services: set[str]) -> list[Signal]:
     Parameters
     ----------
     source : str
-        The source identifier for the signals, typically the filename of the compose file.
+        The source identifier for the signals, typically the filename of the
+        compose file.
     services : set[str]
-        A set of normalized service hints detected in the compose file, such as "postgres" or
+        A set of normalized service hints detected in the compose file, such as
+        "postgres" or
         "redis".
 
     Returns
     -------
     list[Signal]
-        A list of signals for each detected database service, with confidence based on the presence
+        A list of signals for each detected database service, with confidence
+        based on the presence
         of the service hint in the compose file.
     """
 
@@ -231,7 +235,10 @@ def _database_service_signals(source: str, services: set[str]) -> list[Signal]:
 
 def _terraform_signals(project_root: Path) -> list[Signal]:
     """
-    Detect Terraform usage by looking for .tf files in the project root and subdirectories,
+    Detect Terraform usage by looking for .tf files in the project root and.
+
+    subdirectories,.
+
     excluding .terraform directories.
 
     Parameters
@@ -242,7 +249,8 @@ def _terraform_signals(project_root: Path) -> list[Signal]:
     Returns
     -------
     list[Signal]
-        A list containing a single Terraform signal if .tf files are found, or an empty list
+        A list containing a single Terraform signal if .tf files are found, or
+        an empty list
         if no Terraform files are detected.
     """
 
@@ -273,7 +281,10 @@ def _terraform_signals(project_root: Path) -> list[Signal]:
 
 def _cloud_signals(project_root: Path) -> list[Signal]:
     """
-    Detect cloud provider usage by looking for root-level configuration files and scanning for
+    Detect cloud provider usage by looking for root-level configuration files and.
+
+    scanning for.
+
     provider-specific hints in Terraform and GitHub Actions files.
 
     Parameters
@@ -284,7 +295,8 @@ def _cloud_signals(project_root: Path) -> list[Signal]:
     Returns
     -------
     list[Signal]
-        A list of signals for detected cloud providers, such as GCP or AWS, with confidence based on
+        A list of signals for detected cloud providers, such as GCP or AWS, with
+        confidence based on
         the presence of configuration files and provider-specific hints.
     """
 
@@ -329,7 +341,9 @@ def _cloud_signals(project_root: Path) -> list[Signal]:
 
 def _read_infra_hint_text(project_root: Path) -> str:
     """
-    Read and concatenate text from root-level infrastructure files to search for cloud provider hints.
+    Read and concatenate text from root-level infrastructure files to search for.
+
+    cloud provider hints.
 
     Parameters
     ----------
@@ -339,7 +353,8 @@ def _read_infra_hint_text(project_root: Path) -> str:
     Returns
     -------
     str
-        A single string containing the concatenated and lowercased text from relevant infrastructure
+        A single string containing the concatenated and lowercased text from
+        relevant infrastructure
         files, which can be searched for cloud provider hints.
     """
 

@@ -4,6 +4,7 @@ Install generated Akira skills into agent-specific skill directories.
 
 # Standard Libraries
 from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
@@ -37,6 +38,9 @@ class GeneratedSkillInstaller:
     """
 
     def __init__(self, target_relative_dir: Path) -> None:
+        """
+        Return init helper result.
+        """
 
         self.target_relative_dir = target_relative_dir
 
@@ -87,6 +91,9 @@ class ClaudeSkillInstaller(GeneratedSkillInstaller):
     """
 
     def __init__(self) -> None:
+        """
+        Return init helper result.
+        """
 
         super().__init__(Path(".claude") / "skills" / "akira")
 

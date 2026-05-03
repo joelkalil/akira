@@ -4,6 +4,7 @@ String literal and interpolation style extractor.
 
 # Standard Libraries
 from __future__ import annotations
+
 import ast
 import io
 import re
@@ -38,7 +39,8 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple of StylePattern instances representing string literal and interpolation styles.
+        A tuple of StylePattern instances representing string literal and
+        interpolation styles.
     """
 
     quote_styles: list[str] = []
@@ -107,7 +109,8 @@ def _quote_style_pattern(styles: list[str]) -> tuple[StylePattern, ...]:
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple containing a StylePattern for the dominant quote style, or empty if no styles are found.
+        A tuple containing a StylePattern for the dominant quote style, or empty
+        if no styles are found.
     """
 
     style, share, samples = modal_pattern(styles)
@@ -149,7 +152,8 @@ def _interpolation_pattern(
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple containing a StylePattern for the dominant interpolation style, or empty if no
+        A tuple containing a StylePattern for the dominant interpolation style,
+        or empty if no
         styles are found.
     """
 
@@ -187,12 +191,14 @@ def _multiline_pattern(styles: list[str]) -> tuple[StylePattern, ...]:
     Parameters
     ----------
     styles : list[str]
-        A list of quote styles used in multiline string literals (e.g., "single", "double").
+        A list of quote styles used in multiline string literals (e.g.,
+        "single", "double").
 
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple containing a StylePattern for the dominant multiline string quote style, or empty if no
+        A tuple containing a StylePattern for the dominant multiline string
+        quote style, or empty if no
         styles are found.
     """
 
@@ -227,7 +233,8 @@ def _string_tokens(text: str) -> list[dict[str, object]]:
     Returns
     -------
     list[dict[str, object]]
-        A list of dictionaries containing classification of string tokens, including quote style
+        A list of dictionaries containing classification of string tokens,
+        including quote style
         and multiline status.
     """
 
@@ -264,7 +271,8 @@ def _classify_string_token(token: str) -> dict[str, object]:
     Returns
     -------
     dict[str, object]
-        A dictionary containing the quote style and multiline status of the string token.
+        A dictionary containing the quote style and multiline status of the
+        string token.
     """
 
     stripped = token.lstrip()

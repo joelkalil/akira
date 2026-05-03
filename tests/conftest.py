@@ -4,13 +4,11 @@ Shared pytest configuration for Akira tests.
 
 # Standard Libraries
 from __future__ import annotations
+
 from pathlib import Path
 
 # Third-Party Libraries
 import pytest
-
-# Local Libraries
-
 
 # -----------------------------------------------------------------------------
 # Public Functions

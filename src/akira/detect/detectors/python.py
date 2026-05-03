@@ -4,6 +4,7 @@ Detect Python runtime and package manager signals.
 
 # Standard Libraries
 from __future__ import annotations
+
 import re
 from pathlib import Path
 
@@ -29,7 +30,8 @@ class PythonDetector(BaseDetector):
     Methods
     -------
     detect(project_root: Path) -> list[Signal]
-        Scan the project directory for Python-related signals and return a list of detected signals.
+        Scan the project directory for Python-related signals and return a list
+        of detected signals.
     """
 
     order = 10
@@ -91,7 +93,8 @@ class PythonDetector(BaseDetector):
         Returns
         -------
         tuple[str, str] | None
-            A tuple of (normalized_version, source) if a Python version is found, otherwise None.
+            A tuple of (normalized_version, source) if a Python version is
+            found, otherwise None.
         """
 
         project = pyproject.get("project", {})
@@ -133,7 +136,9 @@ class PythonDetector(BaseDetector):
         pyproject: dict,
     ) -> list[Signal]:
         """
-        Detect which Python package manager(s) are being used based on lock files and pyproject.toml.
+        Detect which Python package manager(s) are being used based on lock.
+
+        files and pyproject.toml.
 
         Parameters
         ----------
@@ -203,7 +208,7 @@ def _package_manager_signal(
     confidence: float,
 ) -> Signal:
     """
-    Helper function to create a Signal for a detected package manager.
+    Create a signal for a detected package manager.
 
     Parameters
     ----------

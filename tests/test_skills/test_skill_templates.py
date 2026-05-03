@@ -1,13 +1,15 @@
+"""
+Tests for skill templates.
+"""
+
 # Standard Libraries
 from __future__ import annotations
+
 from pathlib import Path
 
 # Third-Party Libraries
 import yaml
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
-
-# Local Libraries
-
 
 # -----------------------------------------------------------------------------
 # Constants
@@ -21,88 +23,130 @@ TEMPLATE_ROOT = Path(__file__).parents[2] / "src" / "akira" / "skills" / "templa
 # -----------------------------------------------------------------------------
 
 
-def test_skill_templates_render_with_minimal_context() -> None:
-    env = Environment(
-        loader=FileSystemLoader(TEMPLATE_ROOT),
-        undefined=StrictUndefined,
-        autoescape=False,
-        keep_trailing_newline=True,
-    )
+class TestSkillTemplatesRenderWithMinimalContext:
+    """
+    Verify skill templates render with minimal context cases.
+    """
 
-    for path in TEMPLATE_ROOT.rglob("*.md.j2"):
-        template_name = path.relative_to(TEMPLATE_ROOT).as_posix()
+    def test_skill_templates_render_with_minimal_context(self) -> None:
+        """
+        Verify skill templates render with minimal context behavior.
+        """
 
-        rendered = env.get_template(template_name).render()
+        env = Environment(
+            loader=FileSystemLoader(TEMPLATE_ROOT),
+            undefined=StrictUndefined,
+            autoescape=False,
+            keep_trailing_newline=True,
+        )
 
-        assert rendered.strip(), template_name
+        for path in TEMPLATE_ROOT.rglob("*.md.j2"):
+            template_name = path.relative_to(TEMPLATE_ROOT).as_posix()
 
+            rendered = env.get_template(template_name).render()
 
-def test_public_skill_templates_have_valid_agent_skill_frontmatter() -> None:
-    env = Environment(
-        loader=FileSystemLoader(TEMPLATE_ROOT),
-        undefined=StrictUndefined,
-        autoescape=False,
-        keep_trailing_newline=True,
-    )
-
-    for path in TEMPLATE_ROOT.rglob("*.md.j2"):
-        if "_partials" in path.parts:
-            continue
-
-        template_name = path.relative_to(TEMPLATE_ROOT).as_posix()
-
-        rendered = env.get_template(template_name).render()
-
-        frontmatter = _frontmatter(rendered)
-
-        assert isinstance(frontmatter["name"], str), template_name
-
-        assert frontmatter["name"].startswith("akira"), template_name
-
-        assert isinstance(frontmatter["description"], str), template_name
-
-        assert frontmatter["description"].strip(), template_name
-
-        assert frontmatter["user-invocable"] is False, template_name
+            assert rendered.strip(), template_name
 
 
-def test_python_version_conditionals_use_numeric_version_parts() -> None:
-    env = _environment()
+class TestPublicSkillTemplatesHaveValidAgentSkillFrontmatter:
+    """
+    Verify public skill templates have valid agent skill frontmatter cases.
+    """
 
-    python_39 = env.get_template("python/python.md.j2").render(python_version="3.9")
+    def test_public_skill_templates_have_valid_agent_skill_frontmatter(self) -> None:
+        """
+        Verify public skill templates have valid agent skill frontmatter behavior.
+        """
 
-    python_310 = env.get_template("python/python.md.j2").render(python_version="3.10")
+        env = Environment(
+            loader=FileSystemLoader(TEMPLATE_ROOT),
+            undefined=StrictUndefined,
+            autoescape=False,
+            keep_trailing_newline=True,
+        )
 
-    mypy_39 = env.get_template("python/tooling/mypy.md.j2").render(python_version="3.9")
+        for path in TEMPLATE_ROOT.rglob("*.md.j2"):
+            if "_partials" in path.parts:
+                continue
 
-    mypy_310 = env.get_template("python/tooling/mypy.md.j2").render(
-        python_version="3.10"
-    )
+            template_name = path.relative_to(TEMPLATE_ROOT).as_posix()
 
-    assert "typing.Optional" in python_39
+            rendered = env.get_template(template_name).render()
 
-    assert "typing.Optional" not in python_310
+            frontmatter = _frontmatter(rendered)
 
-    assert "## Python 3.10+" not in mypy_39
+            assert isinstance(frontmatter["name"], str), template_name
 
-    assert "## Python 3.10+" in mypy_310
+            assert frontmatter["name"].startswith("akira"), template_name
+
+            assert isinstance(frontmatter["description"], str), template_name
+
+            assert frontmatter["description"].strip(), template_name
+
+            assert frontmatter["user-invocable"] is False, template_name
 
 
-def test_fastapi_async_rules_use_dedicated_boolean_flag() -> None:
-    env = _environment()
+class TestPythonVersionConditionalsUseNumericVersionParts:
+    """
+    Verify python version conditionals use numeric version parts cases.
+    """
 
-    sync_render = env.get_template("python/web_framework/fastapi.md.j2").render(
-        async_stack="sync"
-    )
+    def test_python_version_conditionals_use_numeric_version_parts(self) -> None:
+        """
+        Verify python version conditionals use numeric version parts behavior.
+        """
 
-    async_render = env.get_template("python/web_framework/fastapi.md.j2").render(
-        async_stack="async SQLAlchemy",
-        is_async_app=True,
-    )
+        env = _environment()
 
-    assert "## Async Rules" not in sync_render
+        python_39 = env.get_template("python/python.md.j2").render(
+            python_version="3.9"
+        )
 
-    assert "## Async Rules" in async_render
+        python_310 = env.get_template("python/python.md.j2").render(
+            python_version="3.10"
+        )
+
+        mypy_39 = env.get_template("python/tooling/mypy.md.j2").render(
+            python_version="3.9"
+        )
+
+        mypy_310 = env.get_template("python/tooling/mypy.md.j2").render(
+            python_version="3.10"
+        )
+
+        assert "typing.Optional" in python_39
+
+        assert "typing.Optional" not in python_310
+
+        assert "## Python 3.10+" not in mypy_39
+
+        assert "## Python 3.10+" in mypy_310
+
+
+class TestFastapiAsyncRulesUseDedicatedBooleanFlag:
+    """
+    Verify fastapi async rules use dedicated boolean flag cases.
+    """
+
+    def test_fastapi_async_rules_use_dedicated_boolean_flag(self) -> None:
+        """
+        Verify fastapi async rules use dedicated boolean flag behavior.
+        """
+
+        env = _environment()
+
+        sync_render = env.get_template("python/web_framework/fastapi.md.j2").render(
+            async_stack="sync"
+        )
+
+        async_render = env.get_template("python/web_framework/fastapi.md.j2").render(
+            async_stack="async SQLAlchemy",
+            is_async_app=True,
+        )
+
+        assert "## Async Rules" not in sync_render
+
+        assert "## Async Rules" in async_render
 
 
 # -----------------------------------------------------------------------------

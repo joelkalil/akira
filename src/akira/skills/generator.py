@@ -4,6 +4,7 @@ Generate Agent Skills from detected Akira stack information.
 
 # Standard Libraries
 from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
@@ -16,7 +17,6 @@ from akira.detect.categories import normalize_skill_category
 from akira.detect.models import StackInfo, ToolInfo
 from akira.fingerprint import format_fingerprint_value
 from akira.fingerprint.models import FingerprintAnalysis, StylePattern
-
 
 # -----------------------------------------------------------------------------
 # Classes
@@ -195,6 +195,9 @@ class SkillGenerator:
     """
 
     def __init__(self) -> None:
+        """
+        Return init helper result.
+        """
 
         self.env = Environment(
             loader=PackageLoader("akira.skills", "templates"),
@@ -234,7 +237,7 @@ class SkillGenerator:
 
         context = build_template_context(
             stack,
-            selected,
+            selected=selected,
             fingerprint_exists=fingerprint_file_exists,
             fingerprint=fingerprint,
         )
@@ -352,6 +355,7 @@ def generate_skills(
 
 def build_template_context(
     stack: StackInfo,
+    *,
     selected: tuple[SkillTemplate, ...] = (),
     fingerprint_exists: bool = False,
     fingerprint: FingerprintAnalysis | None = None,

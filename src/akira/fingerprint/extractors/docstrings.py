@@ -4,6 +4,7 @@ Docstring style and coverage extractor.
 
 # Standard Libraries
 from __future__ import annotations
+
 import ast
 from collections import Counter
 
@@ -131,7 +132,8 @@ def _private_behavior_pattern(nodes: list[ast.AST]) -> tuple[StylePattern, ...]:
     Parameters
     ----------
     nodes : list[ast.AST]
-        A list of AST nodes representing private definitions to analyze for docstring behavior.
+        A list of AST nodes representing private definitions to analyze for
+        docstring behavior.
 
     Returns
     -------
@@ -165,7 +167,8 @@ def _style_pattern(styles: list[str]) -> tuple[StylePattern, ...]:
     Parameters
     ----------
     styles : list[str]
-        A list of docstring styles identified in the codebase (e.g., "google", "numpy", "sphinx",
+        A list of docstring styles identified in the codebase (e.g., "google",
+        "numpy", "sphinx",
         "plain").
 
     Returns
@@ -197,7 +200,9 @@ def _append_by_visibility(
     node: ast.AST, public_defs: list[ast.AST], private_defs: list[ast.AST]
 ) -> None:
     """
-    Append the given AST node to either the public or private definitions list based on its name.
+    Append the given AST node to either the public or private definitions list based.
+
+    on its name.
 
     Parameters
     ----------
@@ -227,7 +232,8 @@ def _docstring_style(node: ast.AST) -> list[str]:
     Parameters
     ----------
     node : ast.AST
-        The AST node representing a class or function definition to analyze for docstring style.
+        The AST node representing a class or function definition to analyze for
+        docstring style.
 
     Returns
     -------

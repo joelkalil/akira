@@ -4,6 +4,7 @@ Craft generated Akira artifacts into an agent-ready context.
 
 # Standard Libraries
 from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -12,10 +13,11 @@ from akira.agents import (
     AgentInstallResult,
     BaseAgentAdapter,
     UnsupportedAgent,
+)
+from akira.agents import (
     get_agent_adapter as get_registered_agent_adapter,
 )
 from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR
-
 
 # -----------------------------------------------------------------------------
 # Classes
@@ -96,6 +98,7 @@ class UnsupportedCraftAgent(CraftError):
     def __init__(
         self,
         agent: str,
+        *,
         supported: tuple[str, ...] = (),
     ) -> None:
         """
@@ -274,4 +277,4 @@ def get_agent_adapter(agent: str) -> BaseAgentAdapter:
 
     except UnsupportedAgent as exc:
 
-        raise UnsupportedCraftAgent(exc.agent, exc.supported) from exc
+        raise UnsupportedCraftAgent(exc.agent, supported=exc.supported) from exc

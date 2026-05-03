@@ -4,6 +4,7 @@ Comment style extractor.
 
 # Standard Libraries
 from __future__ import annotations
+
 import io
 import re
 import tokenize
@@ -121,9 +122,12 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
                 if _inline_frequency(inline_comments, code_lines) < 0.1
                 else "present"
             ),
-            confidence=1.0 - min(1.0, _inline_frequency(inline_comments, code_lines)),
+            confidence=1.0
+            - min(1.0, _inline_frequency(inline_comments, code_lines)),
             samples=max(code_lines, 1),
-            description="Inline comments are measured relative to executable code lines.",
+            description=(
+                "Inline comments are measured relative to executable code lines."
+            ),
             evidence={
                 "inline_comments": len(inline_comments),
                 "code_lines": code_lines,
@@ -164,7 +168,9 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
 
 def _comments_for_text(text: str, lines: list[str]) -> list[dict[str, object]]:
     """
-    Extract comment information from a source text, including section separators and inline status.
+    Extract comment information from a source text, including section separators and.
+
+    inline status.
 
     Parameters
     ----------
@@ -221,12 +227,14 @@ def _inline_frequency(
     inline_comments : list[dict[str, object]]
         A list of inline comment information dictionaries.
     code_lines : int
-        The total number of executable code lines, used as the denominator for frequency calculation.
+        The total number of executable code lines, used as the denominator for
+        frequency calculation.
 
     Returns
     -------
     float
-        The frequency of inline comments as a ratio of inline comments to executable code lines.
+        The frequency of inline comments as a ratio of inline comments to
+        executable code lines.
     """
 
     if code_lines <= 0:
@@ -238,12 +246,15 @@ def _inline_frequency(
 
 def _language_hint(comment: str) -> str:
     """
-    Infer a natural language hint from a comment text, distinguishing between Portuguese and English.
+    Infer a natural language hint from a comment text, distinguishing between.
+
+    Portuguese and English.
 
     Parameters
     ----------
     comment : str
-        The comment text from which to infer a natural language hint, which may contain various
+        The comment text from which to infer a natural language hint, which may
+        contain various
         words and punctuation.
 
     Returns

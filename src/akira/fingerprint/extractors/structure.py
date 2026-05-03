@@ -4,6 +4,7 @@ Control-flow and function-shape extractor.
 
 # Standard Libraries
 from __future__ import annotations
+
 import ast
 from collections import Counter
 from statistics import median
@@ -49,7 +50,8 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple of StylePattern instances representing the extracted structural patterns.
+        A tuple of StylePattern instances representing the extracted structural
+        patterns.
     """
 
     functions: list[ast.FunctionDef | ast.AsyncFunctionDef] = []
@@ -133,7 +135,9 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
             value="under_30_lines" if median(lengths) <= 30 else "over_30_lines",
             confidence=sum(1 for length in lengths if length <= 30) / len(lengths),
             samples=len(lengths),
-            description="Function body length preference based on physical source lines.",
+            description=(
+                "Function body length preference based on physical source lines."
+            ),
             evidence={"median": median(lengths), "max": max(lengths)},
         ),
     )
@@ -146,7 +150,8 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
 
 def _has_early_return(function: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     """
-    Determine if a function has early returns, defined as return statements that
+    Determine if a function has early returns, defined as return statements that.
+
     are not the final statement in the function body.
 
     Parameters
@@ -179,7 +184,8 @@ def _has_early_return(function: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
 
 def _has_guard_clause(function: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     """
-    Determine if a function has guard clauses, defined as if statements in the top
+    Determine if a function has guard clauses, defined as if statements in the top.
+
     three statements of the function body that exit the function (via return, raise,
     continue, or break).
 
@@ -205,7 +211,10 @@ def _has_guard_clause(function: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
 
 def _body_exits(body: list[ast.stmt]) -> bool:
     """
-    Check if the given body of statements contains an exit statement (return, raise, continue,
+    Check if the given body of statements contains an exit statement (return, raise,.
+
+    continue,.
+
     or break) as the last statement.
 
     Parameters
@@ -226,7 +235,8 @@ def _body_exits(body: list[ast.stmt]) -> bool:
 
 def _max_nesting_depth(function: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
     """
-    Calculate the maximum control-flow nesting depth of a function, where nesting is
+    Calculate the maximum control-flow nesting depth of a function, where nesting is.
+
     defined by the presence of branch nodes (if, for, while, try, with, match) and is
     incremented when entering these nodes. Function and class definitions also increment
     nesting depth but do not contribute to the maximum depth calculation.
@@ -247,7 +257,8 @@ def _max_nesting_depth(function: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
 
 def _nesting_depth(node: ast.AST, depth: int) -> int:
     """
-    Recursively calculate the nesting depth of a node, where depth is incremented for
+    Recursively calculate the nesting depth of a node, where depth is incremented for.
+
     branch nodes and function/class definitions.
 
     Parameters
@@ -280,7 +291,10 @@ def _walk_current_scope(
     function: ast.FunctionDef | ast.AsyncFunctionDef,
 ) -> list[ast.AST]:
     """
-    Walk the AST of a function body while ignoring nested function and class definitions, returning
+    Walk the AST of a function body while ignoring nested function and class.
+
+    definitions, returning.
+
     a flat list of nodes in the current scope.
 
     Parameters
@@ -291,7 +305,8 @@ def _walk_current_scope(
     Returns
     -------
     list[ast.AST]
-        A list of AST nodes in the current scope of the function body, excluding nested function and
+        A list of AST nodes in the current scope of the function body, excluding
+        nested function and
         class definitions
     """
 
@@ -306,7 +321,10 @@ def _walk_current_scope(
 
 def _walk_without_nested_scopes(node: ast.AST) -> list[ast.AST]:
     """
-    Recursively walk an AST node while ignoring nested function and class definitions and return a
+    Recursively walk an AST node while ignoring nested function and class.
+
+    definitions and return a.
+
     flat list of nodes in the current scope.
 
     Parameters
@@ -317,7 +335,8 @@ def _walk_without_nested_scopes(node: ast.AST) -> list[ast.AST]:
     Returns
     -------
     list[ast.AST]
-        A list of AST nodes in the current scope, excluding nested function and class definitions.
+        A list of AST nodes in the current scope, excluding nested function and
+        class definitions.
     """
 
     nodes = [node]
@@ -335,8 +354,12 @@ def _walk_without_nested_scopes(node: ast.AST) -> list[ast.AST]:
 
 def _function_length(function: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
     """
-    Calculate the length of a function in terms of physical source lines, using the function's
-    starting line number and ending line number. If the end line number is not available, it is
+    Calculate the length of a function in terms of physical source lines, using the.
+
+    function's.
+
+    starting line number and ending line number. If the end line number is not
+    available, it is
     approximated as the starting line number, resulting in a minimum length of 1.
 
     Parameters
@@ -357,7 +380,10 @@ def _function_length(function: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
 
 def _frequency_label(count: int, total: int) -> str:
     """
-    Convert a count and total into a frequency label of "preferred", "occasional", or "rare" based on
+    Convert a count and total into a frequency label of "preferred", "occasional",.
+
+    or "rare" based on.
+
     the share of the count to the total.
 
     Parameters
@@ -370,7 +396,8 @@ def _frequency_label(count: int, total: int) -> str:
     Returns
     -------
     str
-        A frequency label indicating the prevalence of the pattern: "preferred" for 60% or more,
+        A frequency label indicating the prevalence of the pattern: "preferred"
+        for 60% or more,
         "occasional" for more than 0% but less than 60%, and "rare" for 0%.
     """
 

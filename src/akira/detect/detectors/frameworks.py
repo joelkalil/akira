@@ -4,6 +4,7 @@ Detect Python web and CLI frameworks.
 
 # Standard Libraries
 from __future__ import annotations
+
 from pathlib import Path
 
 # Local Libraries

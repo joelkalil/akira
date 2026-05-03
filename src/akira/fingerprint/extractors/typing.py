@@ -4,6 +4,7 @@ Type hint style extractor.
 
 # Standard Libraries
 from __future__ import annotations
+
 import ast
 from collections import Counter
 
@@ -262,7 +263,8 @@ def _has_full_signature(function: ast.FunctionDef | ast.AsyncFunctionDef) -> boo
     Returns
     -------
     bool
-        True if the function has type hints for all parameters and return value, False otherwise.
+        True if the function has type hints for all parameters and return value,
+        False otherwise.
     """
 
     args = [
@@ -316,7 +318,8 @@ def _optional_styles(tree: ast.AST) -> list[str]:
     Returns
     -------
     list[str]
-        A list of identified optional annotation styles (e.g., "pipe_union_none", "typing_optional",
+        A list of identified optional annotation styles (e.g.,
+        "pipe_union_none", "typing_optional",
         "typing_union_none").
     """
 

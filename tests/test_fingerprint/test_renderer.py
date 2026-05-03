@@ -1,9 +1,12 @@
+"""
+Tests for renderer.
+"""
+
 # Standard Libraries
 from __future__ import annotations
+
 from datetime import datetime, timezone
 from pathlib import Path
-
-# Third-Party Libraries
 
 # Local Libraries
 from akira.fingerprint import fingerprint_project, render_fingerprint_markdown
@@ -14,13 +17,25 @@ from akira.fingerprint.models import FingerprintAnalysis
 # -----------------------------------------------------------------------------
 
 
-def test_render_fingerprint_markdown_includes_frontmatter_and_v1_sections(
-    tmp_path: Path,
-) -> None:
-    source = tmp_path / "module.py"
+class TestRenderFingerprintMarkdownIncludesFrontmatterAndV1Sections:
+    """
+    Verify render fingerprint markdown includes frontmatter and v1 sections cases.
+    """
 
-    source.write_text(
-        '''# --- Public helpers ---
+    def test_render_fingerprint_markdown_includes_frontmatter_and_v1_sections(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """
+        Verify render fingerprint markdown includes frontmatter and v1 sections.
+
+        behavior.
+        """
+
+        source = tmp_path / "module.py"
+
+        source.write_text(
+            '''# --- Public helpers ---
 import os
 
 
@@ -43,70 +58,92 @@ class UserService:
 def load_user(user_id: str) -> str:
     return user_id
 ''',
-        encoding="utf-8",
-    )
+            encoding="utf-8",
+        )
 
-    analysis = fingerprint_project(tmp_path)
+        analysis = fingerprint_project(tmp_path)
 
-    content = render_fingerprint_markdown(
-        analysis,
-        generated_at=datetime(2026, 5, 2, 12, 0, tzinfo=timezone.utc),
-        sample_size=20,
-    )
+        content = render_fingerprint_markdown(
+            analysis,
+            generated_at=datetime(2026, 5, 2, 12, 0, tzinfo=timezone.utc),
+            sample_size=20,
+        )
 
-    assert 'generated_at: "2026-05-02T12:00:00+00:00"' in content
+        assert 'generated_at: "2026-05-02T12:00:00+00:00"' in content
 
-    assert "sample_size: 20" in content
+        assert "sample_size: 20" in content
 
-    assert '  - "module.py"' in content
+        assert '  - "module.py"' in content
 
-    assert "confidence:" in content
+        assert "confidence:" in content
 
-    assert "- **Between top-level definitions**: 2 blank lines" in content
+        assert "- **Between top-level definitions**: 2 blank lines" in content
 
-    assert "- **Classes**: PascalCase" in content
+        assert "- **Classes**: PascalCase" in content
 
-    assert "- **Optional style**: `X | None`" in content
+        assert "- **Optional style**: `X | None`" in content
 
-    assert "- **Functions**: Sparse" in content
+        assert "- **Functions**: Sparse" in content
 
-    assert "- **Max nesting**: 0 levels" in content
+        assert "- **Max nesting**: 0 levels" in content
 
-    for section in (
-        "Spacing",
-        "Comments",
-        "Control Flow",
-        "Naming",
-        "Imports",
-        "Type Hints",
-        "Docstrings",
-        "Error Handling",
-        "Organization",
-        "Strings",
-        "General Patterns",
-    ):
-        assert f"## {section}" in content
-
-
-def test_render_fingerprint_markdown_uses_empty_files_list_for_empty_samples(
-    tmp_path: Path,
-) -> None:
-    analysis = FingerprintAnalysis(project_root=tmp_path, files=(), patterns=())
-
-    content = render_fingerprint_markdown(analysis, sample_size=0)
-
-    assert "sample_size: 0" in content
-
-    assert "files_analyzed: []" in content
+        for section in (
+            "Spacing",
+            "Comments",
+            "Control Flow",
+            "Naming",
+            "Imports",
+            "Type Hints",
+            "Docstrings",
+            "Error Handling",
+            "Organization",
+            "Strings",
+            "General Patterns",
+        ):
+            assert f"## {section}" in content
 
 
-def test_render_fingerprint_markdown_preserves_identifier_like_values(
-    tmp_path: Path,
-) -> None:
-    source = tmp_path / "module.py"
+class TestRenderFingerprintMarkdownUsesEmptyFilesListForEmptySamples:
+    """
+    Verify render fingerprint markdown uses empty files list for empty samples cases.
+    """
 
-    source.write_text(
-        """from typing import ClassVar, TypedDict
+    def test_render_fingerprint_markdown_uses_empty_files_list_for_empty_samples(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """
+        Verify render fingerprint markdown uses empty files list for empty.
+
+        samples behavior.
+        """
+
+        analysis = FingerprintAnalysis(project_root=tmp_path, files=(), patterns=())
+
+        content = render_fingerprint_markdown(analysis, sample_size=0)
+
+        assert "sample_size: 0" in content
+
+        assert "files_analyzed: []" in content
+
+
+class TestRenderFingerprintMarkdownPreservesIdentifierLikeValues:
+    """
+    Verify render fingerprint markdown preserves identifier like values cases.
+    """
+
+    def test_render_fingerprint_markdown_preserves_identifier_like_values(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """
+        Verify render fingerprint markdown preserves identifier like values behavior.
+        """
+
+        source = tmp_path / "module.py"
+
+        source.write_text(
+            """from typing import ClassVar, TypedDict
 
 
 class Payload(TypedDict):
@@ -122,11 +159,11 @@ def load_payload(has_access: bool, should_retry: bool) -> Payload:
     should_log = False
     return {"name": "ok"}
 """,
-        encoding="utf-8",
-    )
+            encoding="utf-8",
+        )
 
-    content = render_fingerprint_markdown(fingerprint_project(tmp_path))
+        content = render_fingerprint_markdown(fingerprint_project(tmp_path))
 
-    assert "- **Boolean variables**: has_ -> should_" in content
+        assert "- **Boolean variables**: has_ -> should_" in content
 
-    assert "- **Complex type imports**: ClassVar -> TypedDict" in content
+        assert "- **Complex type imports**: ClassVar -> TypedDict" in content

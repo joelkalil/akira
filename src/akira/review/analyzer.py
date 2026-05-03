@@ -4,6 +4,7 @@ Analyze detected stack information with Akira review rules.
 
 # Standard Libraries
 from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum
 from typing import Callable
@@ -139,7 +140,10 @@ INITIAL_RULES: tuple[Rule, ...] = (
             and not stack.has("pytest", category="testing")
         ),
         category=ReviewCategory.SUGGESTION,
-        message="unittest detected. Consider pytest for richer fixtures, plugins, and modern Python test ergonomics.",
+        message=(
+            "unittest detected. Consider pytest for richer fixtures, plugins, "
+            "and modern Python test ergonomics."
+        ),
         migration="testing/unittest-to-pytest",
         safe_change=StackChange(
             summary="Replace unittest stack metadata with pytest.",
@@ -162,7 +166,10 @@ INITIAL_RULES: tuple[Rule, ...] = (
             )
         ),
         category=ReviewCategory.SUGGESTION,
-        message="Ruff can handle formatting and import sorting, so black/isort may be redundant.",
+        message=(
+            "Ruff can handle formatting and import sorting, so black/isort may "
+            "be redundant."
+        ),
         safe_change=StackChange(
             summary="Remove redundant black/isort stack metadata while keeping ruff.",
             details=(
@@ -179,16 +186,27 @@ INITIAL_RULES: tuple[Rule, ...] = (
             and not stack.has("sqlalchemy", category="database")
         ),
         category=ReviewCategory.INCOMPATIBILITY,
-        message="Alembic detected without SQLAlchemy. Add SQLAlchemy or remove the migration setup.",
+        message=(
+            "Alembic detected without SQLAlchemy. Add SQLAlchemy or remove the "
+            "migration setup."
+        ),
     ),
     Rule(
         id="missing-type-checker",
         condition=lambda stack: (
             _python_version_at_least(stack, (3, 10))
-            and not stack.has_any("mypy", "pyright", "pytype", category="type_checking")
+            and not stack.has_any(
+                "mypy",
+                "pyright",
+                "pytype",
+                category="type_checking",
+            )
         ),
         category=ReviewCategory.MISSING,
-        message="No type checker detected for a modern Python project. Consider adding mypy or pyright.",
+        message=(
+            "No type checker detected for a modern Python project. Consider "
+            "adding mypy or pyright."
+        ),
         safe_change=StackChange(
             summary="Add mypy to accepted stack metadata.",
             details=(
@@ -216,7 +234,10 @@ INITIAL_RULES: tuple[Rule, ...] = (
             and not stack.has_any("asyncpg", "psycopg3", category="database")
         ),
         category=ReviewCategory.SUGGESTION,
-        message="FastAPI is async-first, but psycopg2 is synchronous. Consider asyncpg or psycopg3.",
+        message=(
+            "FastAPI is async-first, but psycopg2 is synchronous. Consider "
+            "asyncpg or psycopg3."
+        ),
     ),
 )
 
@@ -228,6 +249,7 @@ INITIAL_RULES: tuple[Rule, ...] = (
 
 def analyze_stack(
     stack: StackInfo,
+    *,
     rules: tuple[Rule, ...] | None = None,
 ) -> ReviewResult:
     """

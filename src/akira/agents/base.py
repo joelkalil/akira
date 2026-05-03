@@ -4,13 +4,13 @@ Agent adapter interface for installing Akira context.
 
 # Standard Libraries
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 
 # Local Libraries
 from akira.skills.installer import InstalledSkillFile, install_generated_skills
-
 
 # -----------------------------------------------------------------------------
 # Classes
@@ -27,7 +27,8 @@ class AgentInstallResult:
     agent : str
         The name of the agent for which context was installed.
     installed_files : tuple[InstalledSkillFile, ...]
-        A tuple of InstalledSkillFile objects representing the files installed for the agent.
+        A tuple of InstalledSkillFile objects representing the files installed
+        for the agent.
     """
 
     agent: str
@@ -46,9 +47,11 @@ class BaseAgentAdapter(ABC):
     target_relative_dir : Path
         The project-relative directory where the agent's context should be installed.
     target_directory(project_root: Path) -> Path
-        Resolve the absolute target directory for the agent's context based on the project root.
+        Resolve the absolute target directory for the agent's context based on
+        the project root.
     install(project_root: Path, artifact_dir: Path) -> AgentInstallResult
-        Install the generated artifacts from artifact_dir into the agent-specific location within
+        Install the generated artifacts from artifact_dir into the
+        agent-specific location within
         the project, returning an AgentInstallResult.
     """
 
@@ -78,7 +81,8 @@ class BaseAgentAdapter(ABC):
         Returns
         -------
         Path
-            The absolute path to the target directory where the agent's context should be installed.
+            The absolute path to the target directory where the agent's
+            context should be installed.
         """
 
         resolved_project = project_root.resolve()
@@ -115,7 +119,8 @@ class BaseAgentAdapter(ABC):
         Returns
         -------
         AgentInstallResult
-            An object containing the results of the installation, including the agent name
+            An object containing the results of the installation, including
+            the agent name
             and installed files.
         """
 

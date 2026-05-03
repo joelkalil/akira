@@ -4,6 +4,7 @@ Project scanning orchestration for Akira detectors.
 
 # Standard Libraries
 from __future__ import annotations
+
 from pathlib import Path
 from typing import Iterable
 
@@ -11,6 +12,7 @@ from typing import Iterable
 from akira.detect.detectors import (
     CiCdDetector,
     DatabaseDetector,
+    DocsDetector,
     FrameworkDetector,
     InfrastructureDetector,
     PythonDetector,
@@ -32,6 +34,7 @@ DEFAULT_DETECTORS = (
     DatabaseDetector,
     InfrastructureDetector,
     CiCdDetector,
+    DocsDetector,
 )
 
 
@@ -57,7 +60,11 @@ class Scanner:
         Return normalized stack information for a project.
     """
 
-    def __init__(self, detectors: Iterable[BaseDetector] | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        detectors: Iterable[BaseDetector] | None = None,
+    ) -> None:
         """
         Initialize the scanner with the provided detectors.
 
@@ -126,7 +133,9 @@ class Scanner:
 
     def _deduplicate(self, signals: list[Signal]) -> list[Signal]:
         """
-        Deduplicate signals by their identity, keeping the one with the highest confidence.
+        Deduplicate signals by their identity, keeping the one with the highest.
+
+        confidence.
 
         Parameters
         ----------
@@ -159,6 +168,7 @@ class Scanner:
 
 def scan_project(
     project_root: Path,
+    *,
     detectors: Iterable[BaseDetector] | None = None,
 ) -> StackInfo:
     """
@@ -177,4 +187,4 @@ def scan_project(
         Normalized stack information for the project.
     """
 
-    return Scanner(detectors).scan(project_root)
+    return Scanner(detectors=detectors).scan(project_root)

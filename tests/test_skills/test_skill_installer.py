@@ -1,5 +1,10 @@
+"""
+Tests for skill installer.
+"""
+
 # Standard Libraries
 from __future__ import annotations
+
 from pathlib import Path
 
 # Third-Party Libraries
@@ -13,150 +18,196 @@ from akira.skills.installer import install_claude_skills, install_generated_skil
 # -----------------------------------------------------------------------------
 
 
-def test_install_claude_skills_copies_generated_tree_and_project_references(
-    tmp_path: Path,
-) -> None:
-    project = tmp_path / "project"
+class TestInstallClaudeSkillsCopiesGeneratedTreeAndProjectReferences:
+    """
+    Verify install claude skills copies generated tree and project references cases.
+    """
 
-    output = tmp_path / ".akira"
+    def test_install_claude_skills_copies_generated_tree_and_project_references(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """
+        Verify install claude skills copies generated tree and project.
 
-    project.mkdir()
+        references behavior.
+        """
 
-    (output / "skills" / "python" / "testing").mkdir(parents=True)
+        project = tmp_path / "project"
 
-    (output / "skills" / "SKILL.md").write_text(
-        "Read ../stack.md and ../fingerprint.md",
-        encoding="utf-8",
-    )
+        output = tmp_path / ".akira"
 
-    (output / "skills" / "python" / "SKILL.md").write_text(
-        "python",
-        encoding="utf-8",
-    )
+        project.mkdir()
 
-    (output / "skills" / "python" / "testing" / "pytest.md").write_text(
-        "pytest",
-        encoding="utf-8",
-    )
+        (output / "skills" / "python" / "testing").mkdir(parents=True)
 
-    (output / "stack.md").write_text("stack", encoding="utf-8")
+        (output / "skills" / "SKILL.md").write_text(
+            "Read ../stack.md and ../fingerprint.md",
+            encoding="utf-8",
+        )
 
-    (output / "fingerprint.md").write_text("fingerprint", encoding="utf-8")
+        (output / "skills" / "python" / "SKILL.md").write_text(
+            "python",
+            encoding="utf-8",
+        )
 
-    installed = install_claude_skills(project, output)
+        (output / "skills" / "python" / "testing" / "pytest.md").write_text(
+            "pytest",
+            encoding="utf-8",
+        )
 
-    target = project / ".claude" / "skills" / "akira"
+        (output / "stack.md").write_text("stack", encoding="utf-8")
 
-    assert {item.status for item in installed} == {"installed"}
+        (output / "fingerprint.md").write_text("fingerprint", encoding="utf-8")
 
-    assert (target / "SKILL.md").read_text(
-        encoding="utf-8"
-    ) == "Read stack.md and fingerprint.md"
+        installed = install_claude_skills(project, output)
 
-    assert (target / "python" / "SKILL.md").read_text(encoding="utf-8") == "python"
+        target = project / ".claude" / "skills" / "akira"
 
-    assert (target / "python" / "testing" / "pytest.md").read_text(
-        encoding="utf-8"
-    ) == "pytest"
+        assert {item.status for item in installed} == {"installed"}
 
-    assert (target / "stack.md").read_text(encoding="utf-8") == "stack"
+        assert (target / "SKILL.md").read_text(
+            encoding="utf-8"
+        ) == "Read stack.md and fingerprint.md"
 
-    assert (target / "fingerprint.md").read_text(encoding="utf-8") == "fingerprint"
+        assert (target / "python" / "SKILL.md").read_text(encoding="utf-8") == "python"
 
-    assert not (target / "skills" / "SKILL.md").exists()
+        assert (target / "python" / "testing" / "pytest.md").read_text(
+            encoding="utf-8"
+        ) == "pytest"
 
+        assert (target / "stack.md").read_text(encoding="utf-8") == "stack"
 
-def test_install_claude_skills_is_idempotent_and_updates_changed_files(
-    tmp_path: Path,
-) -> None:
-    project = tmp_path / "project"
+        assert (target / "fingerprint.md").read_text(encoding="utf-8") == "fingerprint"
 
-    output = tmp_path / ".akira"
-
-    project.mkdir()
-
-    (output / "skills").mkdir(parents=True)
-
-    (output / "skills" / "SKILL.md").write_text("first", encoding="utf-8")
-
-    first = install_claude_skills(project, output)
-
-    second = install_claude_skills(project, output)
-
-    (output / "skills" / "SKILL.md").write_text("second", encoding="utf-8")
-
-    third = install_claude_skills(project, output)
-
-    assert [item.status for item in first] == ["installed"]
-
-    assert [item.status for item in second] == ["unchanged"]
-
-    assert [item.status for item in third] == ["updated"]
-
-    assert (project / ".claude" / "skills" / "akira" / "SKILL.md").read_text(
-        encoding="utf-8"
-    ) == "second"
+        assert not (target / "skills" / "SKILL.md").exists()
 
 
-def test_install_claude_skills_removes_stale_akira_files_but_preserves_other_skills(
-    tmp_path: Path,
-) -> None:
-    project = tmp_path / "project"
+class TestInstallClaudeSkillsIsIdempotentAndUpdatesChangedFiles:
+    """
+    Verify install claude skills is idempotent and updates changed files cases.
+    """
 
-    output = tmp_path / ".akira"
+    def test_install_claude_skills_is_idempotent_and_updates_changed_files(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """
+        Verify install claude skills is idempotent and updates changed files behavior.
+        """
 
-    project.mkdir()
+        project = tmp_path / "project"
 
-    (output / "skills").mkdir(parents=True)
+        output = tmp_path / ".akira"
 
-    (output / "skills" / "SKILL.md").write_text("router", encoding="utf-8")
+        project.mkdir()
 
-    target = project / ".claude" / "skills"
+        (output / "skills").mkdir(parents=True)
 
-    (target / "akira" / "python" / "testing").mkdir(parents=True)
+        (output / "skills" / "SKILL.md").write_text("first", encoding="utf-8")
 
-    (target / "akira" / "python" / "testing" / "old.md").write_text(
-        "old",
-        encoding="utf-8",
-    )
+        first = install_claude_skills(project, output)
 
-    (target / "custom" / "SKILL.md").parent.mkdir(parents=True)
+        second = install_claude_skills(project, output)
 
-    (target / "custom" / "SKILL.md").write_text("custom", encoding="utf-8")
+        (output / "skills" / "SKILL.md").write_text("second", encoding="utf-8")
 
-    installed = install_claude_skills(project, output)
+        third = install_claude_skills(project, output)
 
-    assert (target / "akira" / "SKILL.md").exists()
+        assert [item.status for item in first] == ["installed"]
 
-    assert not (target / "akira" / "python" / "testing" / "old.md").exists()
+        assert [item.status for item in second] == ["unchanged"]
 
-    assert (target / "custom" / "SKILL.md").read_text(encoding="utf-8") == "custom"
+        assert [item.status for item in third] == ["updated"]
 
-    assert any(item.status == "removed" for item in installed)
+        assert (project / ".claude" / "skills" / "akira" / "SKILL.md").read_text(
+            encoding="utf-8"
+        ) == "second"
 
 
-def test_install_generated_skills_rejects_targets_outside_project(
-    tmp_path: Path,
-) -> None:
-    project = tmp_path / "project"
+class TestInstallClaudeSkillsRemovesStaleAkiraFilesButPreservesOtherSkills:
+    """
+    Verify install claude skills removes stale akira files but preserves other.
 
-    outside = tmp_path / "outside"
+    skills cases.
+    """
 
-    output = tmp_path / ".akira"
+    def test_install_claude_skills_removes_stale_akira_files_but_preserves_other_skills(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """
+        Verify install claude skills removes stale akira files but preserves other.
 
-    project.mkdir()
+        skills behavior.
+        """
 
-    outside.mkdir()
+        project = tmp_path / "project"
 
-    (output / "skills").mkdir(parents=True)
+        output = tmp_path / ".akira"
 
-    (output / "skills" / "SKILL.md").write_text("router", encoding="utf-8")
+        project.mkdir()
 
-    (outside / "old.md").write_text("old", encoding="utf-8")
+        (output / "skills").mkdir(parents=True)
 
-    with pytest.raises(ValueError, match="within the project"):
-        install_generated_skills(project, output, Path("..") / "outside")
+        (output / "skills" / "SKILL.md").write_text("router", encoding="utf-8")
 
-    assert (outside / "old.md").read_text(encoding="utf-8") == "old"
+        target = project / ".claude" / "skills"
 
-    assert not (outside / "SKILL.md").exists()
+        (target / "akira" / "python" / "testing").mkdir(parents=True)
+
+        (target / "akira" / "python" / "testing" / "old.md").write_text(
+            "old",
+            encoding="utf-8",
+        )
+
+        (target / "custom" / "SKILL.md").parent.mkdir(parents=True)
+
+        (target / "custom" / "SKILL.md").write_text("custom", encoding="utf-8")
+
+        installed = install_claude_skills(project, output)
+
+        assert (target / "akira" / "SKILL.md").exists()
+
+        assert not (target / "akira" / "python" / "testing" / "old.md").exists()
+
+        assert (target / "custom" / "SKILL.md").read_text(encoding="utf-8") == "custom"
+
+        assert any(item.status == "removed" for item in installed)
+
+
+class TestInstallGeneratedSkillsRejectsTargetsOutsideProject:
+    """
+    Verify install generated skills rejects targets outside project cases.
+    """
+
+    def test_install_generated_skills_rejects_targets_outside_project(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """
+        Verify install generated skills rejects targets outside project behavior.
+        """
+
+        project = tmp_path / "project"
+
+        outside = tmp_path / "outside"
+
+        output = tmp_path / ".akira"
+
+        project.mkdir()
+
+        outside.mkdir()
+
+        (output / "skills").mkdir(parents=True)
+
+        (output / "skills" / "SKILL.md").write_text("router", encoding="utf-8")
+
+        (outside / "old.md").write_text("old", encoding="utf-8")
+
+        with pytest.raises(ValueError, match="within the project"):
+            install_generated_skills(project, output, Path("..") / "outside")
+
+        assert (outside / "old.md").read_text(encoding="utf-8") == "old"
+
+        assert not (outside / "SKILL.md").exists()

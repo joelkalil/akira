@@ -4,11 +4,11 @@ Normalized stack models produced by Akira detectors.
 
 # Standard Libraries
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Mapping
-
 
 # -----------------------------------------------------------------------------
 # Classes
@@ -32,7 +32,8 @@ class Signal:
         Confidence score between 0.0 and 1.0 indicating the certainty of the detection
         (e.g., 1.0 for deterministic detections, lower for heuristic detections).
     source : str
-        Optional source information about where the signal was detected (e.g., filename).
+        Optional source information about where the signal was detected (e.g.,
+        filename).
     metadata : Mapping[str, Any]
         Optional additional metadata about the signal.
     """
@@ -101,7 +102,8 @@ class ToolInfo:
     sources : tuple[str, ...]
         Optional source information about where the tool was detected (e.g., filenames).
     metadata : Mapping[str, Any]
-        Optional additional metadata about the tool aggregated from all contributing signals.
+        Optional additional metadata about the tool aggregated from all
+        contributing signals.
     """
 
     name: str
@@ -184,12 +186,15 @@ class StackInfo:
 
     Methods
     -------
-    from_signals(project_root: Path, signals: list[Signal] | tuple[Signal, ...]) -> StackInfo
+    from_signals(project_root: Path, signals: list[Signal] | tuple[Signal, ...]) ->
+    StackInfo
         Build a normalized stack model from detector signals.
     has(tool: str, category: str | None = None) -> bool
-        Return whether a tool is present in the detected stack, optionally restricted to a category.
+        Return whether a tool is present in the detected stack, optionally
+        restricted to a category.
     has_any(*tools: str, category: str | None = None) -> bool
-        Return whether any of the provided tools are present, optionally restricted to a category.
+        Return whether any of the provided tools are present, optionally
+        restricted to a category.
     by_category(category: str) -> tuple[ToolInfo, ...]
         Return aggregated tools for a category.
     """
@@ -280,7 +285,7 @@ class StackInfo:
             categories=tuple(categories),
         )
 
-    def has(self, tool: str, category: str | None = None) -> bool:
+    def has(self, tool: str, *, category: str | None = None) -> bool:
         """
         Return whether a tool is present in the detected stack.
 

@@ -4,6 +4,7 @@ Detect CI/CD configuration files.
 
 # Standard Libraries
 from __future__ import annotations
+
 from pathlib import Path
 
 # Local Libraries
@@ -22,8 +23,10 @@ class CiCdDetector(BaseDetector):
     Attributes
     ----------
     order : int
-        The order in which this detector should be run relative to other detectors. Detectors with
-        lower order values will be run before those with higher values. The default order is 70.
+        The order in which this detector should be run relative to other
+        detectors. Detectors with
+        lower order values will be run before those with higher values. The
+        default order is 70.
 
     Methods
     -------

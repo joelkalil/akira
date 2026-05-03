@@ -4,6 +4,7 @@ Command line entry point for Akira.
 
 # Standard Libraries
 from __future__ import annotations
+
 from pathlib import Path
 from typing import Annotated
 
@@ -55,6 +56,7 @@ def cli() -> None:
 
 @app.command()
 def detect(
+    *,
     path: Annotated[
         Path,
         typer.Option(
@@ -123,6 +125,7 @@ def detect(
 
 @app.command()
 def fingerprint(
+    *,
     path: Annotated[
         Path,
         typer.Option(
@@ -150,7 +153,10 @@ def fingerprint(
         typer.Option(
             "--exclude",
             "-x",
-            help="Project-relative path or glob to exclude. May be passed multiple times.",
+            help=(
+                "Project-relative path or glob to exclude. May be passed "
+                "multiple times."
+            ),
         ),
     ] = None,
     output: Annotated[
@@ -203,6 +209,7 @@ def fingerprint(
 
 @app.command()
 def craft(
+    *,
     path: Annotated[
         Path,
         typer.Option(
@@ -297,6 +304,7 @@ def craft(
 
 @app.command()
 def review(
+    *,
     path: Annotated[
         Path,
         typer.Option(
@@ -481,7 +489,8 @@ def _prompt_review_decision(finding: Finding, console: Console) -> str:
         if decision == "y" and not finding.can_apply_safely:
 
             console.print(
-                "[yellow]This finding has no safe metadata-only change, so it was skipped.[/yellow]"
+                "[yellow]This finding has no safe metadata-only change, so it "
+                "was skipped.[/yellow]"
             )
 
             return "n"
@@ -529,8 +538,10 @@ def _migration_guidance(reference: str) -> tuple[str, ...]:
     if reference == "testing/unittest-to-pytest":
 
         return (
-            "Replace unittest.TestCase classes with plain pytest test functions where practical.",
-            "Prefer assert statements and fixtures over self.assert* and setUp/tearDown.",
+            "Replace unittest.TestCase classes with plain pytest test functions "
+            "where practical.",
+            "Prefer assert statements and fixtures over self.assert* and "
+            "setUp/tearDown.",
             "Keep dependency file edits manual and reviewable.",
         )
 

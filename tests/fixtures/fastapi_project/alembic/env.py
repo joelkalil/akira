@@ -1,3 +1,7 @@
+"""
+Tests for env.
+"""
+
 from __future__ import annotations
 
 from alembic import context
@@ -6,6 +10,9 @@ target_metadata = None
 
 
 def run_migrations_online() -> None:
+    """
+    Return run migrations online result.
+    """
 
     connectable = context.config.attributes.get("connection")
 

@@ -4,20 +4,13 @@ Helpers for reading Python project metadata and source imports.
 
 # Standard Libraries
 from __future__ import annotations
+
 import ast
 import configparser
 import re
+import tomllib
 from pathlib import Path
 from typing import Any, Iterable
-
-# Third-Party Libraries
-try:
-
-    import tomllib
-
-except ModuleNotFoundError:
-
-    import tomli as tomllib
 
 # -----------------------------------------------------------------------------
 # Constants
@@ -88,7 +81,8 @@ def read_setup_cfg(path: Path) -> configparser.ConfigParser:
     Returns
     -------
     configparser.ConfigParser
-        A ConfigParser object containing the parsed configuration, or an empty ConfigParser
+        A ConfigParser object containing the parsed configuration, or an empty
+        ConfigParser
         if the file is missing.
     """
 
@@ -113,7 +107,8 @@ def normalize_package_name(name: str) -> str:
     Returns
     -------
     str
-        The normalized package name, with leading/trailing whitespace removed, converted to
+        The normalized package name, with leading/trailing whitespace removed,
+        converted to
         lowercase, and with underscores replaced by hyphens.
     """
 
@@ -150,7 +145,8 @@ def parse_requirement(requirement: str) -> tuple[str, str | None] | None:
     Returns
     -------
     tuple[str, str | None] | None
-        A tuple of (normalized package name, pinned version or None), or None if the line
+        A tuple of (normalized package name, pinned version or None), or None if
+        the line
         is not a valid requirement.
     """
 
@@ -189,7 +185,8 @@ def extract_pinned_version(specifier: str | None) -> str | None:
     Returns
     -------
     str | None
-        The pinned version if the specifier is an exact match (e.g., "==1.21.0"), or None
+        The pinned version if the specifier is an exact match (e.g.,
+        "==1.21.0"), or None
         otherwise.
     """
 
@@ -214,7 +211,8 @@ def extract_dependencies(project_root: Path) -> dict[str, str | None]:
     Returns
     -------
     dict[str, str | None]
-        A mapping of normalized package names to pinned versions (or None if not pinned).
+        A mapping of normalized package names to pinned versions (or None if not
+        pinned).
     """
 
     dependencies: dict[str, str | None] = {}
@@ -294,7 +292,8 @@ def iter_python_files(project_root: Path) -> Iterable[Path]:
     Yields
     ------
     Path
-        Paths to Python source files within the project, excluding those in common excluded
+        Paths to Python source files within the project, excluding those in
+        common excluded
         directories.
     """
 
@@ -403,7 +402,8 @@ def _dependencies_from_setup_cfg(path: Path) -> list[str]:
     Returns
     -------
     list[str]
-        A list of dependency requirement strings extracted from the install_requires field of the
+        A list of dependency requirement strings extracted from the
+        install_requires field of the
         setup.cfg file.
     """
 
@@ -430,7 +430,8 @@ def _dependencies_from_setup_py(path: Path) -> list[str]:
     Returns
     -------
     list[str]
-        A list of dependency requirement strings extracted from the install_requires argument in the
+        A list of dependency requirement strings extracted from the
+        install_requires argument in the
         setup.py file.
     """
 
@@ -495,12 +496,17 @@ def _poetry_dependency_to_requirement(name: str, specifier: object) -> str:
     Returns
     -------
     str
-        A requirement string combining the package name and version specifier, if applicable.
+        A requirement string combining the package name and version specifier,
+        if applicable.
     """
 
     if isinstance(specifier, str):
 
-        return f"{name}{specifier if specifier.startswith(('=', '<', '>', '~', '!')) else ''}"
+        normalized = (
+            specifier if specifier.startswith(("=", "<", ">", "~", "!")) else ""
+        )
+
+        return f"{name}{normalized}"
 
     if isinstance(specifier, dict):
 
@@ -508,7 +514,11 @@ def _poetry_dependency_to_requirement(name: str, specifier: object) -> str:
 
         if isinstance(version, str):
 
-            return f"{name}{version if version.startswith(('=', '<', '>', '~', '!')) else ''}"
+            normalized = (
+                version if version.startswith(("=", "<", ">", "~", "!")) else ""
+            )
+
+            return f"{name}{normalized}"
 
     return name
 
@@ -520,13 +530,15 @@ def _string_items(value: object) -> list[str]:
     Parameters
     ----------
     value : object
-        The value to filter, expected to be a list of dependency entries from a pyproject.toml
+        The value to filter, expected to be a list of dependency entries from a
+        pyproject.toml
         section.
 
     Returns
     -------
     list[str]
-        A list of string items extracted from the input value, or an empty list if the input is
+        A list of string items extracted from the input value, or an empty list
+        if the input is
         not a list.
     """
 
@@ -539,14 +551,18 @@ def _string_items(value: object) -> list[str]:
 
 def _add_requirement(dependencies: dict[str, str | None], requirement: str) -> None:
     """
-    Parse a requirement string and add it to the dependencies mapping if it's not already present.
+    Parse a requirement string and add it to the dependencies mapping if it's not.
+
+    already present.
 
     Parameters
     ----------
     dependencies : dict[str, str | None]
-        The mapping of package names to pinned versions to update with the new requirement.
+        The mapping of package names to pinned versions to update with the new
+        requirement.
     requirement : str
-        The requirement string to parse and add, such as "requests>=2.0" or "numpy==1.21.0".
+        The requirement string to parse and add, such as "requests>=2.0" or
+        "numpy==1.21.0".
     """
 
     parsed = parse_requirement(requirement)

@@ -4,6 +4,7 @@ Render fingerprint analysis into durable project artifacts.
 
 # Standard Libraries
 from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -14,7 +15,6 @@ from jinja2 import Environment, PackageLoader, StrictUndefined
 
 # Local Libraries
 from akira.fingerprint.models import FingerprintAnalysis, StylePattern
-
 
 # -----------------------------------------------------------------------------
 # Classes
