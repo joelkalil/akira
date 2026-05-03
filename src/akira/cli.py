@@ -11,10 +11,11 @@ from typing import Annotated
 # Third-Party Libraries
 import typer
 from rich.console import Console
-from rich.prompt import Prompt
+from rich.prompt import Confirm, Prompt
 
 # Local Libraries
 from akira.agents import SUPPORTED_AGENT_NAMES, UnsupportedAgent, get_agent_adapter
+from akira.agents.detector import detect_configured_agents
 from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR
 from akira.craft import (
     MissingCraftPrerequisites,
@@ -71,14 +72,14 @@ def detect(
         ),
     ] = Path("."),
     agent: Annotated[
-        str,
+        str | None,
         typer.Option(
             "--agent",
             "-a",
             help="Agent target for generated skills.",
             callback=_validate_agent,
         ),
-    ] = DEFAULT_AGENT,
+    ] = None,
     output: Annotated[
         Path,
         typer.Option(
@@ -102,11 +103,14 @@ def detect(
 
     skill_paths = generate_skills(stack, output)
 
-    installed_paths = get_agent_adapter(agent).install(path, output).installed_files
+    agents = _resolve_agents(agent, path)
+
+    install_results = [
+        get_agent_adapter(resolved_agent).install(path, output)
+        for resolved_agent in agents
+    ]
 
     typer.echo(f"Project path: {path}")
-
-    typer.echo(f"Agent: {agent}")
 
     typer.echo(f"Output: {output}")
 
@@ -116,11 +120,15 @@ def detect(
 
         typer.echo(f"Wrote: {skill.path}")
 
-    for installed in installed_paths:
+    for install_result in install_results:
 
-        if installed.status in {"installed", "updated"}:
+        typer.echo(f"Agent: {install_result.agent}")
 
-            typer.echo(f"{installed.status.title()}: {installed.path}")
+        for installed in install_result.installed_files:
+
+            if installed.status in {"installed", "updated"}:
+
+                typer.echo(f"{installed.status.title()}: {installed.path}")
 
 
 @app.command()
@@ -224,14 +232,14 @@ def craft(
         ),
     ] = Path("."),
     agent: Annotated[
-        str,
+        str | None,
         typer.Option(
             "--agent",
             "-a",
             help="Agent target to configure.",
             callback=_validate_agent,
         ),
-    ] = DEFAULT_AGENT,
+    ] = None,
     output: Annotated[
         Path,
         typer.Option(
@@ -251,7 +259,12 @@ def craft(
 
     try:
 
-        result = craft_context(path, agent=agent, artifact_dir=output)
+        agents = _resolve_agents(agent, path)
+
+        results = [
+            craft_context(path, agent=resolved_agent, artifact_dir=output)
+            for resolved_agent in agents
+        ]
 
     except MissingCraftPrerequisites as exc:
 
@@ -285,21 +298,25 @@ def craft(
 
         raise typer.Exit(1) from exc
 
-    typer.echo(f"Project path: {result.project_root}")
+    first_result = results[0]
 
-    typer.echo(f"Agent: {result.install_result.agent}")
+    typer.echo(f"Project path: {first_result.project_root}")
 
-    typer.echo(f"Artifacts: {result.artifact_dir}")
+    typer.echo(f"Artifacts: {first_result.artifact_dir}")
 
-    if not result.install_result.installed_files:
+    for result in results:
 
-        typer.echo("No files found to install.")
+        typer.echo(f"Agent: {result.install_result.agent}")
 
-        return
+        if not result.install_result.installed_files:
 
-    for installed in result.install_result.installed_files:
+            typer.echo("No files found to install.")
 
-        typer.echo(f"{installed.status.title()}: {installed.path}")
+            continue
+
+        for installed in result.install_result.installed_files:
+
+            typer.echo(f"{installed.status.title()}: {installed.path}")
 
 
 @app.command()
@@ -391,7 +408,11 @@ def main() -> None:
 # -----------------------------------------------------------------------------
 
 
-def _validate_agent(agent: str) -> str:
+def _validate_agent(agent: str | None) -> str | None:
+
+    if agent is None:
+
+        return None
 
     if agent not in SUPPORTED_AGENT_NAMES:
 
@@ -402,6 +423,44 @@ def _validate_agent(agent: str) -> str:
         )
 
     return agent
+
+
+def _resolve_agents(agent: str | None, path: Path) -> tuple[str, ...]:
+
+    if agent is not None:
+
+        return (agent,)
+
+    detected_agents = detect_configured_agents(path)
+
+    if not detected_agents:
+
+        typer.echo(
+            "No agent configuration detected. Defaulting to claude-code. "
+            "Use --agent to override."
+        )
+
+        return (DEFAULT_AGENT,)
+
+    typer.echo(f"Detected agents: {', '.join(detected_agents)}")
+
+    if len(detected_agents) == 1:
+
+        return detected_agents
+
+    selected_agents = tuple(
+        detected_agent
+        for detected_agent in detected_agents
+        if Confirm.ask(f"Install for {detected_agent}?", default=True)
+    )
+
+    if not selected_agents:
+
+        typer.echo("No agents selected.")
+
+        raise typer.Exit(1)
+
+    return selected_agents
 
 
 def _collect_review_decisions(

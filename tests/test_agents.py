@@ -13,6 +13,7 @@ import pytest
 # Local Libraries
 from akira.agents import SUPPORTED_AGENT_NAMES, UnsupportedAgent, get_agent_adapter
 from akira.agents.base import BaseAgentAdapter
+from akira.agents.detector import detect_configured_agents
 
 # -----------------------------------------------------------------------------
 # Constants
@@ -56,6 +57,71 @@ class TestSupportedAgentsMatchDocumentedTargets:
                 adapter.target_directory(project)
                 == (project / relative_target).resolve()
             )
+
+
+class TestDetectConfiguredAgents:
+    """
+    Verify configured agent detection cases.
+    """
+
+    def test_no_indicators_returns_empty_tuple(self, tmp_path: Path) -> None:
+        """
+        Verify no configured agents returns empty tuple behavior.
+        """
+
+        assert detect_configured_agents(tmp_path) == ()
+
+    def test_claude_directory_detects_claude_code(self, tmp_path: Path) -> None:
+        """
+        Verify claude directory detects claude code behavior.
+        """
+
+        (tmp_path / ".claude").mkdir()
+
+        assert detect_configured_agents(tmp_path) == ("claude-code",)
+
+    def test_multiple_indicators_return_stable_supported_order(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """
+        Verify multiple indicators return stable supported order behavior.
+        """
+
+        (tmp_path / ".codex").mkdir()
+
+        (tmp_path / ".cursor").mkdir()
+
+        github_dir = tmp_path / ".github"
+
+        github_dir.mkdir()
+
+        (github_dir / "copilot.md").write_text("Use Copilot.", encoding="utf-8")
+
+        (tmp_path / ".claude").mkdir()
+
+        assert detect_configured_agents(tmp_path) == (
+            "claude-code",
+            "cursor",
+            "copilot",
+            "codex",
+        )
+
+    def test_copilot_instructions_file_detects_copilot(self, tmp_path: Path) -> None:
+        """
+        Verify copilot instructions file detects copilot behavior.
+        """
+
+        github_dir = tmp_path / ".github"
+
+        github_dir.mkdir()
+
+        (github_dir / "copilot-instructions.md").write_text(
+            "Use Copilot.",
+            encoding="utf-8",
+        )
+
+        assert detect_configured_agents(tmp_path) == ("copilot",)
 
 
 class TestInvalidAgentListsSupportedNames:

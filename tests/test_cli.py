@@ -25,7 +25,7 @@ except ModuleNotFoundError:
 
 # Local Libraries
 from akira.cli import app
-from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR
+from akira.config import DEFAULT_OUTPUT_DIR
 from akira.craft import (
     UnsupportedCraftAgent,
 )
@@ -562,9 +562,12 @@ class TestDetectUsesConfigDefaults:
     Verify detect uses config defaults cases.
     """
 
-    def test_detect_uses_config_defaults(self, tmp_path: Path) -> None:
+    def test_detect_uses_output_default_and_agent_fallback(
+        self,
+        tmp_path: Path,
+    ) -> None:
         """
-        Verify detect uses config defaults behavior.
+        Verify detect uses output default and agent fallback behavior.
         """
 
         with runner.isolated_filesystem():
@@ -574,9 +577,69 @@ class TestDetectUsesConfigDefaults:
 
         assert result.exit_code == 0
 
-        assert f"Agent: {DEFAULT_AGENT}" in result.stdout
+        assert (
+            "No agent configuration detected. Defaulting to claude-code. "
+            "Use --agent to override."
+        ) in result.stdout
+
+        assert "Agent: claude-code" in result.stdout
 
         assert f"Output: {expected_output}" in result.stdout
+
+    def test_detect_auto_selects_claude_code_from_project_marker(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """
+        Verify detect auto selects claude code from project marker behavior.
+        """
+
+        (tmp_path / ".claude").mkdir()
+
+        output_dir = tmp_path / ".akira"
+
+        result = runner.invoke(
+            app,
+            ["detect", "--path", str(tmp_path), "--output", str(output_dir)],
+        )
+
+        installed_router = tmp_path / ".claude" / "skills" / "akira" / "SKILL.md"
+
+        assert result.exit_code == 0
+
+        assert "Detected agents: claude-code" in result.stdout
+
+        assert "Agent: claude-code" in result.stdout
+
+        assert installed_router.exists()
+
+    def test_detect_falls_back_to_claude_code_without_agent_markers(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """
+        Verify detect falls back to claude code without agent markers behavior.
+        """
+
+        output_dir = tmp_path / ".akira"
+
+        result = runner.invoke(
+            app,
+            ["detect", "--path", str(tmp_path), "--output", str(output_dir)],
+        )
+
+        installed_router = tmp_path / ".claude" / "skills" / "akira" / "SKILL.md"
+
+        assert result.exit_code == 0
+
+        assert (
+            "No agent configuration detected. Defaulting to claude-code. "
+            "Use --agent to override."
+        ) in result.stdout
+
+        assert "Agent: claude-code" in result.stdout
+
+        assert installed_router.exists()
 
 
 class TestDetectRejectsUnsupportedAgent:
@@ -750,17 +813,17 @@ dependencies = ["pytest==8.0.0"]
         assert f"Installed: {installed_router}" in result.stdout
 
 
-class TestCraftInstallsGeneratedContextForClaudeCodeByDefault:
+class TestCraftInstallsGeneratedContextForDetectedAgentByDefault:
     """
     Verify craft installs generated context for claude code by default cases.
     """
 
-    def test_craft_installs_generated_context_for_claude_code_by_default(
+    def test_craft_installs_generated_context_for_detected_agent_by_default(
         self,
         tmp_path: Path,
     ) -> None:
         """
-        Verify craft installs generated context for claude code by default behavior.
+        Verify craft installs generated context for detected agent by default behavior.
         """
 
         project = tmp_path / "project"
@@ -817,7 +880,7 @@ def load_value(name: str) -> str:
             ["craft", "--path", str(project), "--output", str(output_dir)],
         )
 
-        target = project / ".claude" / "skills" / "akira"
+        target = project / ".cursor" / "skills" / "akira"
 
         assert detect_result.exit_code == 0
 
@@ -833,9 +896,13 @@ def load_value(name: str) -> str:
 
         assert (target / "python" / "testing" / "pytest.md").exists()
 
-        assert f"Agent: {DEFAULT_AGENT}" in craft_result.stdout
+        assert "Detected agents: cursor" in craft_result.stdout
 
-        assert f"Installed: {target / 'SKILL.md'}" in craft_result.stdout
+        assert "Agent: cursor" in craft_result.stdout
+
+        assert f"Unchanged: {target / 'SKILL.md'}" in craft_result.stdout
+
+        assert f"Installed: {target / 'fingerprint.md'}" in craft_result.stdout
 
 
 class TestCraftIsIdempotent:
