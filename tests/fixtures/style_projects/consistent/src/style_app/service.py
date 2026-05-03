@@ -1,4 +1,6 @@
-"""User-facing service module for the consistent style fixture."""
+"""
+User-facing service module for the consistent style fixture.
+"""
 
 from __future__ import annotations
 
@@ -7,18 +9,18 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from fastapi import HTTPException
-
 from style_app.helpers import _normalize_name, build_tags
 
-
 LOGGER = logging.getLogger(__name__)
+
 MAX_RETRIES = 3
 
 
 # --- Models ---
 @dataclass(frozen=True)
 class UserRecord:
-    """Stored user record.
+    """
+    Stored user record.
 
     Args:
         name: Normalized user name.
@@ -30,28 +32,42 @@ class UserRecord:
 
 
 class UserService:
-    """Coordinate user record loading."""
+    """
+    Coordinate user record loading.
+    """
 
     retries = MAX_RETRIES
 
     def __init__(self, source: str) -> None:
+        """
+        Return init helper result.
+        """
+
         self.source = source
 
-    def load_user(self, name: str | None, tags: list[str] | None = None) -> UserRecord:
-        """Load a normalized user record.
+    def load_user(
+        self,
+        name: str | None,
+        *,
+        tags: list[str] | None = None,
+    ) -> UserRecord:
+        """
+        Load a normalized user record.
 
         Args:
             name: Raw user name.
             tags: Optional raw tags.
 
-        Returns:
+        Returns
+        -------
             Normalized user record.
         """
+
         if not self.source:
             raise HTTPException(status_code=500, detail="Missing source")
 
         normalized_name = _normalize_name(name)
-        normalized_tags = build_tags(tags)
+        normalized_tags = build_tags(tags=tags)
 
         return UserRecord(name=normalized_name, tags=normalized_tags)
 
@@ -60,7 +76,10 @@ class UserService:
 
 
 def render_user(record: UserRecord) -> str:
-    """Render a user record."""
+    """
+    Render a user record.
+    """
+
     if not record.tags:
         return f"{record.name}: none"
 
@@ -68,7 +87,10 @@ def render_user(record: UserRecord) -> str:
 
 
 def load_user_file(path: Path) -> str:
-    """Load a user fixture file."""
+    """
+    Load a user fixture file.
+    """
+
     try:
         return path.read_text(encoding="utf-8")
     except OSError:

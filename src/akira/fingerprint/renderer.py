@@ -1,5 +1,8 @@
-"""Render fingerprint analysis into durable project artifacts."""
+"""
+Render fingerprint analysis into durable project artifacts.
+"""
 
+# Standard Libraries
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -7,39 +10,117 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+# Third-Party Libraries
 from jinja2 import Environment, PackageLoader, StrictUndefined
 
+# Local Libraries
 from akira.fingerprint.models import FingerprintAnalysis, StylePattern
+
+# -----------------------------------------------------------------------------
+# Classes
+# -----------------------------------------------------------------------------
 
 
 @dataclass(frozen=True)
 class FingerprintLine:
-    """A readable fingerprint assertion derived from a style pattern."""
+    """
+    A readable fingerprint assertion derived from a style pattern.
+    """
 
     label: str
+
     value: str
+
     confidence: float
+
     samples: int
 
 
 @dataclass(frozen=True)
 class FingerprintSection:
-    """A rendered fingerprint.md section."""
+    """
+    A rendered fingerprint.md section.
+    """
 
     title: str
+
     lines: tuple[FingerprintLine, ...]
 
 
+# -----------------------------------------------------------------------------
+# Constants
+# -----------------------------------------------------------------------------
+
 SECTION_ORDER = (
-    ("spacing", "Spacing", ("top_level_definitions", "methods", "logical_blocks", "after_imports")),
-    ("comments", "Comments", ("section_separators", "inline_comment_frequency", "language", "todo_format")),
-    ("structure", "Control Flow", ("early_returns", "guard_clauses", "nesting_depth", "ternary_usage")),
-    ("naming", "Naming", ("functions", "variables", "classes", "constants", "private_helpers", "boolean_prefixes")),
-    ("imports", "Imports", ("grouping_order", "alphabetical_order", "one_import_per_line", "wildcard_usage", "relative_imports")),
-    ("typing", "Type Hints", ("signature_coverage", "return_hints", "optional_syntax", "complex_type_imports")),
-    ("docstrings", "Docstrings", ("docstring_style", "public_docstrings", "class_docstrings", "function_docstrings", "private_docstring_behavior")),
-    ("error_handling", "Error Handling", ("exception_specificity", "logging_on_catch", "reraising")),
-    ("organization", "Organization", ("module_order", "helper_placement", "class_member_order", "main_block")),
+    (
+        "spacing",
+        "Spacing",
+        ("top_level_definitions", "methods", "logical_blocks", "after_imports"),
+    ),
+    (
+        "comments",
+        "Comments",
+        ("section_separators", "inline_comment_frequency", "language", "todo_format"),
+    ),
+    (
+        "structure",
+        "Control Flow",
+        ("early_returns", "guard_clauses", "nesting_depth", "ternary_usage"),
+    ),
+    (
+        "naming",
+        "Naming",
+        (
+            "functions",
+            "variables",
+            "classes",
+            "constants",
+            "private_helpers",
+            "boolean_prefixes",
+        ),
+    ),
+    (
+        "imports",
+        "Imports",
+        (
+            "grouping_order",
+            "alphabetical_order",
+            "one_import_per_line",
+            "wildcard_usage",
+            "relative_imports",
+        ),
+    ),
+    (
+        "typing",
+        "Type Hints",
+        (
+            "signature_coverage",
+            "return_hints",
+            "optional_syntax",
+            "complex_type_imports",
+        ),
+    ),
+    (
+        "docstrings",
+        "Docstrings",
+        (
+            "docstring_style",
+            "public_docstrings",
+            "class_docstrings",
+            "function_docstrings",
+            "private_docstring_behavior",
+        ),
+    ),
+    (
+        "error_handling",
+        "Error Handling",
+        ("exception_specificity", "logging_on_catch", "reraising"),
+    ),
+    (
+        "organization",
+        "Organization",
+        ("module_order", "helper_placement", "class_member_order", "main_block"),
+    ),
     ("strings", "Strings", ("quote_style", "interpolation_style", "multiline_strings")),
     ("general", "General Patterns", ("function_length",)),
 )
@@ -121,14 +202,23 @@ VALUE_LABELS = {
 }
 
 
+# -----------------------------------------------------------------------------
+# Public Functions
+# -----------------------------------------------------------------------------
+
+
 def render_fingerprint_markdown(
     analysis: FingerprintAnalysis,
     *,
     generated_at: datetime | None = None,
     sample_size: int | None = None,
 ) -> str:
-    """Render fingerprint.md content for a fingerprint analysis."""
+    """
+    Render fingerprint.md content for a fingerprint analysis.
+    """
+
     timestamp = generated_at or datetime.now(timezone.utc)
+
     env = Environment(
         loader=PackageLoader("akira.fingerprint", "templates"),
         autoescape=False,
@@ -137,6 +227,7 @@ def render_fingerprint_markdown(
         lstrip_blocks=True,
         undefined=StrictUndefined,
     )
+
     template = env.get_template("fingerprint.md.j2")
 
     return template.render(
@@ -154,40 +245,95 @@ def write_fingerprint_markdown(
     *,
     sample_size: int | None = None,
 ) -> Path:
-    """Create the output directory and write fingerprint.md into it."""
+    """
+    Create the output directory and write fingerprint.md into it.
+    """
+
     output_dir.mkdir(parents=True, exist_ok=True)
+
     path = output_dir / "fingerprint.md"
+
     path.write_text(
         render_fingerprint_markdown(analysis, sample_size=sample_size),
         encoding="utf-8",
     )
+
     return path
 
 
 def build_fingerprint_sections(
     patterns: tuple[StylePattern, ...],
 ) -> tuple[FingerprintSection, ...]:
-    """Build all v1.0 fingerprint sections in a stable order."""
+    """
+    Build all v1.0 fingerprint sections in a stable order.
+    """
+
     by_dimension_and_name = {
         (pattern.dimension, pattern.name): pattern for pattern in patterns
     }
+
     sections: list[FingerprintSection] = []
 
     for dimension, title, names in SECTION_ORDER:
+
         lines: list[FingerprintLine] = []
+
         for name in names:
+
             pattern = by_dimension_and_name.get((dimension, name))
+
             if pattern is None and dimension == "general":
+
                 pattern = by_dimension_and_name.get(("structure", name))
+
             if pattern is None:
+
                 continue
+
             lines.append(_line_for_pattern(pattern))
+
         sections.append(FingerprintSection(title=title, lines=tuple(lines)))
 
     return tuple(sections)
 
 
+def format_fingerprint_value(value: Any) -> str:
+    """
+    Format a structured fingerprint value for human-readable Markdown.
+    """
+
+    if isinstance(value, tuple):
+
+        return " -> ".join(format_fingerprint_value(item) for item in value)
+
+    if isinstance(value, list):
+
+        return ", ".join(format_fingerprint_value(item) for item in value)
+
+    if isinstance(value, bool):
+
+        return "yes" if value else "no"
+
+    if isinstance(value, int):
+
+        return str(value)
+
+    if isinstance(value, float):
+
+        return f"{value:.2f}"
+
+    text = str(value)
+
+    return VALUE_LABELS.get(text, text)
+
+
+# -----------------------------------------------------------------------------
+# Private Functions
+# -----------------------------------------------------------------------------
+
+
 def _line_for_pattern(pattern: StylePattern) -> FingerprintLine:
+
     return FingerprintLine(
         label=PATTERN_LABELS.get(pattern.name, _humanize_label(pattern.name)),
         value=_format_value(pattern),
@@ -197,36 +343,27 @@ def _line_for_pattern(pattern: StylePattern) -> FingerprintLine:
 
 
 def _format_value(pattern: StylePattern) -> str:
+
     if isinstance(pattern.value, int) and pattern.dimension == "spacing":
+
         noun = "blank line" if pattern.value == 1 else "blank lines"
+
         return f"{pattern.value} {noun}"
+
     if pattern.name == "nesting_depth" and isinstance(pattern.value, int):
+
         noun = "level" if pattern.value == 1 else "levels"
+
         return f"{pattern.value} {noun}"
 
     return _format_raw_value(pattern.value)
 
 
 def _format_raw_value(value: Any) -> str:
+
     return format_fingerprint_value(value)
 
 
-def format_fingerprint_value(value: Any) -> str:
-    """Format a structured fingerprint value for human-readable Markdown."""
-    if isinstance(value, tuple):
-        return " -> ".join(format_fingerprint_value(item) for item in value)
-    if isinstance(value, list):
-        return ", ".join(format_fingerprint_value(item) for item in value)
-    if isinstance(value, bool):
-        return "yes" if value else "no"
-    if isinstance(value, int):
-        return str(value)
-    if isinstance(value, float):
-        return f"{value:.2f}"
-
-    text = str(value)
-    return VALUE_LABELS.get(text, text)
-
-
 def _humanize_label(value: str) -> str:
+
     return value.replace("_", " ").replace("-", " ").title()

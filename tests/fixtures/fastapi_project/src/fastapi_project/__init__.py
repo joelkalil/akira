@@ -1,1 +1,3 @@
-"""Tiny FastAPI fixture package."""
+"""
+Tiny FastAPI fixture package.
+"""

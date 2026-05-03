@@ -61,3 +61,16 @@ exclude = [
     "tests/fixtures/style_projects/mixed/**",
     "tests/fixtures/style_projects/with_syntax_error/**",
 ]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "D"]
+ignore = [
+    "D200",
+    "D202",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.black]
+line-length = 88
