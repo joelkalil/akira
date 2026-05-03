@@ -122,8 +122,7 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
                 if _inline_frequency(inline_comments, code_lines) < 0.1
                 else "present"
             ),
-            confidence=1.0
-            - min(1.0, _inline_frequency(inline_comments, code_lines)),
+            confidence=1.0 - min(1.0, _inline_frequency(inline_comments, code_lines)),
             samples=max(code_lines, 1),
             description=(
                 "Inline comments are measured relative to executable code lines."

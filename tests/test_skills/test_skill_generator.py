@@ -240,8 +240,7 @@ class TestRootRouterReferencesProjectFilesAndActiveSubSkills:
         )
 
         assert (
-            "Read `python/testing/pytest.md` when working with pytest tests"
-            in router
+            "Read `python/testing/pytest.md` when working with pytest tests" in router
         )
 
         assert "Read `python/tooling/ruff.md` when working with Ruff linting" in router

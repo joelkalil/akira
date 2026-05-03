@@ -98,9 +98,7 @@ class TestPythonVersionConditionalsUseNumericVersionParts:
 
         env = _environment()
 
-        python_39 = env.get_template("python/python.md.j2").render(
-            python_version="3.9"
-        )
+        python_39 = env.get_template("python/python.md.j2").render(python_version="3.9")
 
         python_310 = env.get_template("python/python.md.j2").render(
             python_version="3.10"
