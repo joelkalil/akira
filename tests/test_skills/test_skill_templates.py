@@ -156,6 +156,9 @@ class TestFastapiAsyncRulesUseDedicatedBooleanFlag:
 
 
 def _environment() -> Environment:
+    """
+    Build a strict Jinja environment for skill templates.
+    """
 
     return Environment(
         loader=FileSystemLoader(TEMPLATE_ROOT),
@@ -166,6 +169,9 @@ def _environment() -> Environment:
 
 
 def _frontmatter(content: str) -> dict[str, object]:
+    """
+    Parse rendered skill frontmatter.
+    """
 
     assert content.startswith("---\n")
 

@@ -318,5 +318,8 @@ class TestFingerprintCoreRulesAreIncludedInGeneratedRouter:
 
 
 def _patterns_by_name(patterns: tuple[StylePattern, ...]) -> dict[str, StylePattern]:
+    """
+    Return fingerprint patterns keyed by pattern name.
+    """
 
     return {pattern.name: pattern for pattern in patterns}

@@ -192,6 +192,9 @@ def collect_python_files(
 
 
 def _read_source_file(path: Path, project_root: Path) -> SourceFile:
+    """
+    Read and parse a Python source file for fingerprint analysis.
+    """
 
     relative_path = path.relative_to(project_root)
 
@@ -225,6 +228,9 @@ def _read_source_file(path: Path, project_root: Path) -> SourceFile:
 
 
 def _read_python_text(path: Path) -> str | OSError:
+    """
+    Read Python source text while respecting file encoding declarations.
+    """
 
     try:
 
@@ -248,6 +254,9 @@ def _read_python_text(path: Path) -> str | OSError:
 
 
 def _format_syntax_error(error: SyntaxError) -> str:
+    """
+    Format a syntax error into a compact analysis message.
+    """
 
     location = f"line {error.lineno}" if error.lineno is not None else "unknown line"
 
@@ -255,6 +264,9 @@ def _format_syntax_error(error: SyntaxError) -> str:
 
 
 def _is_skipped(relative_path: Path, exclude_patterns: tuple[str, ...]) -> bool:
+    """
+    Return whether a relative path should be skipped during analysis.
+    """
 
     if relative_path == Path("."):
 
@@ -280,6 +292,9 @@ def _is_skipped(relative_path: Path, exclude_patterns: tuple[str, ...]) -> bool:
 
 
 def _matches_exclude(relative_posix: str, pattern: str) -> bool:
+    """
+    Return whether a normalized relative path matches an exclude pattern.
+    """
 
     if not pattern:
 
@@ -293,5 +308,8 @@ def _matches_exclude(relative_posix: str, pattern: str) -> bool:
 
 
 def _normalize_exclude_pattern(pattern: str) -> str:
+    """
+    Normalize an exclude pattern for POSIX-style path matching.
+    """
 
     return pattern.strip().replace("\\", "/").strip("/")

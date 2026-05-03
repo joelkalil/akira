@@ -145,6 +145,9 @@ class TestFastapiProjectStackMarkdownRendersSectionsAndActiveSkills:
 
 
 def _frontmatter(content: str) -> dict[str, str]:
+    """
+    Parse rendered Markdown frontmatter.
+    """
 
     _, raw_frontmatter, _ = content.split("---", 2)
 

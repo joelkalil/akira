@@ -343,6 +343,9 @@ def _optional_styles(tree: ast.AST) -> list[str]:
 
 
 def _annotation_node(node: ast.AST) -> ast.AST | None:
+    """
+    Return the annotation attached to a supported AST node.
+    """
 
     if isinstance(node, ast.arg):
 
@@ -360,6 +363,9 @@ def _annotation_node(node: ast.AST) -> ast.AST | None:
 
 
 def _classify_optional(annotation: ast.AST) -> str | None:
+    """
+    Classify an optional annotation expression by syntax style.
+    """
 
     if isinstance(annotation, ast.BinOp) and isinstance(annotation.op, ast.BitOr):
 
@@ -383,6 +389,9 @@ def _classify_optional(annotation: ast.AST) -> str | None:
 
 
 def _contains_none(node: ast.AST) -> bool:
+    """
+    Return whether an annotation node contains ``None``.
+    """
 
     if isinstance(node, ast.Constant) and node.value is None:
 
@@ -404,6 +413,9 @@ def _contains_none(node: ast.AST) -> bool:
 
 
 def _annotation_name(node: ast.AST) -> str:
+    """
+    Return the terminal name used by an annotation expression.
+    """
 
     if isinstance(node, ast.Name):
 

@@ -279,6 +279,9 @@ def analyze_stack(
 
 
 def _python_version_at_least(stack: StackInfo, minimum: tuple[int, int]) -> bool:
+    """
+    Return whether the detected Python runtime meets a minimum version.
+    """
 
     python_tools = stack.by_category("runtime")
 

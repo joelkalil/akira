@@ -157,11 +157,17 @@ def _ignore_generated_cache_dirs(
     directory: str,
     names: list[str],
 ) -> set[str]:
+    """
+    Return generated cache directory names that should be ignored.
+    """
 
     return {name for name in names if name in {".ruff_cache", "__pycache__"}}
 
 
 def _frontmatter(content: str) -> dict[str, object]:
+    """
+    Parse rendered skill frontmatter.
+    """
 
     assert content.startswith("---\n")
 
@@ -175,6 +181,9 @@ def _frontmatter(content: str) -> dict[str, object]:
 
 
 def _is_relative_to(path: Path, parent: Path) -> bool:
+    """
+    Return whether a path is relative to a parent directory.
+    """
 
     try:
 

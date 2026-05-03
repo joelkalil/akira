@@ -383,6 +383,9 @@ def main() -> None:
 
 
 def _validate_agent(agent: str | None) -> str | None:
+    """
+    Validate an optional CLI agent name.
+    """
 
     if agent is None:
 
@@ -400,6 +403,9 @@ def _validate_agent(agent: str | None) -> str | None:
 
 
 def _resolve_agents(agent: str | None, path: Path) -> tuple[str, ...]:
+    """
+    Resolve CLI agent selection from an explicit value or project markers.
+    """
 
     if agent is not None:
 
@@ -444,6 +450,9 @@ def _print_detect_summary(
     output_dir: Path,
     agent: str | tuple[str, ...] | None,
 ) -> None:
+    """
+    Print a summary for the detect command.
+    """
 
     console.print(f"\nScanning [bold]{stack.project_root}[/bold]...\n")
 
@@ -485,6 +494,9 @@ def _print_fingerprint_summary(
     sample_size: int,
     exclude: tuple[str, ...],
 ) -> None:
+    """
+    Print a summary for the fingerprint command.
+    """
 
     console.print(f"\nAnalyzing [bold]{path}[/bold]...\n")
 
@@ -512,6 +524,9 @@ def _print_fingerprint_summary(
 
 
 def _print_craft_summary(results: tuple[AgentInstallResult, ...]) -> None:
+    """
+    Print installation results for the craft command.
+    """
 
     for result in results:
 
@@ -545,6 +560,9 @@ def _print_craft_summary(results: tuple[AgentInstallResult, ...]) -> None:
 
 
 def _detect_section_lines(stack: StackInfo) -> tuple[str, ...]:
+    """
+    Build stack summary lines grouped by rendered detect sections.
+    """
 
     lines: list[str] = []
 
@@ -564,6 +582,9 @@ def _detect_section_lines(stack: StackInfo) -> tuple[str, ...]:
 
 
 def _print_phase_header(title: str) -> None:
+    """
+    Print a titled CLI phase header.
+    """
 
     console.print(f"\n{title}...\n")
 
@@ -573,6 +594,9 @@ def _print_phase_header(title: str) -> None:
 
 
 def _success_line(message: object) -> Text:
+    """
+    Render a green success line for CLI output.
+    """
 
     text = Text("  ")
 
@@ -584,6 +608,9 @@ def _success_line(message: object) -> Text:
 
 
 def _success_symbol() -> str:
+    """
+    Return a success symbol compatible with the console encoding.
+    """
 
     symbol = "✓"
 
@@ -599,6 +626,9 @@ def _success_symbol() -> str:
 
 
 def _relative_to(path: Path, root: Path) -> Path:
+    """
+    Return a relative path when possible, otherwise the original path.
+    """
 
     try:
 
@@ -614,6 +644,9 @@ def _agent_target(
     project_root: Path,
     agent: str | tuple[str, ...] | None,
 ) -> str:
+    """
+    Render the agent installation target for summary output.
+    """
 
     if installed_files:
 
@@ -643,6 +676,9 @@ def _collect_review_decisions(
     auto_apply: bool,
     console: Console,
 ) -> tuple[list[Finding], list[Finding]]:
+    """
+    Collect accepted and skipped review findings.
+    """
 
     actionable = [
         finding
@@ -686,6 +722,9 @@ def _collect_review_decisions(
 
 
 def _prompt_review_decision(finding: Finding, console: Console) -> str:
+    """
+    Prompt for a decision about applying one review finding.
+    """
 
     console.print()
 
@@ -732,6 +771,9 @@ def _prompt_review_decision(finding: Finding, console: Console) -> str:
 
 
 def _render_finding_details(finding: Finding, console: Console) -> None:
+    """
+    Render detailed review finding guidance for interactive users.
+    """
 
     console.print(f"[bold]Rule:[/bold] {finding.rule_id}")
 
@@ -767,6 +809,9 @@ def _render_finding_details(finding: Finding, console: Console) -> None:
 
 
 def _migration_guidance(reference: str) -> tuple[str, ...]:
+    """
+    Return short migration guidance for a review reference.
+    """
 
     if reference == "testing/unittest-to-pytest":
 
@@ -789,6 +834,9 @@ def _render_review_summary(
     output: Path,
     console: Console,
 ) -> None:
+    """
+    Print the review command decision summary.
+    """
 
     if not accepted and not skipped:
 

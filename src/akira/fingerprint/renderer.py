@@ -333,6 +333,9 @@ def format_fingerprint_value(value: Any) -> str:
 
 
 def _line_for_pattern(pattern: StylePattern) -> FingerprintLine:
+    """
+    Convert a style pattern into a rendered fingerprint line.
+    """
 
     return FingerprintLine(
         label=PATTERN_LABELS.get(pattern.name, _humanize_label(pattern.name)),
@@ -343,6 +346,9 @@ def _line_for_pattern(pattern: StylePattern) -> FingerprintLine:
 
 
 def _format_value(pattern: StylePattern) -> str:
+    """
+    Format a style pattern value for human-readable output.
+    """
 
     if isinstance(pattern.value, int) and pattern.dimension == "spacing":
 
@@ -360,10 +366,16 @@ def _format_value(pattern: StylePattern) -> str:
 
 
 def _format_raw_value(value: Any) -> str:
+    """
+    Format a raw fingerprint value for display.
+    """
 
     return format_fingerprint_value(value)
 
 
 def _humanize_label(value: str) -> str:
+    """
+    Convert an internal pattern name into a display label.
+    """
 
     return value.replace("_", " ").replace("-", " ").title()

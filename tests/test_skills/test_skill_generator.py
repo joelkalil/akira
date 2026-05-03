@@ -508,6 +508,9 @@ class TestRootRouterOutputIsDeterministicForSignalOrder:
 
 
 def _frontmatter(content: str) -> dict[str, object]:
+    """
+    Parse rendered skill frontmatter.
+    """
 
     assert content.startswith("---\n")
 

@@ -34,14 +34,26 @@ def detect_configured_agents(project_root: Path) -> tuple[str, ...]:
 
 
 def _has_claude_code_config(project_root: Path) -> bool:
+    """
+    Return whether Claude Code project configuration exists.
+    """
+
     return (project_root / ".claude").is_dir()
 
 
 def _has_cursor_config(project_root: Path) -> bool:
+    """
+    Return whether Cursor project configuration exists.
+    """
+
     return (project_root / ".cursor").is_dir()
 
 
 def _has_copilot_config(project_root: Path) -> bool:
+    """
+    Return whether GitHub Copilot project configuration exists.
+    """
+
     github_dir = project_root / ".github"
 
     if (github_dir / "copilot-instructions.md").is_file():
@@ -56,8 +68,16 @@ def _has_copilot_config(project_root: Path) -> bool:
 
 
 def _has_codex_config(project_root: Path) -> bool:
+    """
+    Return whether Codex project configuration exists.
+    """
+
     return (project_root / ".codex").is_dir()
 
 
 def _never_detect(_project_root: Path) -> bool:
+    """
+    Return false for unsupported agent detection checks.
+    """
+
     return False

@@ -288,6 +288,9 @@ class SkillGenerator:
         python_dir: Path,
         selected: tuple[SkillTemplate, ...],
     ) -> None:
+        """
+        Remove managed skill files that are no longer selected.
+        """
 
         active_outputs = {Path("SKILL.md")}
 
@@ -325,6 +328,9 @@ class SkillGenerator:
         output_path: Path,
         context: Mapping[str, Any],
     ) -> GeneratedSkill:
+        """
+        Render a skill template to disk.
+        """
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -455,6 +461,9 @@ def select_fingerprint_core_rules(
 
 
 def _core_rule_for_pattern(pattern: StylePattern) -> str | None:
+    """
+    Convert a fingerprint pattern into a concise router rule.
+    """
 
     key = (pattern.dimension, pattern.name)
 
@@ -544,11 +553,17 @@ def _core_rule_for_pattern(pattern: StylePattern) -> str | None:
 
 
 def _plural(noun: str, count: int) -> str:
+    """
+    Return a pluralized noun for the provided count.
+    """
 
     return noun if count == 1 else f"{noun}s"
 
 
 def _version_context(tools: Mapping[str, ToolInfo]) -> dict[str, str | None]:
+    """
+    Build template context values for detected tool versions.
+    """
 
     return {
         "alembic_version": _version(tools, "alembic"),
@@ -567,6 +582,9 @@ def _framework_context(
     stack: StackInfo,
     tools: Mapping[str, ToolInfo],
 ) -> dict[str, Any]:
+    """
+    Build template context values for detected web frameworks.
+    """
 
     is_async_app = stack.has_any("asyncpg", category="database")
 
@@ -586,6 +604,9 @@ def _framework_context(
 
 
 def _testing_context(stack: StackInfo) -> dict[str, Any]:
+    """
+    Build template context values for detected testing tools.
+    """
 
     return {
         "async_tests": stack.has("pytest-asyncio", category="testing")
@@ -599,6 +620,9 @@ def _database_context(
     stack: StackInfo,
     tools: Mapping[str, ToolInfo],
 ) -> dict[str, str | None]:
+    """
+    Build template context values for detected database tools.
+    """
 
     postgres_driver = _first_present_tool(stack, ("asyncpg", "psycopg3", "psycopg2"))
 
@@ -619,6 +643,9 @@ def _tooling_context(
     stack: StackInfo,
     tools: Mapping[str, ToolInfo],
 ) -> dict[str, Any]:
+    """
+    Build template context values for detected development tooling.
+    """
 
     ruff = tools.get("ruff")
 
@@ -641,6 +668,9 @@ def _tooling_context(
 
 
 def _infra_context(stack: StackInfo, tools: Mapping[str, ToolInfo]) -> dict[str, Any]:
+    """
+    Build template context values for detected infrastructure tools.
+    """
 
     compose = tools.get("docker-compose")
 
@@ -657,6 +687,9 @@ def _infra_context(stack: StackInfo, tools: Mapping[str, ToolInfo]) -> dict[str,
 
 
 def _ci_context(stack: StackInfo) -> dict[str, str | None]:
+    """
+    Build template context values for detected CI tools.
+    """
 
     github_actions = _tool(stack, "github-actions")
 
@@ -676,6 +709,9 @@ def _ci_context(stack: StackInfo) -> dict[str, str | None]:
 
 
 def _merged_metadata(stack: StackInfo) -> dict[str, Any]:
+    """
+    Merge stack signal metadata into one template context mapping.
+    """
 
     metadata: dict[str, Any] = {}
 
@@ -689,6 +725,9 @@ def _merged_metadata(stack: StackInfo) -> dict[str, Any]:
 def _root_active_skills(
     active_skills: list[dict[str, str]],
 ) -> list[dict[str, str]]:
+    """
+    Build root router entries for active generated skills.
+    """
 
     return [
         {
@@ -703,6 +742,9 @@ def _root_active_skills(
 
 
 def _stack_summary(stack: StackInfo) -> str:
+    """
+    Render a compact summary of the detected stack.
+    """
 
     priority = (
         ("web_framework", ("fastapi", "django", "flask")),
@@ -747,6 +789,9 @@ def _stack_summary(stack: StackInfo) -> str:
 
 
 def _has_skill_tool(stack: StackInfo, tool: str, category: str) -> bool:
+    """
+    Return whether a normalized skill signal exists for a tool.
+    """
 
     return any(
         signal.tool == tool and normalize_skill_category(signal.category) == category
@@ -755,11 +800,17 @@ def _has_skill_tool(stack: StackInfo, tool: str, category: str) -> bool:
 
 
 def _source_layout(project_root: Path) -> str | None:
+    """
+    Return the detected Python source layout.
+    """
 
     return "src" if (project_root / "src").is_dir() else None
 
 
 def _version(tools: Mapping[str, ToolInfo], tool_name: str) -> str | None:
+    """
+    Return the detected version for a tool.
+    """
 
     tool = tools.get(tool_name)
 
@@ -767,6 +818,9 @@ def _version(tools: Mapping[str, ToolInfo], tool_name: str) -> str | None:
 
 
 def _tool(stack: StackInfo, tool_name: str) -> ToolInfo | None:
+    """
+    Return the first detected tool with the requested name.
+    """
 
     for category in stack.categories:
 
@@ -780,6 +834,9 @@ def _tool(stack: StackInfo, tool_name: str) -> ToolInfo | None:
 
 
 def _first_tool_name(stack: StackInfo, category: str) -> str | None:
+    """
+    Return the first detected tool name in a category.
+    """
 
     tools = stack.by_category(category)
 
@@ -787,6 +844,9 @@ def _first_tool_name(stack: StackInfo, category: str) -> str | None:
 
 
 def _first_present_tool(stack: StackInfo, tool_names: tuple[str, ...]) -> str | None:
+    """
+    Return the first requested tool present in the stack.
+    """
 
     for tool_name in tool_names:
 
@@ -798,6 +858,9 @@ def _first_present_tool(stack: StackInfo, tool_names: tuple[str, ...]) -> str | 
 
 
 def _first_existing(project_root: Path, filenames: tuple[str, ...]) -> str | None:
+    """
+    Return the first filename that exists under the project root.
+    """
 
     for filename in filenames:
 
@@ -809,6 +872,9 @@ def _first_existing(project_root: Path, filenames: tuple[str, ...]) -> str | Non
 
 
 def _existing_joined(project_root: Path, filenames: tuple[str, ...]) -> str | None:
+    """
+    Return existing filenames joined for template display.
+    """
 
     existing = [
         filename for filename in filenames if (project_root / filename).exists()
@@ -818,6 +884,9 @@ def _existing_joined(project_root: Path, filenames: tuple[str, ...]) -> str | No
 
 
 def _uses_pydantic_v2(tools: Mapping[str, ToolInfo]) -> bool:
+    """
+    Return whether generated FastAPI guidance should assume Pydantic v2.
+    """
 
     pydantic = tools.get("pydantic")
 
