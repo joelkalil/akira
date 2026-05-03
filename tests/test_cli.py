@@ -24,12 +24,6 @@ except ModuleNotFoundError:
 # Local Libraries
 from akira.cli import app
 from akira.config import DEFAULT_OUTPUT_DIR
-from akira.craft import (
-    UnsupportedCraftAgent,
-)
-from akira.craft import (
-    get_agent_adapter as get_craft_agent_adapter,
-)
 
 # -----------------------------------------------------------------------------
 # Constants
@@ -59,11 +53,13 @@ class TestHelpListsDetectCommand:
 
         assert "Akira detects project context" in result.stdout
 
+        assert "install" in result.stdout
+
         assert "detect" in result.stdout
 
         assert "fingerprint" in result.stdout
 
-        assert "craft" in result.stdout
+        assert "craft" not in result.stdout
 
 
 class TestDetectHelpDocumentsOptions:
@@ -135,27 +131,29 @@ class TestReviewHelpDocumentsOptions:
         assert "--auto-apply" in result.stdout
 
 
-class TestCraftHelpDocumentsOptions:
+class TestInstallHelpDocumentsOptions:
     """
-    Verify craft help documents options cases.
+    Verify install help documents options cases.
     """
 
-    def test_craft_help_documents_options(self) -> None:
+    def test_install_help_documents_options(self) -> None:
         """
-        Verify craft help documents options behavior.
+        Verify install help documents options behavior.
         """
 
-        result = runner.invoke(app, ["craft", "--help"])
+        result = runner.invoke(app, ["install", "--help"])
 
         assert result.exit_code == 0
 
-        assert "generated Akira context" in result.stdout
+        assert "Detect stack, capture style" in result.stdout
 
         assert "--path" in result.stdout
 
         assert "--agent" in result.stdout
 
         assert "--output" in result.stdout
+
+        assert "--no-claude-md" in result.stdout
 
 
 class TestFingerprintCommandCollectsFilesAndParseFailures:
@@ -207,7 +205,7 @@ class TestFingerprintCommandCollectsFilesAndParseFailures:
 
         assert "Parse failures: 1" in result.stdout
 
-        assert "Writing fingerprint" in result.stdout
+        assert "Capturing coding style" in result.stdout
 
         assert "Done." in result.stdout
 
@@ -573,8 +571,6 @@ class TestDetectUsesConfigDefaults:
 
         with runner.isolated_filesystem():
 
-            expected_output = Path.cwd() / DEFAULT_OUTPUT_DIR
-
             result = runner.invoke(app, ["detect", "--path", str(tmp_path)])
 
         assert result.exit_code == 0
@@ -819,17 +815,17 @@ class TestDetectInstallsGeneratedSkillsForClaudeCode:
         assert "Your agent knows your stack" in result.stdout
 
 
-class TestCraftInstallsGeneratedContextForDetectedAgentByDefault:
+class TestInstallRunsFullFlow:
     """
-    Verify craft installs generated context for claude code by default cases.
+    Verify install runs the v2 setup flow cases.
     """
 
-    def test_craft_installs_generated_context_for_detected_agent_by_default(
+    def test_install_generates_installs_and_updates_claude_md(
         self,
         tmp_path: Path,
     ) -> None:
         """
-        Verify craft installs generated context for detected agent by default behavior.
+        Verify install generates skills and writes CLAUDE.md behavior.
         """
 
         project = tmp_path / "project"
@@ -838,11 +834,13 @@ class TestCraftInstallsGeneratedContextForDetectedAgentByDefault:
 
         project.mkdir()
 
+        (project / ".claude").mkdir()
+
         (project / "pyproject.toml").write_text(
             """
             [project]
             requires-python = ">=3.12"
-            dependencies = ["pytest==8.0.0"]
+            dependencies = ["fastapi==0.115.0", "pytest==8.0.0"]
             """.strip(),
             encoding="utf-8",
         )
@@ -857,42 +855,20 @@ class TestCraftInstallsGeneratedContextForDetectedAgentByDefault:
             encoding="utf-8",
         )
 
-        detect_result = runner.invoke(
+        result = runner.invoke(
             app,
-            [
-                "detect",
-                "--path",
-                str(project),
-                "--output",
-                str(output_dir),
-                "--agent",
-                "cursor",
-            ],
+            ["install", "--path", str(project), "--output", str(output_dir)],
         )
 
-        fingerprint_result = runner.invoke(
-            app,
-            [
-                "fingerprint",
-                "--path",
-                str(project),
-                "--output",
-                str(output_dir),
-            ],
-        )
+        target = project / ".claude" / "skills" / "akira"
 
-        craft_result = runner.invoke(
-            app,
-            ["craft", "--path", str(project), "--output", str(output_dir)],
-        )
+        claude_md = project / "CLAUDE.md"
 
-        target = project / ".cursor" / "skills" / "akira"
+        assert result.exit_code == 0
 
-        assert detect_result.exit_code == 0
+        assert (output_dir / "stack.md").exists()
 
-        assert fingerprint_result.exit_code == 0
-
-        assert craft_result.exit_code == 0
+        assert (output_dir / "fingerprint.md").exists()
 
         assert (target / "SKILL.md").exists()
 
@@ -902,70 +878,38 @@ class TestCraftInstallsGeneratedContextForDetectedAgentByDefault:
 
         assert (target / "python" / "testing" / "pytest.md").exists()
 
-        assert "Detected agents: cursor" in craft_result.stdout
+        assert claude_md.exists()
 
-        assert "Agent: cursor" in craft_result.stdout
+        claude_content = claude_md.read_text(encoding="utf-8")
 
-        assert "files installed" in craft_result.stdout
+        assert "<!-- akira:start -->" in claude_content
 
-        assert ".cursor" in craft_result.stdout
+        assert "/akira detect" in claude_content
 
-        assert "skills" in craft_result.stdout
+        assert "bright, clear, intelligent" in result.stdout
 
-        assert "akira" in craft_result.stdout
+        assert "Capturing coding style" in result.stdout
 
+        assert "CLAUDE.md updated" in result.stdout
 
-class TestCraftIsIdempotent:
-    """
-    Verify craft is idempotent cases.
-    """
-
-    def test_craft_is_idempotent(self, tmp_path: Path) -> None:
-        """
-        Verify craft is idempotent behavior.
-        """
-
-        project = tmp_path / "project"
-
-        artifacts = tmp_path / ".akira"
-
-        project.mkdir()
-
-        (artifacts / "skills").mkdir(parents=True)
-
-        (artifacts / "skills" / "SKILL.md").write_text("router", encoding="utf-8")
-
-        (artifacts / "stack.md").write_text("stack", encoding="utf-8")
-
-        (artifacts / "fingerprint.md").write_text("fingerprint", encoding="utf-8")
-
-        first = runner.invoke(
-            app,
-            ["craft", "--path", str(project), "--output", str(artifacts)],
-        )
+        assert "Your agent knows your stack" in result.stdout
 
         second = runner.invoke(
             app,
-            ["craft", "--path", str(project), "--output", str(artifacts)],
+            ["install", "--path", str(project), "--output", str(output_dir)],
         )
 
-        assert first.exit_code == 0
+        updated_content = claude_md.read_text(encoding="utf-8")
 
         assert second.exit_code == 0
 
-        assert "files installed" in first.stdout
+        assert updated_content.count("<!-- akira:start -->") == 1
 
-        assert "files installed" in second.stdout
+        assert updated_content.count("<!-- akira:end -->") == 1
 
-
-class TestCraftReportsMissingArtifactsWithActions:
-    """
-    Verify craft reports missing artifacts with actions cases.
-    """
-
-    def test_craft_reports_missing_artifacts_with_actions(self, tmp_path: Path) -> None:
+    def test_install_no_claude_md_skips_claude_md_update(self, tmp_path: Path) -> None:
         """
-        Verify craft reports missing artifacts with actions behavior.
+        Verify install can skip CLAUDE.md behavior.
         """
 
         project = tmp_path / "project"
@@ -976,170 +920,38 @@ class TestCraftReportsMissingArtifactsWithActions:
 
         result = runner.invoke(
             app,
-            ["craft", "--path", str(project), "--output", str(output_dir)],
-        )
-
-        assert result.exit_code == 1
-
-        assert "Missing Akira artifacts:" in result.stdout
-
-        assert "Missing:" in result.stdout
-
-        assert "stack.md" in result.stdout
-
-        assert "fingerprint.md" in result.stdout
-
-        assert "Run `akira detect --path <project>`" in result.stdout
-
-        assert "Run `akira fingerprint --path <project>`" in result.stdout
-
-        assert not (project / ".claude").exists()
-
-
-class TestCraftInstallsGeneratedContextForCodex:
-    """
-    Verify craft installs generated context for codex cases.
-    """
-
-    def test_craft_installs_generated_context_for_codex(self, tmp_path: Path) -> None:
-        """
-        Verify craft installs generated context for codex behavior.
-        """
-
-        project = tmp_path / "project"
-
-        artifacts = tmp_path / ".akira"
-
-        project.mkdir()
-
-        (artifacts / "skills").mkdir(parents=True)
-
-        (artifacts / "skills" / "SKILL.md").write_text("router", encoding="utf-8")
-
-        (artifacts / "stack.md").write_text("stack", encoding="utf-8")
-
-        (artifacts / "fingerprint.md").write_text("fingerprint", encoding="utf-8")
-
-        result = runner.invoke(
-            app,
             [
-                "craft",
+                "install",
                 "--path",
                 str(project),
                 "--output",
-                str(artifacts),
-                "--agent",
-                "codex",
+                str(output_dir),
+                "--no-claude-md",
             ],
         )
 
         assert result.exit_code == 0
 
-        assert (project / ".codex" / "skills" / "akira" / "SKILL.md").exists()
-
-        assert "Agent: codex" in result.stdout
-
-        assert "files installed" in result.stdout
-
-
-class TestCraftAgentAdapterWrapperRaisesCraftErrorForInvalidAgent:
-    """
-    Verify craft agent adapter wrapper raises craft error for invalid agent cases.
-    """
-
-    def test_craft_agent_adapter_wrapper_raises_craft_error_for_invalid_agent(
-        self,
-    ) -> None:
-        """
-        Verify craft agent adapter wrapper raises craft error for invalid agent.
-
-        behavior.
-        """
-
-        with pytest.raises(UnsupportedCraftAgent) as exc_info:
-
-            get_craft_agent_adapter("unknown-agent")
-
-        assert "Unsupported agent 'unknown-agent'" in str(exc_info.value)
-
-
-class TestCraftDefaultsToCurrentWorkingDirectoryArtifacts:
-    """
-    Verify craft defaults to current working directory artifacts cases.
-    """
-
-    def test_craft_defaults_to_current_working_directory_artifacts(
-        self,
-        tmp_path: Path,
-    ) -> None:
-        """
-        Verify craft defaults to current working directory artifacts behavior.
-        """
-
-        project = tmp_path / "project"
-
-        project.mkdir()
-
-        with runner.isolated_filesystem():
-
-            artifacts = Path.cwd() / DEFAULT_OUTPUT_DIR
-
-            (artifacts / "skills").mkdir(parents=True)
-
-            (artifacts / "skills" / "SKILL.md").write_text("router", encoding="utf-8")
-
-            (artifacts / "stack.md").write_text("stack", encoding="utf-8")
-
-            (artifacts / "fingerprint.md").write_text("fingerprint", encoding="utf-8")
-
-            result = runner.invoke(app, ["craft", "--path", str(project)])
-
-        assert result.exit_code == 0
+        assert not (project / "CLAUDE.md").exists()
 
         assert (project / ".claude" / "skills" / "akira" / "SKILL.md").exists()
 
-        assert "files installed" in result.stdout
 
-
-class TestCraftRejectsArtifactsWithWrongPathTypes:
+class TestCraftCommandRemoved:
     """
-    Verify craft rejects artifacts with wrong path types cases.
+    Verify craft is no longer exposed as a CLI command cases.
     """
 
-    def test_craft_rejects_artifacts_with_wrong_path_types(
-        self,
-        tmp_path: Path,
-    ) -> None:
+    def test_craft_command_is_removed(self) -> None:
         """
-        Verify craft rejects artifacts with wrong path types behavior.
+        Verify craft command is removed behavior.
         """
 
-        project = tmp_path / "project"
+        result = runner.invoke(app, ["craft", "--help"])
 
-        artifacts = tmp_path / ".akira"
+        assert result.exit_code == 2
 
-        project.mkdir()
-
-        (artifacts / "stack.md").mkdir(parents=True)
-
-        (artifacts / "fingerprint.md").write_text("fingerprint", encoding="utf-8")
-
-        (artifacts / "skills").write_text("not a directory", encoding="utf-8")
-
-        result = runner.invoke(
-            app,
-            ["craft", "--path", str(project), "--output", str(artifacts)],
-        )
-
-        assert result.exit_code == 1
-
-        assert f"Missing: {artifacts / 'stack.md'}" in result.stdout
-
-        assert f"Missing: {artifacts / 'skills'}" in result.stdout
-
-        assert f"Missing: {artifacts / 'skills' / 'SKILL.md'}" in result.stdout
-
-        assert not (project / ".claude").exists()
+        assert "No such command" in result.stderr
 
 
 class TestPackageScriptPointsToCliMain:

@@ -55,19 +55,19 @@ def no_network(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(socket, "create_connection", blocked_create_connection)
 
 
-class TestV1WorkflowGeneratesAndInstallsAgentContext:
+class TestInstallWorkflowGeneratesAndInstallsAgentContext:
     """
-    Verify v1 workflow generates and installs agent context cases.
+    Verify install workflow generates and installs agent context cases.
     """
 
-    def test_v1_workflow_generates_and_installs_agent_context(
+    def test_install_workflow_generates_and_installs_agent_context(
         self,
         tmp_path: Path,
         fixtures_dir: Path,
         no_network: None,
     ) -> None:
         """
-        Verify v1 workflow generates and installs agent context behavior.
+        Verify install workflow generates and installs agent context behavior.
         """
 
         project = tmp_path / "fastapi_project"
@@ -76,40 +76,16 @@ class TestV1WorkflowGeneratesAndInstallsAgentContext:
 
         shutil.copytree(fixtures_dir / "fastapi_project", project)
 
-        detect_result = runner.invoke(
+        install_result = runner.invoke(
             app,
             [
-                "detect",
-                "--path",
-                str(project),
-                "--output",
-                str(output_dir),
-                "--agent",
-                "cursor",
-            ],
-        )
-
-        fingerprint_result = runner.invoke(
-            app,
-            [
-                "fingerprint",
+                "install",
                 "--path",
                 str(project),
                 "--output",
                 str(output_dir),
                 "--sample-size",
                 "10",
-            ],
-        )
-
-        craft_result = runner.invoke(
-            app,
-            [
-                "craft",
-                "--path",
-                str(project),
-                "--output",
-                str(output_dir),
                 "--agent",
                 "claude-code",
             ],
@@ -123,7 +99,7 @@ class TestV1WorkflowGeneratesAndInstallsAgentContext:
 
         claude_target = project / ".claude" / "skills" / "akira"
 
-        assert detect_result.exit_code == 0
+        assert install_result.exit_code == 0
 
         assert stack_path.exists()
 
@@ -139,7 +115,11 @@ class TestV1WorkflowGeneratesAndInstallsAgentContext:
 
         assert (skills_dir / "python" / "infra" / "docker.md").exists()
 
-        assert f"Wrote: {stack_path}" in detect_result.stdout
+        assert "Generating skill tree" in install_result.stdout
+
+        assert "Installing to 1 agents" in install_result.stdout
+
+        assert "CLAUDE.md updated" in install_result.stdout
 
         stack = stack_path.read_text(encoding="utf-8")
 
@@ -151,8 +131,6 @@ class TestV1WorkflowGeneratesAndInstallsAgentContext:
 
         assert "- `python/web_framework/fastapi.md`" in stack
 
-        assert fingerprint_result.exit_code == 0
-
         assert fingerprint_path.exists()
 
         fingerprint = fingerprint_path.read_text(encoding="utf-8")
@@ -162,8 +140,6 @@ class TestV1WorkflowGeneratesAndInstallsAgentContext:
         assert "files_analyzed:" in fingerprint
 
         assert "## Control Flow" in fingerprint
-
-        assert craft_result.exit_code == 0
 
         assert (claude_target / "SKILL.md").exists()
 
@@ -175,39 +151,36 @@ class TestV1WorkflowGeneratesAndInstallsAgentContext:
 
         assert (claude_target / "python" / "testing" / "pytest.md").exists()
 
-        assert "Agent: claude-code" in craft_result.stdout
+        claude_md = (project / "CLAUDE.md").read_text(encoding="utf-8")
 
-        assert f"Installed: {claude_target / 'SKILL.md'}" in craft_result.stdout
+        assert "/akira detect" in claude_md
+
+        assert "Claude Code" in install_result.stdout
 
 
-class TestCraftBeforeGeneratedArtifactsDoesNotInstallAgentContext:
+class TestCraftCommandIsRemoved:
     """
-    Verify craft before generated artifacts does not install agent context cases.
+    Verify craft is no longer exposed as a command cases.
     """
 
-    def test_craft_before_generated_artifacts_does_not_install_agent_context(
+    def test_craft_command_reports_no_such_command(
         self,
         tmp_path: Path,
         no_network: None,
     ) -> None:
         """
-        Verify craft before generated artifacts does not install agent context behavior.
+        Verify craft command reports no such command behavior.
         """
 
         project = tmp_path / "project"
 
-        output_dir = tmp_path / ".akira"
-
         project.mkdir()
 
-        result = runner.invoke(
-            app,
-            ["craft", "--path", str(project), "--output", str(output_dir)],
-        )
+        result = runner.invoke(app, ["craft", "--path", str(project)])
 
-        assert result.exit_code == 1
+        assert result.exit_code == 2
 
-        assert "Missing Akira artifacts:" in result.stdout
+        assert "No such command" in result.stderr
 
         assert not (project / ".claude").exists()
 
@@ -238,7 +211,7 @@ class TestAgentCommandsRejectInvalidAgent:
     Verify agent commands reject invalid agent cases.
     """
 
-    @pytest.mark.parametrize("command", ("detect", "craft"))
+    @pytest.mark.parametrize("command", ("install", "detect", "fingerprint"))
     def test_agent_commands_reject_invalid_agent(
         self,
         command: str,

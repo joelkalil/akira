@@ -29,4 +29,4 @@ class CopilotAdapter(BaseAgentAdapter):
 
     name = "copilot"
 
-    target_relative_dir = Path(".agents") / "skills" / "akira"
+    target_relative_dir = Path(".github") / "copilot-instructions"
