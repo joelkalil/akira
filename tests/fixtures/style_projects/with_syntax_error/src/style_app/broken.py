@@ -1,3 +1,3 @@
-def broken_function():
+def broken_function(:
 
     return "broken"

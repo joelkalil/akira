@@ -180,6 +180,29 @@ class TestDetectsFrameworksFromSourceImports:
         assert flask_signal.confidence == 0.75
 
 
+class TestRepositoryScanIgnoresFixtureImports:
+    """
+    Verify scanning this repository ignores imports inside fixture projects.
+    """
+
+    def test_repository_scan_ignores_fixture_imports(self) -> None:
+        """
+        Verify fixture-only imports are not detected as repository stack signals.
+        """
+
+        project_root = Path(__file__).parents[2]
+
+        stack = Scanner().scan(project_root)
+
+        detected_tools = {signal.tool for signal in stack.signals}
+
+        assert "fastapi" not in detected_tools
+
+        assert "django" not in detected_tools
+
+        assert "alembic" not in detected_tools
+
+
 class TestDetectsRuffMypyAndPreCommitFromConfig:
     """
     Verify detects ruff mypy and pre commit from config cases.

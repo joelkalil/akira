@@ -16,22 +16,25 @@ from typing import Any, Iterable
 # Constants
 # -----------------------------------------------------------------------------
 
-EXCLUDED_DIRS = {
-    ".git",
-    ".hg",
-    ".mypy_cache",
-    ".nox",
-    ".pytest_cache",
-    ".ruff_cache",
-    ".tox",
-    ".venv",
-    "__pycache__",
-    "build",
-    "dist",
-    "node_modules",
-    "site-packages",
-    "venv",
-}
+EXCLUDED_DIRS = frozenset(
+    {
+        ".git",
+        ".hg",
+        ".mypy_cache",
+        ".nox",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".tox",
+        ".venv",
+        "__pycache__",
+        "build",
+        "dist",
+        "node_modules",
+        "site-packages",
+        "venv",
+        "fixtures",
+    }
+)
 
 REQUIREMENT_RE = re.compile(
     r"^\s*(?P<name>[A-Za-z0-9_.-]+)"
@@ -238,7 +241,10 @@ def extract_dependencies(project_root: Path) -> dict[str, str | None]:
     return dependencies
 
 
-def scan_imports(project_root: Path) -> set[str]:
+def scan_imports(
+    project_root: Path,
+    exclude_dirs: frozenset[str] = EXCLUDED_DIRS,
+) -> set[str]:
     """
     Return top-level imported module names from project Python files.
 
@@ -246,6 +252,8 @@ def scan_imports(project_root: Path) -> set[str]:
     ----------
     project_root : Path
         The root directory of the Python project to analyze.
+    exclude_dirs : frozenset[str]
+        Directory names or relative paths to skip when scanning Python files.
 
     Returns
     -------
@@ -255,7 +263,7 @@ def scan_imports(project_root: Path) -> set[str]:
 
     imports: set[str] = set()
 
-    for path in iter_python_files(project_root):
+    for path in iter_python_files(project_root, exclude_dirs=exclude_dirs):
 
         try:
 
@@ -280,7 +288,10 @@ def scan_imports(project_root: Path) -> set[str]:
     return imports
 
 
-def iter_python_files(project_root: Path) -> Iterable[Path]:
+def iter_python_files(
+    project_root: Path,
+    exclude_dirs: frozenset[str] = EXCLUDED_DIRS,
+) -> Iterable[Path]:
     """
     Yield Python files while skipping virtualenvs, caches, and build output.
 
@@ -288,6 +299,8 @@ def iter_python_files(project_root: Path) -> Iterable[Path]:
     ----------
     project_root : Path
         The root directory of the Python project to analyze.
+    exclude_dirs : frozenset[str]
+        Directory names or relative paths to skip when walking the project.
 
     Yields
     ------
@@ -299,7 +312,7 @@ def iter_python_files(project_root: Path) -> Iterable[Path]:
 
     for path in project_root.rglob("*.py"):
 
-        if any(part in EXCLUDED_DIRS for part in path.relative_to(project_root).parts):
+        if _is_excluded_python_path(path, project_root, exclude_dirs):
 
             continue
 
@@ -309,6 +322,28 @@ def iter_python_files(project_root: Path) -> Iterable[Path]:
 # -----------------------------------------------------------------------------
 # Private Functions
 # -----------------------------------------------------------------------------
+
+
+def _is_excluded_python_path(
+    path: Path,
+    project_root: Path,
+    exclude_dirs: frozenset[str],
+) -> bool:
+    """
+    Return whether a Python file lives under an excluded directory.
+    """
+
+    relative_parts = path.relative_to(project_root).parts
+    directory_parts = relative_parts[:-1]
+    directory_paths = {
+        Path(*directory_parts[: index + 1]).as_posix()
+        for index in range(len(directory_parts))
+    }
+
+    return any(
+        excluded in directory_parts or excluded in directory_paths
+        for excluded in exclude_dirs
+    )
 
 
 def _dependencies_from_pyproject(path: Path) -> list[str]:
