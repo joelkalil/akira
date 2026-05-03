@@ -5,6 +5,7 @@ Command line entry point for Akira.
 # Standard Libraries
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Annotated
 
@@ -12,9 +13,16 @@ from typing import Annotated
 import typer
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
+from rich.rule import Rule
+from rich.text import Text
 
 # Local Libraries
-from akira.agents import SUPPORTED_AGENT_NAMES, UnsupportedAgent, get_agent_adapter
+from akira.agents import (
+    SUPPORTED_AGENT_NAMES,
+    AgentInstallResult,
+    UnsupportedAgent,
+    get_agent_adapter,
+)
 from akira.agents.detector import detect_configured_agents
 from akira.config import DEFAULT_AGENT, DEFAULT_OUTPUT_DIR
 from akira.craft import (
@@ -23,7 +31,10 @@ from akira.craft import (
     craft_context,
 )
 from akira.detect import scan_project, write_stack_markdown
+from akira.detect.models import StackInfo
+from akira.detect.renderer import SECTION_CATEGORIES, tool_value
 from akira.fingerprint import fingerprint_project, write_fingerprint_markdown
+from akira.fingerprint.models import FingerprintAnalysis
 from akira.review import (
     Finding,
     ReviewCategory,
@@ -31,7 +42,7 @@ from akira.review import (
     apply_review_findings,
     render_review,
 )
-from akira.skills import generate_skills
+from akira.skills import GeneratedSkill, InstalledSkillFile, generate_skills
 
 # -----------------------------------------------------------------------------
 # Constants
@@ -41,6 +52,8 @@ app = typer.Typer(
     help="Akira detects project context and generates agent skills.",
     no_args_is_help=True,
 )
+
+console = Console()
 
 
 # -----------------------------------------------------------------------------
@@ -99,7 +112,7 @@ def detect(
 
     stack = scan_project(path)
 
-    stack_path = write_stack_markdown(output, stack)
+    write_stack_markdown(output, stack)
 
     skill_paths = generate_skills(stack, output)
 
@@ -110,25 +123,17 @@ def detect(
         for resolved_agent in agents
     ]
 
-    typer.echo(f"Project path: {path}")
-
-    typer.echo(f"Output: {output}")
-
-    typer.echo(f"Wrote: {stack_path}")
-
-    for skill in skill_paths:
-
-        typer.echo(f"Wrote: {skill.path}")
-
-    for install_result in install_results:
-
-        typer.echo(f"Agent: {install_result.agent}")
-
-        for installed in install_result.installed_files:
-
-            if installed.status in {"installed", "updated"}:
-
-                typer.echo(f"{installed.status.title()}: {installed.path}")
+    _print_detect_summary(
+        stack,
+        skill_paths,
+        tuple(
+            installed
+            for install_result in install_results
+            for installed in install_result.installed_files
+        ),
+        output,
+        tuple(install_result.agent for install_result in install_results),
+    )
 
 
 @app.command()
@@ -192,27 +197,14 @@ def fingerprint(
         sample_size=sample_size,
     )
 
-    typer.echo(f"Project path: {path}")
-
-    typer.echo(f"Sample size: {sample_size}")
-
-    typer.echo(f"Output: {output}")
-
-    for pattern in exclude or ():
-
-        typer.echo(f"Exclude: {pattern}")
-
-    typer.echo(f"Files analyzed: {len(analysis.files)}")
-
-    typer.echo(f"Parsed: {len(analysis.parsed_files)}")
-
-    typer.echo(f"Parse failures: {len(analysis.failed_files)}")
-
-    typer.echo(f"Patterns extracted: {len(analysis.patterns)}")
-
-    typer.echo(f"Confidence: {analysis.confidence:.2f}")
-
-    typer.echo(f"Wrote: {fingerprint_path}")
+    _print_fingerprint_summary(
+        analysis,
+        fingerprint_path,
+        path=path,
+        output_dir=output,
+        sample_size=sample_size,
+        exclude=tuple(exclude or ()),
+    )
 
 
 @app.command()
@@ -298,25 +290,7 @@ def craft(
 
         raise typer.Exit(1) from exc
 
-    first_result = results[0]
-
-    typer.echo(f"Project path: {first_result.project_root}")
-
-    typer.echo(f"Artifacts: {first_result.artifact_dir}")
-
-    for result in results:
-
-        typer.echo(f"Agent: {result.install_result.agent}")
-
-        if not result.install_result.installed_files:
-
-            typer.echo("No files found to install.")
-
-            continue
-
-        for installed in result.install_result.installed_files:
-
-            typer.echo(f"{installed.status.title()}: {installed.path}")
+    _print_craft_summary(tuple(result.install_result for result in results))
 
 
 @app.command()
@@ -461,6 +435,206 @@ def _resolve_agents(agent: str | None, path: Path) -> tuple[str, ...]:
         raise typer.Exit(1)
 
     return selected_agents
+
+
+def _print_detect_summary(
+    stack: StackInfo,
+    generated_skills: tuple[GeneratedSkill, ...],
+    installed_files: tuple[InstalledSkillFile, ...],
+    output_dir: Path,
+    agent: str | tuple[str, ...] | None,
+) -> None:
+
+    console.print(f"\nScanning [bold]{stack.project_root}[/bold]...\n")
+
+    for line in _detect_section_lines(stack):
+
+        console.print(_success_line(line))
+
+    _print_phase_header("Generating skill tree")
+
+    for generated_skill in generated_skills:
+
+        console.print(_success_line(_relative_to(generated_skill.path, output_dir)))
+
+    agent_target = _agent_target(installed_files, stack.project_root, agent)
+
+    console.print()
+
+    console.print(f"Installing to [bold]{agent_target}[/bold]...\n")
+
+    installed_count = len(
+        [
+            installed
+            for installed in installed_files
+            if installed.status in {"installed", "updated", "unchanged"}
+        ]
+    )
+
+    console.print(_success_line(f"{installed_count} skills installed"))
+
+    console.print("\n  [bold]Done. Your agent knows your stack.[/bold]")
+
+
+def _print_fingerprint_summary(
+    analysis: FingerprintAnalysis,
+    fingerprint_path: Path,
+    *,
+    path: Path,
+    output_dir: Path,
+    sample_size: int,
+    exclude: tuple[str, ...],
+) -> None:
+
+    console.print(f"\nAnalyzing [bold]{path}[/bold]...\n")
+
+    console.print(_success_line(f"Files analyzed: {len(analysis.files)}"))
+
+    console.print(_success_line(f"Parsed: {len(analysis.parsed_files)}"))
+
+    console.print(_success_line(f"Parse failures: {len(analysis.failed_files)}"))
+
+    console.print(_success_line(f"Patterns extracted: {len(analysis.patterns)}"))
+
+    console.print(_success_line(f"Confidence: {analysis.confidence:.2f}"))
+
+    _print_phase_header("Writing fingerprint")
+
+    console.print(_success_line(_relative_to(fingerprint_path, output_dir)))
+
+    console.print(f"\n  Sample size: {sample_size}")
+
+    for pattern in exclude:
+
+        console.print(f"  Exclude: {pattern}")
+
+    console.print("\n  [bold]Done.[/bold]")
+
+
+def _print_craft_summary(results: tuple[AgentInstallResult, ...]) -> None:
+
+    for result in results:
+
+        target = _agent_target(
+            result.installed_files,
+            Path("."),
+            result.agent,
+        )
+
+        console.print(f"\nInstalling to [bold]{target}[/bold]...\n")
+
+        if not result.installed_files:
+
+            console.print("  No files found to install.")
+
+            continue
+
+        installed_count = len(
+            [
+                installed
+                for installed in result.installed_files
+                if installed.status in {"installed", "updated", "unchanged"}
+            ]
+        )
+
+        console.print(f"  Agent: {result.agent}")
+
+        console.print(_success_line(f"{installed_count} files installed"))
+
+    console.print("\n  [bold]Done.[/bold]")
+
+
+def _detect_section_lines(stack: StackInfo) -> tuple[str, ...]:
+
+    lines: list[str] = []
+
+    for categories in SECTION_CATEGORIES.values():
+
+        tools = [
+            tool_value(tool)
+            for category in categories
+            for tool in stack.by_category(category)
+        ]
+
+        if tools:
+
+            lines.append(" · ".join(tools))
+
+    return tuple(lines)
+
+
+def _print_phase_header(title: str) -> None:
+
+    console.print(f"\n{title}...\n")
+
+    if console.is_terminal:
+
+        console.print(Rule(style="cyan"))
+
+
+def _success_line(message: object) -> Text:
+
+    text = Text("  ")
+
+    text.append(_success_symbol(), style="green")
+
+    text.append(f" {message}")
+
+    return text
+
+
+def _success_symbol() -> str:
+
+    symbol = "✓"
+
+    try:
+
+        symbol.encode(console.encoding or "utf-8")
+
+    except UnicodeEncodeError:
+
+        return "+"
+
+    return symbol
+
+
+def _relative_to(path: Path, root: Path) -> Path:
+
+    try:
+
+        return path.relative_to(root)
+
+    except ValueError:
+
+        return path
+
+
+def _agent_target(
+    installed_files: tuple[InstalledSkillFile, ...],
+    project_root: Path,
+    agent: str | tuple[str, ...] | None,
+) -> str:
+
+    if installed_files:
+
+        common_target = Path(
+            os.path.commonpath(
+                [str(installed.path.parent) for installed in installed_files]
+            )
+        )
+
+        return str(_relative_to(common_target, project_root))
+
+    agents = (agent,) if isinstance(agent, str) else tuple(agent or ())
+
+    if not agents:
+
+        return "agent skills"
+
+    return ", ".join(
+        str(get_agent_adapter(resolved_agent).target_relative_dir)
+        for resolved_agent in agents
+    )
 
 
 def _collect_review_decisions(

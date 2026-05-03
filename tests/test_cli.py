@@ -207,7 +207,9 @@ class TestFingerprintCommandCollectsFilesAndParseFailures:
 
         assert "Parse failures: 1" in result.stdout
 
-        assert f"Wrote: {fingerprint_path}" in result.stdout
+        assert "Writing fingerprint" in result.stdout
+
+        assert "Done." in result.stdout
 
 
 class TestReviewReportsFindingsGroupedByCategory:
@@ -582,9 +584,9 @@ class TestDetectUsesConfigDefaults:
             "Use --agent to override."
         ) in result.stdout
 
-        assert "Agent: claude-code" in result.stdout
+        assert "skills installed" in result.stdout
 
-        assert f"Output: {expected_output}" in result.stdout
+        assert str(Path("skills") / "SKILL.md") in result.stdout
 
     def test_detect_auto_selects_claude_code_from_project_marker(
         self,
@@ -609,7 +611,7 @@ class TestDetectUsesConfigDefaults:
 
         assert "Detected agents: claude-code" in result.stdout
 
-        assert "Agent: claude-code" in result.stdout
+        assert "skills installed" in result.stdout
 
         assert installed_router.exists()
 
@@ -637,7 +639,7 @@ class TestDetectUsesConfigDefaults:
             "Use --agent to override."
         ) in result.stdout
 
-        assert "Agent: claude-code" in result.stdout
+        assert "skills installed" in result.stdout
 
         assert installed_router.exists()
 
@@ -756,7 +758,9 @@ class TestDetectWritesStackMarkdownToOutput:
 
         assert stack_path.exists()
 
-        assert f"Wrote: {stack_path}" in result.stdout
+        assert "Generating skill tree" in result.stdout
+
+        assert "Your agent knows your stack" in result.stdout
 
 
 class TestDetectInstallsGeneratedSkillsForClaudeCode:
@@ -810,7 +814,9 @@ class TestDetectInstallsGeneratedSkillsForClaudeCode:
 
         assert installed_stack.exists()
 
-        assert f"Installed: {installed_router}" in result.stdout
+        assert "skills installed" in result.stdout
+
+        assert "Your agent knows your stack" in result.stdout
 
 
 class TestCraftInstallsGeneratedContextForDetectedAgentByDefault:
@@ -900,9 +906,13 @@ class TestCraftInstallsGeneratedContextForDetectedAgentByDefault:
 
         assert "Agent: cursor" in craft_result.stdout
 
-        assert f"Unchanged: {target / 'SKILL.md'}" in craft_result.stdout
+        assert "files installed" in craft_result.stdout
 
-        assert f"Installed: {target / 'fingerprint.md'}" in craft_result.stdout
+        assert ".cursor" in craft_result.stdout
+
+        assert "skills" in craft_result.stdout
+
+        assert "akira" in craft_result.stdout
 
 
 class TestCraftIsIdempotent:
@@ -943,9 +953,9 @@ class TestCraftIsIdempotent:
 
         assert second.exit_code == 0
 
-        assert "Installed:" in first.stdout
+        assert "files installed" in first.stdout
 
-        assert "Unchanged:" in second.stdout
+        assert "files installed" in second.stdout
 
 
 class TestCraftReportsMissingArtifactsWithActions:
@@ -1029,6 +1039,8 @@ class TestCraftInstallsGeneratedContextForCodex:
 
         assert "Agent: codex" in result.stdout
 
+        assert "files installed" in result.stdout
+
 
 class TestCraftAgentAdapterWrapperRaisesCraftErrorForInvalidAgent:
     """
@@ -1086,7 +1098,7 @@ class TestCraftDefaultsToCurrentWorkingDirectoryArtifacts:
 
         assert (project / ".claude" / "skills" / "akira" / "SKILL.md").exists()
 
-        assert f"Artifacts: {artifacts}" in result.stdout
+        assert "files installed" in result.stdout
 
 
 class TestCraftRejectsArtifactsWithWrongPathTypes:
@@ -1235,6 +1247,7 @@ class TestBuildArtifactsIncludeJinjaTemplates:
             entry_points = archive.read(entry_points_name).decode("utf-8")
 
         with tarfile.open(sdist_path, "r:gz") as archive:
+
             sdist_names = set(archive.getnames())
 
         expected_wheel_paths = {
