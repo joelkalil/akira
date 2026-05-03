@@ -3,14 +3,14 @@ requires = ["hatchling>=1.26"]
 build-backend = "hatchling.build"
 
 [project]
-name = "akira"
+name = "akira-cli"
 version = "1.0.0"
 description = "Project-aware skill generation and coding fingerprint CLI for AI agents."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [
-    { name = "Akira contributors" },
+    { name = "Joel Kalil" },
 ]
 keywords = ["ai-agents", "cli", "developer-tools", "skills"]
 classifiers = [
@@ -42,8 +42,8 @@ dev = [
 akira = "akira.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/akira/akira"
-Issues = "https://github.com/akira/akira/issues"
+Homepage = "https://github.com/joelkalil/akira"
+Issues = "https://github.com/joelkalil/akira/issues"
 
 [tool.hatch.build.targets.wheel]
 # Hatchling includes non-Python package data under package directories; keep
