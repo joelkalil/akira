@@ -51,12 +51,9 @@ class Signal:
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        """
-        Validate and normalize signal fields after initialization.
-        """
+        """Validate and normalize signal fields after initialization."""
 
         if not 0.0 <= self.confidence <= 1.0:
-
             msg = "Signal confidence must be between 0.0 and 1.0."
 
             raise ValueError(msg)
@@ -119,9 +116,7 @@ class ToolInfo:
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        """
-        Validate and normalize tool info fields after initialization.
-        """
+        """Validate and normalize tool info fields after initialization."""
 
         object.__setattr__(self, "metadata", MappingProxyType(dict(self.metadata)))
 
@@ -154,8 +149,8 @@ class StackCategory:
 
         Parameters
         ----------
-        tool
-            Tool name to check.
+        tool : str
+            The tool value.
 
         Returns
         -------
@@ -218,10 +213,10 @@ class StackInfo:
 
         Parameters
         ----------
-        project_root
-            Root directory of the project being modeled.
-        signals
-            Detector signals to aggregate.
+        project_root : Path
+            The project root value.
+        signals : list[Signal] | tuple[Signal, ...]
+            The signals value.
 
         Returns
         -------
@@ -236,7 +231,6 @@ class StackInfo:
         grouped: dict[str, dict[tuple[str, str | None], list[Signal]]] = {}
 
         for signal in signal_tuple:
-
             category = signal.category
 
             key = (signal.tool, signal.version)
@@ -246,13 +240,11 @@ class StackInfo:
         categories = []
 
         for category_name in sorted(grouped):
-
             tools = []
 
             for (tool_name, version), tool_signals in sorted(
                 grouped[category_name].items()
             ):
-
                 sources = tuple(
                     dict.fromkeys(
                         signal.source for signal in tool_signals if signal.source
@@ -262,7 +254,6 @@ class StackInfo:
                 metadata: dict[str, Any] = {}
 
                 for signal in tool_signals:
-
                     metadata.update(signal.metadata)
 
                 tools.append(
@@ -291,10 +282,10 @@ class StackInfo:
 
         Parameters
         ----------
-        tool
-            Tool name to check.
-        category
-            Optional category to restrict the check.
+        tool : str
+            The tool value.
+        category : str | None
+            The category value.
 
         Returns
         -------
@@ -318,10 +309,10 @@ class StackInfo:
 
         Parameters
         ----------
-        tools
-            Tool names to check.
-        category
-            Optional category to restrict the check.
+        category : str | None
+            The category value.
+        *tools : str
+            The tools value.
 
         Returns
         -------
@@ -337,8 +328,8 @@ class StackInfo:
 
         Parameters
         ----------
-        category
-            Category name to look up.
+        category : str
+            The category value.
 
         Returns
         -------
@@ -349,9 +340,7 @@ class StackInfo:
         normalized = category.strip().lower()
 
         for stack_category in self.categories:
-
             if stack_category.name == normalized:
-
                 return stack_category.tools
 
         return ()

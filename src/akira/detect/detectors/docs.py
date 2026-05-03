@@ -71,9 +71,7 @@ class DocsDetector(BaseDetector):
         dependencies = extract_dependencies(project_root)
 
         for package, tool in DOC_TOOLS.items():
-
             if package in dependencies:
-
                 detected.add(tool)
 
                 signals.append(
@@ -87,9 +85,7 @@ class DocsDetector(BaseDetector):
                 )
 
         for tool, path in _documentation_config_files(project_root).items():
-
             if tool in detected:
-
                 continue
 
             detected.add(tool)
@@ -108,15 +104,12 @@ class DocsDetector(BaseDetector):
         }
 
         if not remaining:
-
             return signals
 
         imports = scan_imports(project_root)
 
         for package, tool in remaining.items():
-
             if package_to_import_name(package) not in imports:
-
                 continue
 
             signals.append(
@@ -157,19 +150,16 @@ def _documentation_config_files(project_root: Path) -> dict[str, Path]:
     mkdocs_config = project_root / "mkdocs.yml"
 
     if mkdocs_config.is_file():
-
         config_files["mkdocs"] = mkdocs_config
 
     sphinx_config = project_root / "docs" / "conf.py"
 
     if sphinx_config.is_file():
-
         config_files["sphinx"] = sphinx_config
 
     pdoc_config = project_root / "pdoc.toml"
 
     if pdoc_config.is_file():
-
         config_files["pdoc"] = pdoc_config
 
     return config_files

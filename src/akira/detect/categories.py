@@ -23,8 +23,8 @@ def normalize_skill_category(category: str) -> str:
 
     Parameters
     ----------
-    category
-        Detector category to normalize.
+    category : str
+        The category value.
 
     Returns
     -------

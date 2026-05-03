@@ -58,9 +58,7 @@ console = Console(width=160)
 
 @app.callback()
 def cli() -> None:
-    """
-    Akira detects project context and generates agent skills.
-    """
+    """Akira detects project context and generates agent skills."""
 
 
 @app.command()
@@ -130,6 +128,21 @@ def install(
 ) -> None:
     """
     Detect stack, capture style, generate skills, and install them for agents.
+
+    Parameters
+    ----------
+    path : Path
+        The path value.
+    agent : str | None
+        The agent value.
+    output : Path
+        The output value.
+    sample_size : int
+        The sample size value.
+    exclude : list[str] | None
+        The exclude value.
+    no_claude_md : bool
+        The no claude md value.
     """
 
     install_command(
@@ -183,6 +196,15 @@ def detect(
 ) -> None:
     """
     Detect a project's stack and prepare agent skill output.
+
+    Parameters
+    ----------
+    path : Path
+        The path value.
+    agent : str | None
+        The agent value.
+    output : Path
+        The output value.
     """
 
     agents = resolve_agents_for_command(agent, path, console=console)
@@ -264,6 +286,19 @@ def fingerprint(
 ) -> None:
     """
     Analyze source files and write fingerprint.md output.
+
+    Parameters
+    ----------
+    path : Path
+        The path value.
+    sample_size : int
+        The sample size value.
+    exclude : list[str] | None
+        The exclude value.
+    agent : str | None
+        The agent value.
+    output : Path
+        The output value.
     """
 
     agents = resolve_agents_for_command(agent, path, console=console)
@@ -332,6 +367,17 @@ def review(
 ) -> None:
     """
     Review a detected stack for compatibility and best-practice findings.
+
+    Parameters
+    ----------
+    path : Path
+        The path value.
+    strict : bool
+        The strict value.
+    auto_apply : bool
+        The auto apply value.
+    output : Path
+        The output value.
     """
 
     stack = scan_project(path)
@@ -341,7 +387,6 @@ def review(
     render_review(result)
 
     if strict and result.has_incompatibilities:
-
         raise typer.Exit(1)
 
     console = Console()
@@ -364,9 +409,7 @@ def review(
 
 
 def main() -> None:
-    """
-    Run the Akira CLI.
-    """
+    """Run the Akira CLI."""
 
     app()
 
@@ -379,14 +422,22 @@ def main() -> None:
 def _validate_agent(agent: str | None) -> str | None:
     """
     Validate an optional CLI agent name.
+
+    Parameters
+    ----------
+    agent : str | None
+        The agent value.
+
+    Returns
+    -------
+    str | None
+        The result of the operation.
     """
 
     if agent is None:
-
         return None
 
     if agent not in SUPPORTED_AGENT_NAMES:
-
         supported = ", ".join(SUPPORTED_AGENT_NAMES)
 
         raise typer.BadParameter(
@@ -399,12 +450,21 @@ def _validate_agent(agent: str | None) -> str | None:
 def _detect_section_lines(stack: StackInfo) -> tuple[str, ...]:
     """
     Build stack summary lines grouped by rendered detect sections.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+
+    Returns
+    -------
+    tuple[str, ...]
+        The result of the operation.
     """
 
     lines: list[str] = []
 
     for categories in SECTION_CATEGORIES.values():
-
         tools = [
             tool_value(tool)
             for category in categories
@@ -412,7 +472,6 @@ def _detect_section_lines(stack: StackInfo) -> tuple[str, ...]:
         ]
 
         if tools:
-
             lines.append(" · ".join(tools))
 
     return tuple(lines)
@@ -421,18 +480,32 @@ def _detect_section_lines(stack: StackInfo) -> tuple[str, ...]:
 def _print_phase_header(title: str) -> None:
     """
     Print a titled CLI phase header.
+
+    Parameters
+    ----------
+    title : str
+        The title value.
     """
 
     console.print(f"\n{title}...\n")
 
     if console.is_terminal:
-
         console.print(Rule(style="cyan"))
 
 
 def _success_line(message: object) -> Text:
     """
     Render a green success line for CLI output.
+
+    Parameters
+    ----------
+    message : object
+        The message value.
+
+    Returns
+    -------
+    Text
+        The result of the operation.
     """
 
     text = Text("  ")
@@ -447,16 +520,19 @@ def _success_line(message: object) -> Text:
 def _success_symbol() -> str:
     """
     Return a success symbol compatible with the console encoding.
+
+    Returns
+    -------
+    str
+        The result of the operation.
     """
 
     symbol = "✓"
 
     try:
-
         symbol.encode(console.encoding or "utf-8")
 
     except UnicodeEncodeError:
-
         return "+"
 
     return symbol
@@ -465,14 +541,24 @@ def _success_symbol() -> str:
 def _relative_to(path: Path, root: Path) -> Path:
     """
     Return a relative path when possible, otherwise the original path.
+
+    Parameters
+    ----------
+    path : Path
+        The path value.
+    root : Path
+        The root value.
+
+    Returns
+    -------
+    Path
+        The result of the operation.
     """
 
     try:
-
         return path.relative_to(root)
 
     except ValueError:
-
         return path
 
 
@@ -483,10 +569,23 @@ def _agent_target(
 ) -> str:
     """
     Render the agent installation target for summary output.
+
+    Parameters
+    ----------
+    installed_files : tuple[InstalledSkillFile, ...]
+        The installed files value.
+    project_root : Path
+        The project root value.
+    agent : str | tuple[str, ...] | None
+        The agent value.
+
+    Returns
+    -------
+    str
+        The result of the operation.
     """
 
     if installed_files:
-
         common_target = Path(
             os.path.commonpath(
                 [str(installed.path.parent) for installed in installed_files]
@@ -498,7 +597,6 @@ def _agent_target(
     agents = (agent,) if isinstance(agent, str) else tuple(agent or ())
 
     if not agents:
-
         return "agent skills"
 
     return ", ".join(
@@ -515,6 +613,20 @@ def _collect_review_decisions(
 ) -> tuple[list[Finding], list[Finding]]:
     """
     Collect accepted and skipped review findings.
+
+    Parameters
+    ----------
+    findings : tuple[Finding, ...]
+        The findings value.
+    auto_apply : bool
+        The auto apply value.
+    console : Console
+        The console value.
+
+    Returns
+    -------
+    tuple[list[Finding], list[Finding]]
+        The result of the operation.
     """
 
     actionable = [
@@ -524,7 +636,6 @@ def _collect_review_decisions(
     ]
 
     if not actionable:
-
         return [], []
 
     accepted: list[Finding] = []
@@ -532,15 +643,11 @@ def _collect_review_decisions(
     skipped: list[Finding] = []
 
     for finding in actionable:
-
         if auto_apply:
-
             if finding.can_apply_safely:
-
                 accepted.append(finding)
 
             else:
-
                 skipped.append(finding)
 
             continue
@@ -548,11 +655,9 @@ def _collect_review_decisions(
         decision = _prompt_review_decision(finding, console)
 
         if decision == "y" and finding.can_apply_safely:
-
             accepted.append(finding)
 
         else:
-
             skipped.append(finding)
 
     return accepted, skipped
@@ -561,6 +666,18 @@ def _collect_review_decisions(
 def _prompt_review_decision(finding: Finding, console: Console) -> str:
     """
     Prompt for a decision about applying one review finding.
+
+    Parameters
+    ----------
+    finding : Finding
+        The finding value.
+    console : Console
+        The console value.
+
+    Returns
+    -------
+    str
+        The result of the operation.
     """
 
     console.print()
@@ -570,13 +687,10 @@ def _prompt_review_decision(finding: Finding, console: Console) -> str:
     console.print(finding.message)
 
     if finding.migration:
-
         console.print(f"[cyan]Migration reference:[/cyan] {finding.migration}")
 
     while True:
-
         try:
-
             decision = Prompt.ask(
                 "Apply?",
                 choices=("y", "n", "details"),
@@ -586,17 +700,14 @@ def _prompt_review_decision(finding: Finding, console: Console) -> str:
             )
 
         except (EOFError, KeyboardInterrupt):
-
             return "n"
 
         if decision == "details":
-
             _render_finding_details(finding, console)
 
             continue
 
         if decision == "y" and not finding.can_apply_safely:
-
             console.print(
                 "[yellow]This finding has no safe metadata-only change, so it "
                 "was skipped.[/yellow]"
@@ -610,6 +721,13 @@ def _prompt_review_decision(finding: Finding, console: Console) -> str:
 def _render_finding_details(finding: Finding, console: Console) -> None:
     """
     Render detailed review finding guidance for interactive users.
+
+    Parameters
+    ----------
+    finding : Finding
+        The finding value.
+    console : Console
+        The console value.
     """
 
     console.print(f"[bold]Rule:[/bold] {finding.rule_id}")
@@ -619,21 +737,17 @@ def _render_finding_details(finding: Finding, console: Console) -> None:
     console.print(f"[bold]Message:[/bold] {finding.message}")
 
     if finding.migration:
-
         console.print(f"[bold]Migration guidance:[/bold] {finding.migration}")
 
         guidance = _migration_guidance(finding.migration)
 
         if guidance:
-
             for item in guidance:
-
                 console.print(f"- {item}")
 
     change = finding.safe_change
 
     if change is None:
-
         console.print("Akira will not change artifacts for this finding automatically.")
 
         return
@@ -641,17 +755,25 @@ def _render_finding_details(finding: Finding, console: Console) -> None:
     console.print(f"[bold]Safe change:[/bold] {change.summary}")
 
     for detail in change.details:
-
         console.print(f"- {detail}")
 
 
 def _migration_guidance(reference: str) -> tuple[str, ...]:
     """
     Return short migration guidance for a review reference.
+
+    Parameters
+    ----------
+    reference : str
+        The reference value.
+
+    Returns
+    -------
+    tuple[str, ...]
+        The result of the operation.
     """
 
     if reference == "testing/unittest-to-pytest":
-
         return (
             "Replace unittest.TestCase classes with plain pytest test functions "
             "where practical.",
@@ -673,10 +795,22 @@ def _render_review_summary(
 ) -> None:
     """
     Print the review command decision summary.
+
+    Parameters
+    ----------
+    accepted : list[Finding]
+        The accepted value.
+    skipped : list[Finding]
+        The skipped value.
+    applied_count : int
+        The applied count value.
+    output : Path
+        The output value.
+    console : Console
+        The console value.
     """
 
     if not accepted and not skipped:
-
         return
 
     console.print()
@@ -686,17 +820,14 @@ def _render_review_summary(
     console.print(f"Accepted changes: {len(accepted)}")
 
     for finding in accepted:
-
         console.print(f"- {finding.rule_id}")
 
     console.print(f"Skipped changes: {len(skipped)}")
 
     for finding in skipped:
-
         console.print(f"- {finding.rule_id}")
 
     if applied_count:
-
         console.print(f"Updated artifacts in: {output}")
 
         console.print("Regenerated affected skills.")

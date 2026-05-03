@@ -195,9 +195,7 @@ class SkillGenerator:
     """
 
     def __init__(self) -> None:
-        """
-        Return init helper result.
-        """
+        """Return init helper result."""
 
         self.env = Environment(
             loader=PackageLoader("akira.skills", "templates"),
@@ -217,6 +215,20 @@ class SkillGenerator:
     ) -> tuple[GeneratedSkill, ...]:
         """
         Generate the Akira router and Python skills under output_dir/skills.
+
+        Parameters
+        ----------
+        stack : StackInfo
+            The stack value.
+        output_dir : Path
+            The output dir value.
+        fingerprint : FingerprintAnalysis | None
+            The fingerprint value.
+
+        Returns
+        -------
+        tuple[GeneratedSkill, ...]
+            The result of the operation.
         """
 
         skills_dir = output_dir / "skills"
@@ -256,7 +268,6 @@ class SkillGenerator:
         ]
 
         for skill_template in selected:
-
             generated.append(
                 self._render_to_file(
                     skill_template.template_path,
@@ -270,6 +281,16 @@ class SkillGenerator:
     def select_templates(self, stack: StackInfo) -> tuple[SkillTemplate, ...]:
         """
         Return skill templates relevant to the detected stack.
+
+        Parameters
+        ----------
+        stack : StackInfo
+            The stack value.
+
+        Returns
+        -------
+        tuple[SkillTemplate, ...]
+            The result of the operation.
         """
 
         detected = {
@@ -290,6 +311,13 @@ class SkillGenerator:
     ) -> None:
         """
         Remove managed skill files that are no longer selected.
+
+        Parameters
+        ----------
+        python_dir : Path
+            The python dir value.
+        selected : tuple[SkillTemplate, ...]
+            The selected value.
         """
 
         active_outputs = {Path("SKILL.md")}
@@ -297,11 +325,9 @@ class SkillGenerator:
         active_outputs.update(Path(item.output_path) for item in selected)
 
         for relative_path in sorted(_MANAGED_OUTPUTS - active_outputs):
-
             path = python_dir / relative_path
 
             if path.exists():
-
                 path.unlink()
 
         managed_dirs = {
@@ -313,13 +339,10 @@ class SkillGenerator:
         for directory in sorted(
             managed_dirs, key=lambda path: len(path.parts), reverse=True
         ):
-
             try:
-
                 directory.rmdir()
 
             except OSError:
-
                 continue
 
     def _render_to_file(
@@ -330,6 +353,20 @@ class SkillGenerator:
     ) -> GeneratedSkill:
         """
         Render a skill template to disk.
+
+        Parameters
+        ----------
+        template_path : str
+            The template path value.
+        output_path : Path
+            The output path value.
+        context : Mapping[str, Any]
+            The context value.
+
+        Returns
+        -------
+        GeneratedSkill
+            The result of the operation.
         """
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -354,6 +391,20 @@ def generate_skills(
 ) -> tuple[GeneratedSkill, ...]:
     """
     Generate Akira skills for a detected stack.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+    output_dir : Path
+        The output dir value.
+    fingerprint : FingerprintAnalysis | None
+        The fingerprint value.
+
+    Returns
+    -------
+    tuple[GeneratedSkill, ...]
+        The result of the operation.
     """
 
     return SkillGenerator().generate(stack, output_dir, fingerprint=fingerprint)
@@ -368,6 +419,22 @@ def build_template_context(
 ) -> dict[str, Any]:
     """
     Build the shared Jinja context for all skill templates.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+    selected : tuple[SkillTemplate, ...]
+        The selected value.
+    fingerprint_exists : bool
+        The fingerprint exists value.
+    fingerprint : FingerprintAnalysis | None
+        The fingerprint value.
+
+    Returns
+    -------
+    dict[str, Any]
+        The result of the operation.
     """
 
     tools = {
@@ -420,10 +487,23 @@ def select_fingerprint_core_rules(
 ) -> tuple[str, ...]:
     """
     Select concise router rules from high-confidence fingerprint patterns.
+
+    Parameters
+    ----------
+    fingerprint : FingerprintAnalysis | None
+        The fingerprint value.
+    limit : int
+        The limit value.
+    minimum_confidence : float
+        The minimum confidence value.
+
+    Returns
+    -------
+    tuple[str, ...]
+        The result of the operation.
     """
 
     if fingerprint is None:
-
         return ()
 
     by_key = {
@@ -435,21 +515,17 @@ def select_fingerprint_core_rules(
     rules: list[str] = []
 
     for dimension, name in _CORE_RULE_PRIORITY:
-
         pattern = by_key.get((dimension, name))
 
         if pattern is None:
-
             continue
 
         rule = _core_rule_for_pattern(pattern)
 
         if rule and rule not in rules:
-
             rules.append(rule)
 
         if len(rules) >= limit:
-
             break
 
     return tuple(rules)
@@ -463,6 +539,16 @@ def select_fingerprint_core_rules(
 def _core_rule_for_pattern(pattern: StylePattern) -> str | None:
     """
     Convert a fingerprint pattern into a concise router rule.
+
+    Parameters
+    ----------
+    pattern : StylePattern
+        The pattern value.
+
+    Returns
+    -------
+    str | None
+        The result of the operation.
     """
 
     key = (pattern.dimension, pattern.name)
@@ -470,17 +556,13 @@ def _core_rule_for_pattern(pattern: StylePattern) -> str | None:
     value = pattern.value
 
     if key == ("structure", "early_returns") and value == "preferred":
-
         return "Prefer early returns over deeply nested branches."
 
     if key == ("structure", "guard_clauses") and value == "preferred":
-
         return "Put guard clauses near the top of functions."
 
     if key == ("structure", "nesting_depth") and isinstance(value, int):
-
         if value == 0:
-
             return "Avoid nested control flow where possible."
 
         return (
@@ -488,65 +570,51 @@ def _core_rule_for_pattern(pattern: StylePattern) -> str | None:
         )
 
     if key == ("comments", "section_separators"):
-
         return f"Use {format_fingerprint_value(value)} comments as section separators."
 
     if key == ("comments", "inline_comment_frequency") and value in {"low", "rare"}:
-
         return "Keep inline comments rare; prefer self-documenting code."
 
     if key == ("spacing", "logical_blocks") and isinstance(value, int):
-
         return (
             f"Use {value} {_plural('blank line', value)} between logical blocks "
             "inside functions."
         )
 
     if key == ("typing", "signature_coverage") and value == "full_signature_hints":
-
         return "Use full type hints on function signatures."
 
     if key == ("typing", "optional_syntax"):
-
         return f"Use {format_fingerprint_value(value)} syntax for optional values."
 
     if key == ("imports", "grouping_order"):
-
         return f"Keep imports grouped in this order: {format_fingerprint_value(value)}."
 
     if key == ("imports", "relative_imports") and value == "avoid_relative_imports":
-
         return "Prefer absolute imports over relative imports."
 
     if key == ("imports", "wildcard_usage") and value == "avoid_wildcards":
-
         return "Avoid wildcard imports."
 
     if key == ("docstrings", "docstring_style"):
-
         return f"Write {format_fingerprint_value(value)} docstrings."
 
     if key == ("docstrings", "public_docstrings") and value == "documented":
-
         return "Document public functions and classes."
 
     if (
         key == ("docstrings", "private_docstring_behavior")
         and value == "omit_private_docstrings"
     ):
-
         return "Omit docstrings on private helpers when names are descriptive."
 
     if key == ("strings", "quote_style"):
-
         return f"Use {format_fingerprint_value(value)} for string literals."
 
     if key == ("strings", "interpolation_style") and value == "f_strings":
-
         return "Prefer f-strings for string interpolation."
 
     if key == ("structure", "function_length") and value == "under_30_lines":
-
         return "Prefer functions under 30 lines."
 
     return None
@@ -555,6 +623,18 @@ def _core_rule_for_pattern(pattern: StylePattern) -> str | None:
 def _plural(noun: str, count: int) -> str:
     """
     Return a pluralized noun for the provided count.
+
+    Parameters
+    ----------
+    noun : str
+        The noun value.
+    count : int
+        The count value.
+
+    Returns
+    -------
+    str
+        The result of the operation.
     """
 
     return noun if count == 1 else f"{noun}s"
@@ -563,6 +643,16 @@ def _plural(noun: str, count: int) -> str:
 def _version_context(tools: Mapping[str, ToolInfo]) -> dict[str, str | None]:
     """
     Build template context values for detected tool versions.
+
+    Parameters
+    ----------
+    tools : Mapping[str, ToolInfo]
+        The tools value.
+
+    Returns
+    -------
+    dict[str, str | None]
+        The result of the operation.
     """
 
     return {
@@ -584,6 +674,18 @@ def _framework_context(
 ) -> dict[str, Any]:
     """
     Build template context values for detected web frameworks.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+    tools : Mapping[str, ToolInfo]
+        The tools value.
+
+    Returns
+    -------
+    dict[str, Any]
+        The result of the operation.
     """
 
     is_async_app = stack.has_any("asyncpg", category="database")
@@ -606,6 +708,16 @@ def _framework_context(
 def _testing_context(stack: StackInfo) -> dict[str, Any]:
     """
     Build template context values for detected testing tools.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+
+    Returns
+    -------
+    dict[str, Any]
+        The result of the operation.
     """
 
     return {
@@ -622,6 +734,18 @@ def _database_context(
 ) -> dict[str, str | None]:
     """
     Build template context values for detected database tools.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+    tools : Mapping[str, ToolInfo]
+        The tools value.
+
+    Returns
+    -------
+    dict[str, str | None]
+        The result of the operation.
     """
 
     postgres_driver = _first_present_tool(stack, ("asyncpg", "psycopg3", "psycopg2"))
@@ -645,6 +769,18 @@ def _tooling_context(
 ) -> dict[str, Any]:
     """
     Build template context values for detected development tooling.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+    tools : Mapping[str, ToolInfo]
+        The tools value.
+
+    Returns
+    -------
+    dict[str, Any]
+        The result of the operation.
     """
 
     ruff = tools.get("ruff")
@@ -670,6 +806,18 @@ def _tooling_context(
 def _infra_context(stack: StackInfo, tools: Mapping[str, ToolInfo]) -> dict[str, Any]:
     """
     Build template context values for detected infrastructure tools.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+    tools : Mapping[str, ToolInfo]
+        The tools value.
+
+    Returns
+    -------
+    dict[str, Any]
+        The result of the operation.
     """
 
     compose = tools.get("docker-compose")
@@ -689,6 +837,16 @@ def _infra_context(stack: StackInfo, tools: Mapping[str, ToolInfo]) -> dict[str,
 def _ci_context(stack: StackInfo) -> dict[str, str | None]:
     """
     Build template context values for detected CI tools.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+
+    Returns
+    -------
+    dict[str, str | None]
+        The result of the operation.
     """
 
     github_actions = _tool(stack, "github-actions")
@@ -711,12 +869,21 @@ def _ci_context(stack: StackInfo) -> dict[str, str | None]:
 def _merged_metadata(stack: StackInfo) -> dict[str, Any]:
     """
     Merge stack signal metadata into one template context mapping.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+
+    Returns
+    -------
+    dict[str, Any]
+        The result of the operation.
     """
 
     metadata: dict[str, Any] = {}
 
     for signal in stack.signals:
-
         metadata.update(signal.metadata)
 
     return metadata
@@ -727,6 +894,16 @@ def _root_active_skills(
 ) -> list[dict[str, str]]:
     """
     Build root router entries for active generated skills.
+
+    Parameters
+    ----------
+    active_skills : list[dict[str, str]]
+        The active skills value.
+
+    Returns
+    -------
+    list[dict[str, str]]
+        The result of the operation.
     """
 
     return [
@@ -744,6 +921,16 @@ def _root_active_skills(
 def _stack_summary(stack: StackInfo) -> str:
     """
     Render a compact summary of the detected stack.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+
+    Returns
+    -------
+    str
+        The result of the operation.
     """
 
     priority = (
@@ -774,15 +961,11 @@ def _stack_summary(stack: StackInfo) -> str:
     selected: list[str] = []
 
     for category, tools in priority:
-
         for tool in tools:
-
             if _has_skill_tool(stack, tool, category=category):
-
                 selected.append(labels.get(tool, tool.title()))
 
     if not selected:
-
         return "Python"
 
     return " + ".join(dict.fromkeys(selected))
@@ -791,6 +974,20 @@ def _stack_summary(stack: StackInfo) -> str:
 def _has_skill_tool(stack: StackInfo, tool: str, category: str) -> bool:
     """
     Return whether a normalized skill signal exists for a tool.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+    tool : str
+        The tool value.
+    category : str
+        The category value.
+
+    Returns
+    -------
+    bool
+        The result of the operation.
     """
 
     return any(
@@ -802,6 +999,16 @@ def _has_skill_tool(stack: StackInfo, tool: str, category: str) -> bool:
 def _source_layout(project_root: Path) -> str | None:
     """
     Return the detected Python source layout.
+
+    Parameters
+    ----------
+    project_root : Path
+        The project root value.
+
+    Returns
+    -------
+    str | None
+        The result of the operation.
     """
 
     return "src" if (project_root / "src").is_dir() else None
@@ -810,6 +1017,18 @@ def _source_layout(project_root: Path) -> str | None:
 def _version(tools: Mapping[str, ToolInfo], tool_name: str) -> str | None:
     """
     Return the detected version for a tool.
+
+    Parameters
+    ----------
+    tools : Mapping[str, ToolInfo]
+        The tools value.
+    tool_name : str
+        The tool name value.
+
+    Returns
+    -------
+    str | None
+        The result of the operation.
     """
 
     tool = tools.get(tool_name)
@@ -820,14 +1039,23 @@ def _version(tools: Mapping[str, ToolInfo], tool_name: str) -> str | None:
 def _tool(stack: StackInfo, tool_name: str) -> ToolInfo | None:
     """
     Return the first detected tool with the requested name.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+    tool_name : str
+        The tool name value.
+
+    Returns
+    -------
+    ToolInfo | None
+        The result of the operation.
     """
 
     for category in stack.categories:
-
         for tool in category.tools:
-
             if tool.name == tool_name:
-
                 return tool
 
     return None
@@ -836,6 +1064,18 @@ def _tool(stack: StackInfo, tool_name: str) -> ToolInfo | None:
 def _first_tool_name(stack: StackInfo, category: str) -> str | None:
     """
     Return the first detected tool name in a category.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+    category : str
+        The category value.
+
+    Returns
+    -------
+    str | None
+        The result of the operation.
     """
 
     tools = stack.by_category(category)
@@ -846,12 +1086,22 @@ def _first_tool_name(stack: StackInfo, category: str) -> str | None:
 def _first_present_tool(stack: StackInfo, tool_names: tuple[str, ...]) -> str | None:
     """
     Return the first requested tool present in the stack.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+    tool_names : tuple[str, ...]
+        The tool names value.
+
+    Returns
+    -------
+    str | None
+        The result of the operation.
     """
 
     for tool_name in tool_names:
-
         if stack.has(tool_name):
-
             return tool_name
 
     return None
@@ -860,12 +1110,22 @@ def _first_present_tool(stack: StackInfo, tool_names: tuple[str, ...]) -> str | 
 def _first_existing(project_root: Path, filenames: tuple[str, ...]) -> str | None:
     """
     Return the first filename that exists under the project root.
+
+    Parameters
+    ----------
+    project_root : Path
+        The project root value.
+    filenames : tuple[str, ...]
+        The filenames value.
+
+    Returns
+    -------
+    str | None
+        The result of the operation.
     """
 
     for filename in filenames:
-
         if (project_root / filename).exists():
-
             return filename
 
     return None
@@ -874,6 +1134,18 @@ def _first_existing(project_root: Path, filenames: tuple[str, ...]) -> str | Non
 def _existing_joined(project_root: Path, filenames: tuple[str, ...]) -> str | None:
     """
     Return existing filenames joined for template display.
+
+    Parameters
+    ----------
+    project_root : Path
+        The project root value.
+    filenames : tuple[str, ...]
+        The filenames value.
+
+    Returns
+    -------
+    str | None
+        The result of the operation.
     """
 
     existing = [
@@ -886,12 +1158,21 @@ def _existing_joined(project_root: Path, filenames: tuple[str, ...]) -> str | No
 def _uses_pydantic_v2(tools: Mapping[str, ToolInfo]) -> bool:
     """
     Return whether generated FastAPI guidance should assume Pydantic v2.
+
+    Parameters
+    ----------
+    tools : Mapping[str, ToolInfo]
+        The tools value.
+
+    Returns
+    -------
+    bool
+        The result of the operation.
     """
 
     pydantic = tools.get("pydantic")
 
     if pydantic is None or pydantic.version is None:
-
         return True
 
     return pydantic.version.split(".", 1)[0] == "2"

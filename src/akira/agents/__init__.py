@@ -97,13 +97,11 @@ def get_agent_adapter(agent: str) -> BaseAgentAdapter:
     Raises
     ------
     UnsupportedAgent
-        Raised when the requested agent is unsupported.
+    Raised when the requested agent is unsupported.
     """
 
     for adapter_type in _ADAPTERS:
-
         if adapter_type.name == agent:
-
             return adapter_type()
 
     raise UnsupportedAgent(agent, SUPPORTED_AGENT_NAMES)

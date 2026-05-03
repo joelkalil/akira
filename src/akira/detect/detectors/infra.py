@@ -48,15 +48,13 @@ class InfrastructureDetector(BaseDetector):
         Returns
         -------
         list[Signal]
-            A list of detected infrastructure signals, including containers,
-            compose services,
-            cloud hints, and Terraform
+            A list of detected infrastructure signals, including containers, compose
+            services, cloud hints, and Terraform.
         """
 
         signals: list[Signal] = []
 
         if (project_root / "Dockerfile").exists():
-
             signals.append(
                 Signal(
                     tool="docker",
@@ -72,11 +70,9 @@ class InfrastructureDetector(BaseDetector):
             "compose.yml",
             "compose.yaml",
         ):
-
             path = project_root / filename
 
             if path.exists():
-
                 services = _compose_services(path)
 
                 signals.append(
@@ -122,11 +118,9 @@ def _compose_services(path: Path) -> set[str]:
     """
 
     try:
-
         data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
 
     except (OSError, UnicodeDecodeError, yaml.YAMLError):
-
         return _compose_services_from_text(path)
 
     services: set[str] = set()
@@ -134,27 +128,21 @@ def _compose_services(path: Path) -> set[str]:
     raw_services = data.get("services", {})
 
     if not isinstance(raw_services, dict):
-
         return services
 
     for name, config in raw_services.items():
-
         service_text = str(name).lower()
 
         if isinstance(config, dict):
-
             image = config.get("image")
 
             if isinstance(image, str):
-
                 service_text = f"{service_text} {image.lower()}"
 
         if "postgres" in service_text:
-
             services.add("postgres")
 
         if "redis" in service_text:
-
             services.add("redis")
 
     return services
@@ -162,9 +150,7 @@ def _compose_services(path: Path) -> set[str]:
 
 def _compose_services_from_text(path: Path) -> set[str]:
     """
-    Fallback method to extract service hints from a docker compose file by reading.
-
-    it as text.
+    Extract service hints from a docker compose file by reading it as text.
 
     Parameters
     ----------
@@ -179,21 +165,17 @@ def _compose_services_from_text(path: Path) -> set[str]:
     """
 
     try:
-
         content = path.read_text(encoding="utf-8").lower()
 
     except (OSError, UnicodeDecodeError):
-
         return set()
 
     services: set[str] = set()
 
     if "postgres" in content:
-
         services.add("postgres")
 
     if "redis" in content:
-
         services.add("redis")
 
     return services
@@ -206,19 +188,17 @@ def _database_service_signals(source: str, services: set[str]) -> list[Signal]:
     Parameters
     ----------
     source : str
-        The source identifier for the signals, typically the filename of the
-        compose file.
+        The source identifier for the signals, typically the filename of the compose
+        file.
     services : set[str]
         A set of normalized service hints detected in the compose file, such as
-        "postgres" or
-        "redis".
+        "postgres" or "redis".
 
     Returns
     -------
     list[Signal]
-        A list of signals for each detected database service, with confidence
-        based on the presence
-        of the service hint in the compose file.
+        A list of signals for each detected database service, with confidence based on
+        the presence of the service hint in the compose file.
     """
 
     return [
@@ -237,9 +217,7 @@ def _terraform_signals(project_root: Path) -> list[Signal]:
     """
     Detect Terraform usage by looking for .tf files in the project root and.
 
-    subdirectories,.
-
-    excluding .terraform directories.
+    subdirectories,. excluding .terraform directories.
 
     Parameters
     ----------
@@ -249,9 +227,8 @@ def _terraform_signals(project_root: Path) -> list[Signal]:
     Returns
     -------
     list[Signal]
-        A list containing a single Terraform signal if .tf files are found, or
-        an empty list
-        if no Terraform files are detected.
+        A list containing a single Terraform signal if .tf files are found, or an empty
+        list if no Terraform files are detected.
     """
 
     terraform_files = sorted(
@@ -261,7 +238,6 @@ def _terraform_signals(project_root: Path) -> list[Signal]:
     )
 
     if not terraform_files:
-
         return []
 
     return [
@@ -283,9 +259,7 @@ def _cloud_signals(project_root: Path) -> list[Signal]:
     """
     Detect cloud provider usage by looking for root-level configuration files and.
 
-    scanning for.
-
-    provider-specific hints in Terraform and GitHub Actions files.
+    scanning for. provider-specific hints in Terraform and GitHub Actions files.
 
     Parameters
     ----------
@@ -296,8 +270,8 @@ def _cloud_signals(project_root: Path) -> list[Signal]:
     -------
     list[Signal]
         A list of signals for detected cloud providers, such as GCP or AWS, with
-        confidence based on
-        the presence of configuration files and provider-specific hints.
+        confidence based on the presence of configuration files and provider-specific
+        hints.
     """
 
     signals: list[Signal] = []
@@ -310,7 +284,6 @@ def _cloud_signals(project_root: Path) -> list[Signal]:
         token in hints
         for token in ("gcr.io", "pkg.dev", "google-github-actions", 'provider "google"')
     ):
-
         signals.append(
             Signal(
                 tool="gcp",
@@ -326,7 +299,6 @@ def _cloud_signals(project_root: Path) -> list[Signal]:
         token in hints
         for token in ("amazonaws.com", "aws-actions", 'provider "aws"', "boto3")
     ):
-
         signals.append(
             Signal(
                 tool="aws",
@@ -341,9 +313,7 @@ def _cloud_signals(project_root: Path) -> list[Signal]:
 
 def _read_infra_hint_text(project_root: Path) -> str:
     """
-    Read and concatenate text from root-level infrastructure files to search for.
-
-    cloud provider hints.
+    Read root-level infrastructure files for cloud provider hints.
 
     Parameters
     ----------
@@ -353,9 +323,8 @@ def _read_infra_hint_text(project_root: Path) -> str:
     Returns
     -------
     str
-        A single string containing the concatenated and lowercased text from
-        relevant infrastructure
-        files, which can be searched for cloud provider hints.
+        A single string containing the concatenated and lowercased text from relevant
+        infrastructure files, which can be searched for cloud provider hints.
     """
 
     paths: list[Path] = []
@@ -373,25 +342,19 @@ def _read_infra_hint_text(project_root: Path) -> str:
     chunks: list[str] = []
 
     for path in paths:
-
         try:
-
             chunks.append(path.read_text(encoding="utf-8").lower())
 
         except (OSError, UnicodeDecodeError):
-
             continue
 
     dockerfile = project_root / "Dockerfile"
 
     if dockerfile.exists():
-
         try:
-
             chunks.append(dockerfile.read_text(encoding="utf-8").lower())
 
         except (OSError, UnicodeDecodeError):
-
             pass
 
     return "\n".join(chunks)

@@ -70,8 +70,8 @@ class Scanner:
 
         Parameters
         ----------
-        detectors
-            Optional detector instances to use instead of the defaults.
+        detectors : Iterable[BaseDetector] | None
+            The detectors value.
         """
 
         detector_instances = (
@@ -93,8 +93,8 @@ class Scanner:
 
         Parameters
         ----------
-        project_root
-            Root directory of the project being scanned.
+        project_root : Path
+            The project root value.
 
         Returns
         -------
@@ -107,7 +107,6 @@ class Scanner:
         signals: list[Signal] = []
 
         for detector in self.detectors:
-
             signals.extend(detector.detect(root))
 
         return self._deduplicate(signals)
@@ -118,8 +117,8 @@ class Scanner:
 
         Parameters
         ----------
-        project_root
-            Root directory of the project being scanned.
+        project_root : Path
+            The project root value.
 
         Returns
         -------
@@ -151,11 +150,9 @@ class Scanner:
         seen: dict[tuple[str, str, str | None, str], Signal] = {}
 
         for signal in signals:
-
             existing = seen.get(signal.identity)
 
             if existing is None or signal.confidence > existing.confidence:
-
                 seen[signal.identity] = signal
 
         return list(seen.values())
@@ -176,10 +173,10 @@ def scan_project(
 
     Parameters
     ----------
-    project_root
-        Root directory of the project being scanned.
-    detectors
-        Optional detector instances to use instead of the defaults.
+    project_root : Path
+        The project root value.
+    detectors : Iterable[BaseDetector] | None
+        The detectors value.
 
     Returns
     -------

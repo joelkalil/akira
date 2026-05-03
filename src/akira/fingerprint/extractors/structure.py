@@ -57,13 +57,10 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     functions: list[ast.FunctionDef | ast.AsyncFunctionDef] = []
 
     for source in analysis.parsed_files:
-
         if source.tree is not None:
-
             functions.extend(iter_function_defs(source.tree))
 
     if not functions:
-
         return ()
 
     early_return_count = sum(1 for function in functions if _has_early_return(function))
@@ -150,9 +147,7 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
 
 def _has_early_return(function: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     """
-    Determine if a function has early returns, defined as return statements that.
-
-    are not the final statement in the function body.
+    Determine whether a function has early returns.
 
     Parameters
     ----------
@@ -170,7 +165,6 @@ def _has_early_return(function: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     ]
 
     if not returns:
-
         return False
 
     final_statement = function.body[-1] if function.body else None
@@ -201,9 +195,7 @@ def _has_guard_clause(function: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
     """
 
     for statement in function.body[:3]:
-
         if isinstance(statement, ast.If) and _body_exits(statement.body):
-
             return True
 
     return False
@@ -213,9 +205,7 @@ def _body_exits(body: list[ast.stmt]) -> bool:
     """
     Check if the given body of statements contains an exit statement (return, raise,.
 
-    continue,.
-
-    or break) as the last statement.
+    continue,. or break) as the last statement.
 
     Parameters
     ----------
@@ -277,7 +267,6 @@ def _nesting_depth(node: ast.AST, depth: int) -> int:
     next_depth = depth + 1 if isinstance(node, BRANCH_NODES) else depth
 
     if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
-
         return next_depth
 
     child_depths = [
@@ -293,9 +282,7 @@ def _walk_current_scope(
     """
     Walk the AST of a function body while ignoring nested function and class.
 
-    definitions, returning.
-
-    a flat list of nodes in the current scope.
+    definitions, returning. a flat list of nodes in the current scope.
 
     Parameters
     ----------
@@ -305,15 +292,13 @@ def _walk_current_scope(
     Returns
     -------
     list[ast.AST]
-        A list of AST nodes in the current scope of the function body, excluding
-        nested function and
-        class definitions
+        A list of AST nodes in the current scope of the function body, excluding nested
+        function and class definitions.
     """
 
     nodes: list[ast.AST] = []
 
     for statement in function.body:
-
         nodes.extend(_walk_without_nested_scopes(statement))
 
     return nodes
@@ -321,11 +306,7 @@ def _walk_current_scope(
 
 def _walk_without_nested_scopes(node: ast.AST) -> list[ast.AST]:
     """
-    Recursively walk an AST node while ignoring nested function and class.
-
-    definitions and return a.
-
-    flat list of nodes in the current scope.
+    Walk an AST node while ignoring nested function and class definitions.
 
     Parameters
     ----------
@@ -335,18 +316,16 @@ def _walk_without_nested_scopes(node: ast.AST) -> list[ast.AST]:
     Returns
     -------
     list[ast.AST]
-        A list of AST nodes in the current scope, excluding nested function and
-        class definitions.
+        A list of AST nodes in the current scope, excluding nested function and class
+        definitions.
     """
 
     nodes = [node]
 
     if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
-
         return nodes
 
     for child in ast.iter_child_nodes(node):
-
         nodes.extend(_walk_without_nested_scopes(child))
 
     return nodes
@@ -356,11 +335,9 @@ def _function_length(function: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
     """
     Calculate the length of a function in terms of physical source lines, using the.
 
-    function's.
-
-    starting line number and ending line number. If the end line number is not
-    available, it is
-    approximated as the starting line number, resulting in a minimum length of 1.
+    function's. starting line number and ending line number. If the end line number is
+    not available, it is approximated as the starting line number, resulting in a
+    minimum length of 1.
 
     Parameters
     ----------
@@ -380,11 +357,7 @@ def _function_length(function: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
 
 def _frequency_label(count: int, total: int) -> str:
     """
-    Convert a count and total into a frequency label of "preferred", "occasional",.
-
-    or "rare" based on.
-
-    the share of the count to the total.
+    Convert a count and total into a frequency label.
 
     Parameters
     ----------
@@ -396,19 +369,16 @@ def _frequency_label(count: int, total: int) -> str:
     Returns
     -------
     str
-        A frequency label indicating the prevalence of the pattern: "preferred"
-        for 60% or more,
-        "occasional" for more than 0% but less than 60%, and "rare" for 0%.
+        A frequency label indicating the prevalence of the pattern: "preferred" for 60%
+        or more, "occasional" for more than 0% but less than 60%, and "rare" for 0%.
     """
 
     share = count / total if total else 0.0
 
     if share >= 0.6:
-
         return "preferred"
 
     if share > 0:
-
         return "occasional"
 
     return "rare"

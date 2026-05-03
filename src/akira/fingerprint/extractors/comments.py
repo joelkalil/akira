@@ -75,7 +75,6 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     code_lines = 0
 
     for source in analysis.files:
-
         lines = source.text.splitlines()
 
         code_lines += sum(
@@ -85,7 +84,6 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
         comments.extend(_comments_for_text(source.text, lines))
 
     if not comments:
-
         return ()
 
     section_comments = [comment for comment in comments if comment["section"]]
@@ -144,7 +142,6 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     ]
 
     if todos:
-
         patterns.append(
             make_pattern(
                 dimension="comments",
@@ -187,13 +184,10 @@ def _comments_for_text(text: str, lines: list[str]) -> list[dict[str, object]]:
     comments: list[dict[str, object]] = []
 
     try:
-
         tokens = tokenize.generate_tokens(io.StringIO(text).readline)
 
         for token in tokens:
-
             if token.type != tokenize.COMMENT:
-
                 continue
 
             line = lines[token.start[0] - 1] if token.start[0] <= len(lines) else ""
@@ -209,7 +203,6 @@ def _comments_for_text(text: str, lines: list[str]) -> list[dict[str, object]]:
             )
 
     except tokenize.TokenError:
-
         return comments
 
     return comments
@@ -226,18 +219,17 @@ def _inline_frequency(
     inline_comments : list[dict[str, object]]
         A list of inline comment information dictionaries.
     code_lines : int
-        The total number of executable code lines, used as the denominator for
-        frequency calculation.
+        The total number of executable code lines, used as the denominator for frequency
+        calculation.
 
     Returns
     -------
     float
-        The frequency of inline comments as a ratio of inline comments to
-        executable code lines.
+        The frequency of inline comments as a ratio of inline comments to executable
+        code lines.
     """
 
     if code_lines <= 0:
-
         return 0.0
 
     return len(inline_comments) / code_lines
@@ -252,9 +244,8 @@ def _language_hint(comment: str) -> str:
     Parameters
     ----------
     comment : str
-        The comment text from which to infer a natural language hint, which may
-        contain various
-        words and punctuation.
+        The comment text from which to infer a natural language hint, which may contain
+        various words and punctuation.
 
     Returns
     -------
@@ -271,11 +262,9 @@ def _language_hint(comment: str) -> str:
     english_score = len(words & ENGLISH_HINTS)
 
     if portuguese_score > english_score:
-
         return "portuguese"
 
     if english_score > portuguese_score:
-
         return "english"
 
     return "unknown"

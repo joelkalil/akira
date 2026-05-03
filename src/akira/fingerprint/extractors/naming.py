@@ -30,7 +30,7 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
 
     Parameters
     ----------
-    analysis: FingerprintAnalysis
+    analysis : FingerprintAnalysis
         The analysis context containing parsed files and metadata.
 
     Returns
@@ -49,9 +49,7 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     }
 
     for source in analysis.parsed_files:
-
         if source.tree is None:
-
             continue
 
         module = source.tree
@@ -59,17 +57,13 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
         assert isinstance(module, ast.Module)
 
         for node in ast.walk(module):
-
             if isinstance(node, ast.ClassDef):
-
                 names["classes"].append(node.name)
 
             elif isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
-
                 names["functions"].append(node.name)
 
                 if node.name.startswith("_") and not node.name.startswith("__"):
-
                     names["private_helpers"].append(node.name)
 
                 names["variables"].extend(arg.arg for arg in node.args.args)
@@ -77,25 +71,19 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
                 names["variables"].extend(arg.arg for arg in node.args.kwonlyargs)
 
             elif isinstance(node, ast.Assign | ast.AnnAssign):
-
                 targets = _assignment_targets(node)
 
                 for target in targets:
-
                     if _is_module_level_constant(module, node, target):
-
                         names["constants"].append(target)
 
                     else:
-
                         names["variables"].append(target)
 
                     if _looks_boolean(node, target):
-
                         names["boolean_prefixes"].append(target)
 
             elif isinstance(node, ast.For | ast.AsyncFor | ast.comprehension):
-
                 names["variables"].extend(_target_names(node.target))
 
     patterns: list[StylePattern] = []
@@ -126,20 +114,19 @@ def _convention_pattern(category: str, values: list[str]) -> tuple[StylePattern,
 
     Parameters
     ----------
-    category: str
+    category : str
         The category of symbols (e.g., "functions", "classes").
-    values: list[str]
+    values : list[str]
         The list of symbol names in the category.
 
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple containing a single StylePattern describing the dominant convention,
-        or an empty tuple if no values are provided.
+        A tuple containing a single StylePattern describing the dominant convention, or
+        an empty tuple if no values are provided.
     """
 
     if not values:
-
         return ()
 
     conventions = [_classify_name(value, category) for value in values]
@@ -165,19 +152,17 @@ def _private_helper_pattern(values: list[str]) -> tuple[StylePattern, ...]:
 
     Parameters
     ----------
-    values: list[str]
+    values : list[str]
         The list of private helper names (starting with a single underscore).
 
     Returns
     -------
     tuple[StylePattern, ...]
         A tuple containing a StylePattern describing the use of single leading
-        underscores,
-        or an empty tuple if no values are provided.
+        underscores, or an empty tuple if no values are provided.
     """
 
     if not values:
-
         return ()
 
     single_underscore = sum(
@@ -203,20 +188,18 @@ def _boolean_prefix_pattern(values: list[str]) -> tuple[StylePattern, ...]:
 
     Parameters
     ----------
-    values: list[str]
-        The list of boolean-like names (e.g., variables that look like they
-        represent boolean values).
+    values : list[str]
+        The list of boolean-like names (e.g., variables that look like they represent
+        boolean values).
 
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple containing a StylePattern describing the use of readable
-        predicate prefixes,
-        or an empty tuple if no values are provided.
+        A tuple containing a StylePattern describing the use of readable predicate
+        prefixes, or an empty tuple if no values are provided.
     """
 
     if not values:
-
         return ()
 
     prefixed = [value for value in values if value.startswith(BOOLEAN_PREFIXES)]
@@ -242,41 +225,34 @@ def _classify_name(name: str, category: str) -> str:
 
     Parameters
     ----------
-    name: str
+    name : str
         The name to classify.
-    category: str
+    category : str
         The category of the name (e.g., "functions", "classes").
 
     Returns
     -------
     str
         The identified naming convention (e.g., "snake_case", "PascalCase",
-        "UPPER_SNAKE_CASE",
-        "camelCase", or "mixed_or_other").
+        "UPPER_SNAKE_CASE", "camelCase", or "mixed_or_other").
     """
 
     if category == "classes" and PASCAL_CASE_RE.match(name):
-
         return "PascalCase"
 
     if category == "constants" and UPPER_SNAKE_CASE_RE.match(name):
-
         return "UPPER_SNAKE_CASE"
 
     if SNAKE_CASE_RE.match(name):
-
         return "snake_case"
 
     if PASCAL_CASE_RE.match(name):
-
         return "PascalCase"
 
     if UPPER_SNAKE_CASE_RE.match(name):
-
         return "UPPER_SNAKE_CASE"
 
     if "_" not in name and any(char.isupper() for char in name[1:]):
-
         return "camelCase"
 
     return "mixed_or_other"
@@ -290,7 +266,7 @@ def _assignment_targets(node: ast.Assign | ast.AnnAssign) -> list[str]:
 
     Parameters
     ----------
-    node: ast.Assign | ast.AnnAssign
+    node : ast.Assign | ast.AnnAssign
         The assignment node to extract target names from.
 
     Returns
@@ -300,13 +276,11 @@ def _assignment_targets(node: ast.Assign | ast.AnnAssign) -> list[str]:
     """
 
     if isinstance(node, ast.AnnAssign):
-
         return _target_names(node.target)
 
     names: list[str] = []
 
     for target in node.targets:
-
         names.extend(_target_names(target))
 
     return names
@@ -320,7 +294,7 @@ def _target_names(target: ast.AST) -> list[str]:
 
     Parameters
     ----------
-    target: ast.AST
+    target : ast.AST
         The assignment target node to extract names from.
 
     Returns
@@ -330,15 +304,12 @@ def _target_names(target: ast.AST) -> list[str]:
     """
 
     if isinstance(target, ast.Name):
-
         return [target.id]
 
     if isinstance(target, ast.Tuple | ast.List):
-
         names: list[str] = []
 
         for element in target.elts:
-
             names.extend(_target_names(element))
 
         return names
@@ -348,17 +319,15 @@ def _target_names(target: ast.AST) -> list[str]:
 
 def _is_module_level_constant(module: ast.Module, node: ast.AST, name: str) -> bool:
     """
-    Determine if an assignment is likely a module-level constant based on its.
-
-    position and naming.
+    Determine whether an assignment is likely a module-level constant.
 
     Parameters
     ----------
-    module: ast.Module
+    module : ast.Module
         The module node containing the assignment.
-    node: ast.AST
+    node : ast.AST
         The assignment node to evaluate.
-    name: str
+    name : str
         The name of the assigned variable.
 
     Returns
@@ -372,17 +341,13 @@ def _is_module_level_constant(module: ast.Module, node: ast.AST, name: str) -> b
 
 def _looks_boolean(node: ast.Assign | ast.AnnAssign, name: str) -> bool:
     """
-    Heuristically determine if an assignment looks like it represents a boolean.
-
-    value based on.
-
-    its name and assigned value.
+    Determine whether an assignment appears to represent a boolean value.
 
     Parameters
     ----------
-    node: ast.Assign | ast.AnnAssign
+    node : ast.Assign | ast.AnnAssign
         The assignment node to evaluate.
-    name: str
+    name : str
         The name of the assigned variable.
 
     Returns
@@ -397,11 +362,9 @@ def _looks_boolean(node: ast.Assign | ast.AnnAssign, name: str) -> bool:
     annotation = getattr(node, "annotation", None)
 
     if isinstance(value, ast.Constant) and isinstance(value.value, bool):
-
         return True
 
     if isinstance(annotation, ast.Name) and annotation.id == "bool":
-
         return True
 
     return name.startswith(BOOLEAN_PREFIXES)

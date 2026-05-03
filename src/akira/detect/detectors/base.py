@@ -42,6 +42,11 @@ class BaseDetector(ABC):
     def name(self) -> str:
         """
         Return a stable detector name for ordering and diagnostics.
+
+        Returns
+        -------
+        str
+            The result of the operation.
         """
 
         return self.__class__.__name__

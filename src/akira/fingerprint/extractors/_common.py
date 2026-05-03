@@ -64,14 +64,13 @@ def modal_pattern(values: Iterable[T]) -> tuple[T | None, float, int]:
     Returns
     -------
     tuple[T | None, float, int]
-        A tuple containing the dominant value (or None if no values),
-        the confidence as a float between 0 and 1, and the total number of observations.
+        A tuple containing the dominant value (or None if no values), the confidence as
+        a float between 0 and 1, and the total number of observations.
     """
 
     items = list(values)
 
     if not items:
-
         return None, 0.0, 0
 
     counter = Counter(items)
@@ -103,19 +102,17 @@ def make_pattern(
         "4_spaces").
     value : object
         The raw value representing the observed pattern (e.g., True for boolean
-        patterns,
-        or a specific string or number).
+        patterns, or a specific string or number).
     confidence : float
-        A confidence score between 0 and 1 indicating how strongly the evidence
-        supports this pattern.
+        A confidence score between 0 and 1 indicating how strongly the evidence supports
+        this pattern.
     samples : int
         The number of observations that contributed to this pattern.
     description : str
         A detailed description of the pattern and its implications for code style.
     evidence : dict[str, object] | None
-        Optional additional data that supports the pattern, which can be used
-        for debugging or
-        display purposes.
+        Optional additional data that supports the pattern, which can be used for
+        debugging or display purposes.
 
     Returns
     -------
@@ -156,7 +153,6 @@ def blank_lines_before(lines: list[str], line_number: int) -> int:
     count = 0
 
     while index >= 0 and not lines[index].strip():
-
         count += 1
 
         index -= 1
@@ -184,7 +180,6 @@ def blank_lines_between(lines: list[str], start_line: int, end_line: int) -> int
     """
 
     if end_line <= start_line:
-
         return 0
 
     return sum(1 for line in lines[start_line : end_line - 1] if not line.strip())
@@ -201,16 +196,14 @@ def iter_function_defs(
     tree : ast.AST
         The abstract syntax tree to traverse for function definitions.
 
-    Returns
-    -------
+    Yields
+    ------
     Iterable[ast.FunctionDef | ast.AsyncFunctionDef]
         An iterable of all function definitions found in the AST.
     """
 
     for node in ast.walk(tree):
-
         if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
-
             yield node
 
 
@@ -226,18 +219,16 @@ def module_name_from_path(relative_path: Path) -> str:
     Returns
     -------
     str
-        The inferred module name, which can be used as a key for grouping files
-        by import root.
+        The inferred module name, which can be used as a key for grouping files by
+        import root.
     """
 
     parts = relative_path.with_suffix("").parts
 
     if "src" in parts:
-
         src_index = parts.index("src")
 
         if src_index + 1 < len(parts):
-
             return parts[src_index + 1]
 
     return parts[0] if parts else ""

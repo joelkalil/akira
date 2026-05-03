@@ -121,7 +121,6 @@ class UnsupportedCraftAgent(CraftError):
         message = f"Unsupported agent '{agent}'."
 
         if supported_text:
-
             message = f"{message} Choose one of: {supported_text}."
 
         super().__init__(message)
@@ -145,9 +144,9 @@ def craft_context(
     ----------
     project_root : Path
         Root directory of the project being crafted.
-    agent : str, optional
+    agent : str
         Agent target to install artifacts into.
-    artifact_dir : Path | None, optional
+    artifact_dir : Path | None
         Optional generated artifact directory.
 
     Returns
@@ -158,9 +157,9 @@ def craft_context(
     Raises
     ------
     MissingCraftPrerequisites
-        Raised when required generated artifacts are missing.
+    Raised when required generated artifacts are missing.
     UnsupportedCraftAgent
-        Raised when the requested agent is unsupported.
+    Raised when the requested agent is unsupported.
     """
 
     resolved_project = project_root.resolve()
@@ -174,7 +173,6 @@ def craft_context(
     missing = validate_craft_prerequisites(resolved_artifacts)
 
     if missing:
-
         raise MissingCraftPrerequisites(missing)
 
     adapter = get_agent_adapter(agent)
@@ -239,13 +237,10 @@ def validate_craft_prerequisites(
     missing: list[CraftPrerequisite] = []
 
     for item, expected_type in checks:
-
         if expected_type == "file" and not item.path.is_file():
-
             missing.append(item)
 
         if expected_type == "dir" and not item.path.is_dir():
-
             missing.append(item)
 
     return tuple(missing)
@@ -268,13 +263,11 @@ def get_agent_adapter(agent: str) -> BaseAgentAdapter:
     Raises
     ------
     UnsupportedCraftAgent
-        Raised when the requested agent is unsupported.
+    Raised when the requested agent is unsupported.
     """
 
     try:
-
         return get_registered_agent_adapter(agent)
 
     except UnsupportedAgent as exc:
-
         raise UnsupportedCraftAgent(exc.agent, supported=exc.supported) from exc

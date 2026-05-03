@@ -47,9 +47,7 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     logical_blocks: list[int] = []
 
     for source in analysis.parsed_files:
-
         if source.tree is None:
-
             continue
 
         lines = source.text.splitlines()
@@ -59,13 +57,10 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
         assert isinstance(module, ast.Module)
 
         for node in module.body:
-
             if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
-
                 top_level.append(blank_lines_before(lines, node.lineno))
 
             if isinstance(node, ast.ClassDef):
-
                 class_methods = [
                     child
                     for child in node.body
@@ -73,27 +68,21 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
                 ]
 
                 for child in class_methods[1:]:
-
                     methods.append(blank_lines_before(lines, child.lineno))
 
         import_gap = _blank_lines_after_import_section(module, lines)
 
         if import_gap is not None:
-
             after_imports.append(import_gap)
 
         for node in ast.walk(module):
-
             if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
-
                 for previous, current in zip(node.body, node.body[1:]):
-
                     previous_end = getattr(previous, "end_lineno", previous.lineno)
 
                     gap = blank_lines_between(lines, previous_end, current.lineno)
 
                     if gap > 0:
-
                         logical_blocks.append(gap)
 
     patterns: list[StylePattern] = []
@@ -170,7 +159,6 @@ def _dominant_blank_line_pattern(
     value, share, samples = modal_pattern(values)
 
     if value is None:
-
         return ()
 
     return (
@@ -190,9 +178,7 @@ def _blank_lines_after_import_section(
     module: ast.Module, lines: list[str]
 ) -> int | None:
     """
-    Determine the number of blank lines between the last import statement and the.
-
-    next code statement.
+    Determine blank lines between the last import and next code statement.
 
     Parameters
     ----------
@@ -204,9 +190,8 @@ def _blank_lines_after_import_section(
     Returns
     -------
     int | None
-        The number of blank lines between the last import and the next
-        statement, or None if no imports
-        are found.
+        The number of blank lines between the last import and the next statement, or
+        None if no imports are found.
     """
 
     import_nodes = [
@@ -225,7 +210,6 @@ def _blank_lines_after_import_section(
     ]
 
     if not imports:
-
         return None
 
     last_import = max(
@@ -237,7 +221,6 @@ def _blank_lines_after_import_section(
     next_nodes = [node for node in module.body if node.lineno > last_line]
 
     if not next_nodes:
-
         return None
 
     return blank_lines_between(lines, last_line, next_nodes[0].lineno)

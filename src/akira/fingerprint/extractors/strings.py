@@ -39,8 +39,8 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple of StylePattern instances representing string literal and
-        interpolation styles.
+        A tuple of StylePattern instances representing string literal and interpolation
+        styles.
     """
 
     quote_styles: list[str] = []
@@ -54,7 +54,6 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     percent_formats = 0
 
     for source in analysis.files:
-
         file_strings = _string_tokens(source.text)
 
         quote_styles.extend(item["quote"] for item in file_strings if item["quote"])
@@ -64,9 +63,7 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
         )
 
     for source in analysis.parsed_files:
-
         if source.tree is None:
-
             continue
 
         fstrings += sum(
@@ -109,14 +106,13 @@ def _quote_style_pattern(styles: list[str]) -> tuple[StylePattern, ...]:
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple containing a StylePattern for the dominant quote style, or empty
-        if no styles are found.
+        A tuple containing a StylePattern for the dominant quote style, or empty if no
+        styles are found.
     """
 
     style, share, samples = modal_pattern(styles)
 
     if style is None:
-
         return ()
 
     return (
@@ -152,15 +148,13 @@ def _interpolation_pattern(
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple containing a StylePattern for the dominant interpolation style,
-        or empty if no
-        styles are found.
+        A tuple containing a StylePattern for the dominant interpolation style, or empty
+        if no styles are found.
     """
 
     total = fstrings + format_calls + percent_formats
 
     if not total:
-
         return ()
 
     counts = {
@@ -191,21 +185,19 @@ def _multiline_pattern(styles: list[str]) -> tuple[StylePattern, ...]:
     Parameters
     ----------
     styles : list[str]
-        A list of quote styles used in multiline string literals (e.g.,
-        "single", "double").
+        A list of quote styles used in multiline string literals (e.g., "single",
+        "double").
 
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple containing a StylePattern for the dominant multiline string
-        quote style, or empty if no
-        styles are found.
+        A tuple containing a StylePattern for the dominant multiline string quote style,
+        or empty if no styles are found.
     """
 
     style, share, samples = modal_pattern(styles)
 
     if style is None:
-
         return ()
 
     return (
@@ -233,27 +225,22 @@ def _string_tokens(text: str) -> list[dict[str, object]]:
     Returns
     -------
     list[dict[str, object]]
-        A list of dictionaries containing classification of string tokens,
-        including quote style
-        and multiline status.
+        A list of dictionaries containing classification of string tokens, including
+        quote style and multiline status.
     """
 
     strings: list[dict[str, object]] = []
 
     try:
-
         tokens = tokenize.generate_tokens(io.StringIO(text).readline)
 
         for token in tokens:
-
             if token.type != tokenize.STRING:
-
                 continue
 
             strings.append(_classify_string_token(token.string))
 
     except tokenize.TokenError:
-
         return strings
 
     return strings
@@ -271,8 +258,8 @@ def _classify_string_token(token: str) -> dict[str, object]:
     Returns
     -------
     dict[str, object]
-        A dictionary containing the quote style and multiline status of the
-        string token.
+        A dictionary containing the quote style and multiline status of the string
+        token.
     """
 
     stripped = token.lstrip()
@@ -284,31 +271,26 @@ def _classify_string_token(token: str) -> dict[str, object]:
     literal = stripped[start:]
 
     if literal.startswith('"""'):
-
         quote = "double"
 
         multiline = True
 
     elif literal.startswith("'''"):
-
         quote = "single"
 
         multiline = True
 
     elif literal.startswith('"'):
-
         quote = "double"
 
         multiline = False
 
     elif literal.startswith("'"):
-
         quote = "single"
 
         multiline = False
 
     else:
-
         quote = ""
 
         multiline = False

@@ -52,6 +52,23 @@ def install_command(
 ) -> None:
     """
     Run the full v2 install flow.
+
+    Parameters
+    ----------
+    path : Path
+        The path value.
+    agent : str | None
+        The agent value.
+    output : Path
+        The output value.
+    sample_size : int
+        The sample size value.
+    exclude : tuple[str, ...]
+        The exclude value.
+    no_claude_md : bool
+        The no claude md value.
+    console : Console | None
+        The console value.
     """
 
     output_console = console or Console()
@@ -67,7 +84,6 @@ def install_command(
     write_stack_markdown(output, stack)
 
     for line in stack_summary_lines(stack):
-
         print_check(line, console=output_console)
 
     print_phase("Capturing coding style", console=output_console)
@@ -97,7 +113,6 @@ def install_command(
     generated_skills = generate_skills(stack, output, fingerprint=fingerprint)
 
     for generated_skill in generated_skills:
-
         print_check(
             relative_to(generated_skill.path, output),
             console=output_console,
@@ -108,7 +123,6 @@ def install_command(
     print_install_results(install_results, console=output_console)
 
     if not no_claude_md:
-
         write_akira_section(path, agents)
 
         print_check(
@@ -127,18 +141,30 @@ def resolve_agents_for_command(
 ) -> tuple[str, ...]:
     """
     Resolve an optional agent flag for secondary commands.
+
+    Parameters
+    ----------
+    agent : str | None
+        The agent value.
+    path : Path
+        The path value.
+    console : Console | None
+        The console value.
+
+    Returns
+    -------
+    tuple[str, ...]
+        The result of the operation.
     """
 
     output = console or Console()
 
     if agent is not None:
-
         return (agent,)
 
     detected = detect_configured_agents(path)
 
     if not detected:
-
         output.print(
             "[dim]No agent configuration detected. Defaulting to claude-code. "
             "Use --agent to override.[/dim]"
@@ -158,6 +184,20 @@ def install_to_agents(
 ) -> tuple[AgentInstallResult, ...]:
     """
     Install generated Akira artifacts for all selected agents.
+
+    Parameters
+    ----------
+    project_root : Path
+        The project root value.
+    output_dir : Path
+        The output dir value.
+    agents : tuple[str, ...]
+        The agents value.
+
+    Returns
+    -------
+    tuple[AgentInstallResult, ...]
+        The result of the operation.
     """
 
     return tuple(
@@ -173,6 +213,13 @@ def print_install_results(
 ) -> None:
     """
     Print the v2 installation result block.
+
+    Parameters
+    ----------
+    install_results : tuple[AgentInstallResult, ...]
+        The install results value.
+    console : Console | None
+        The console value.
     """
 
     output = console or Console()
@@ -180,7 +227,6 @@ def print_install_results(
     print_phase(f"Installing to {len(install_results)} agents", console=output)
 
     for result in install_results:
-
         installed_count = len(
             [
                 installed
@@ -198,12 +244,21 @@ def print_install_results(
 def stack_summary_lines(stack: StackInfo) -> tuple[str, ...]:
     """
     Build stack summary lines grouped by rendered detect sections.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+
+    Returns
+    -------
+    tuple[str, ...]
+        The result of the operation.
     """
 
     lines: list[str] = []
 
     for categories in SECTION_CATEGORIES.values():
-
         tools = [
             tool_value(tool)
             for category in categories
@@ -211,7 +266,6 @@ def stack_summary_lines(stack: StackInfo) -> tuple[str, ...]:
         ]
 
         if tools:
-
             lines.append(join_labels(tools))
 
     return tuple(lines)
@@ -227,6 +281,19 @@ def print_detect_output(
 ) -> None:
     """
     Print the secondary detect command output.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+    generated_skills : tuple[GeneratedSkill, ...]
+        The generated skills value.
+    install_results : tuple[AgentInstallResult, ...]
+        The install results value.
+    output_dir : Path
+        The output dir value.
+    console : Console | None
+        The console value.
     """
 
     output = console or Console()
@@ -234,13 +301,11 @@ def print_detect_output(
     print_phase(f"Scanning {stack.project_root}", console=output)
 
     for line in stack_summary_lines(stack):
-
         print_check(line, console=output)
 
     print_phase("Generating skill tree", console=output)
 
     for generated_skill in generated_skills:
-
         print_check(relative_to(generated_skill.path, output_dir), console=output)
 
     print_install_results(install_results, console=output)
@@ -258,6 +323,19 @@ def print_fingerprint_output(
 ) -> None:
     """
     Print the secondary fingerprint command output.
+
+    Parameters
+    ----------
+    analysis : FingerprintAnalysis
+        The analysis value.
+    sample_size : int
+        The sample size value.
+    exclude : tuple[str, ...]
+        The exclude value.
+    install_results : tuple[AgentInstallResult, ...]
+        The install results value.
+    console : Console | None
+        The console value.
     """
 
     output = console or Console()
@@ -285,11 +363,9 @@ def print_fingerprint_output(
     )
 
     if sample_size:
-
         output.print(f"\n  Sample size: {sample_size}")
 
     for pattern in exclude:
-
         output.print(f"  Exclude: {pattern}")
 
     print_install_results(install_results, console=output)
@@ -305,10 +381,23 @@ def _select_install_agents(
 ) -> tuple[str, ...]:
     """
     Select agents for the install command.
+
+    Parameters
+    ----------
+    project_root : Path
+        The project root value.
+    explicit_agent : str | None
+        The explicit agent value.
+    console : Console
+        The console value.
+
+    Returns
+    -------
+    tuple[str, ...]
+        The result of the operation.
     """
 
     if explicit_agent is not None:
-
         return (explicit_agent,)
 
     detected = detect_configured_agents(project_root)
@@ -316,7 +405,6 @@ def _select_install_agents(
     console.print("\nDetected agents in this project:")
 
     if len(detected) == 1:
-
         console.print(
             f"  {AGENT_LABELS.get(detected[0], detected[0])} "
             f"({get_agent_adapter(detected[0]).target_relative_dir.as_posix()}/)"
@@ -325,10 +413,7 @@ def _select_install_agents(
         return detected
 
     if not detected:
-
-        console.print(
-            "  No agent configuration detected. Defaulting to Claude Code."
-        )
+        console.print("  No agent configuration detected. Defaulting to Claude Code.")
 
         return (DEFAULT_AGENT,)
 
@@ -342,6 +427,18 @@ def _select_agents_interactively(
 ) -> tuple[str, ...]:
     """
     Select agents with a Rich numbered multi-select prompt.
+
+    Parameters
+    ----------
+    detected : tuple[str, ...]
+        The detected value.
+    console : Console
+        The console value.
+
+    Returns
+    -------
+    tuple[str, ...]
+        The result of the operation.
     """
 
     selected = set(detected)
@@ -349,7 +446,6 @@ def _select_agents_interactively(
     console.print("\n  Which agents do you want to install to?\n")
 
     for index, agent in enumerate(SUPPORTED_AGENT_NAMES, start=1):
-
         marker = "●" if agent in selected else "○"
 
         detected_label = " detected" if agent in detected else ""
@@ -376,7 +472,6 @@ def _select_agents_interactively(
     choices = _parse_agent_selection(answer)
 
     if not choices:
-
         console.print("[yellow]No agents selected.[/yellow]")
 
         raise typer.Exit(1)
@@ -387,24 +482,30 @@ def _select_agents_interactively(
 def _parse_agent_selection(answer: str) -> tuple[str, ...]:
     """
     Parse comma-separated agent numbers from the install prompt.
+
+    Parameters
+    ----------
+    answer : str
+        The answer value.
+
+    Returns
+    -------
+    tuple[str, ...]
+        The result of the operation.
     """
 
     selected: list[str] = []
 
     for item in answer.replace(" ", "").split(","):
-
         if not item:
-
             continue
 
         if not item.isdigit():
-
             continue
 
         index = int(item) - 1
 
         if 0 <= index < len(SUPPORTED_AGENT_NAMES):
-
             selected.append(SUPPORTED_AGENT_NAMES[index])
 
     return tuple(dict.fromkeys(selected))

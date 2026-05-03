@@ -60,6 +60,11 @@ class BaseAgentAdapter(ABC):
     def name(self) -> str:
         """
         Return the supported agent name.
+
+        Returns
+        -------
+        str
+            The result of the operation.
         """
 
     @property
@@ -67,6 +72,11 @@ class BaseAgentAdapter(ABC):
     def target_relative_dir(self) -> Path:
         """
         Return the project-relative install directory for this agent.
+
+        Returns
+        -------
+        Path
+            The result of the operation.
         """
 
     def target_directory(self, project_root: Path) -> Path:
@@ -81,8 +91,8 @@ class BaseAgentAdapter(ABC):
         Returns
         -------
         Path
-            The absolute path to the target directory where the agent's
-            context should be installed.
+            The absolute path to the target directory where the agent's context should
+            be installed.
         """
 
         resolved_project = project_root.resolve()
@@ -90,11 +100,9 @@ class BaseAgentAdapter(ABC):
         target = (resolved_project / self.target_relative_dir).resolve()
 
         try:
-
             target.relative_to(resolved_project)
 
         except ValueError as exc:
-
             raise ValueError(
                 f"Agent target for '{self.name}' must stay within the project."
             ) from exc
@@ -119,9 +127,8 @@ class BaseAgentAdapter(ABC):
         Returns
         -------
         AgentInstallResult
-            An object containing the results of the installation, including
-            the agent name
-            and installed files.
+            An object containing the results of the installation, including the agent
+            name and installed files.
         """
 
         target = self.target_directory(project_root)

@@ -67,6 +67,16 @@ class Rule:
     def evaluate(self, stack: StackInfo) -> bool:
         """
         Return whether this rule applies to the detected stack.
+
+        Parameters
+        ----------
+        stack : StackInfo
+            The stack value.
+
+        Returns
+        -------
+        bool
+            The result of the operation.
         """
 
         return self.condition(stack)
@@ -92,6 +102,11 @@ class Finding:
     def can_apply_safely(self) -> bool:
         """
         Return whether Akira can update generated artifacts for this finding.
+
+        Returns
+        -------
+        bool
+            The result of the operation.
         """
 
         return self.safe_change is not None
@@ -111,6 +126,11 @@ class ReviewResult:
     def has_incompatibilities(self) -> bool:
         """
         Return whether strict mode should fail for this result.
+
+        Returns
+        -------
+        bool
+            The result of the operation.
         """
 
         return any(
@@ -121,6 +141,16 @@ class ReviewResult:
     def by_category(self, category: ReviewCategory) -> tuple[Finding, ...]:
         """
         Return findings for one review category.
+
+        Parameters
+        ----------
+        category : ReviewCategory
+            The category value.
+
+        Returns
+        -------
+        tuple[Finding, ...]
+            The result of the operation.
         """
 
         return tuple(
@@ -254,6 +284,18 @@ def analyze_stack(
 ) -> ReviewResult:
     """
     Apply review rules to a detected project stack.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+    rules : tuple[Rule, ...] | None
+        The rules value.
+
+    Returns
+    -------
+    ReviewResult
+        The result of the operation.
     """
 
     active_rules = INITIAL_RULES if rules is None else rules
@@ -281,6 +323,18 @@ def analyze_stack(
 def _python_version_at_least(stack: StackInfo, minimum: tuple[int, int]) -> bool:
     """
     Return whether the detected Python runtime meets a minimum version.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+    minimum : tuple[int, int]
+        The minimum value.
+
+    Returns
+    -------
+    bool
+        The result of the operation.
     """
 
     python_tools = stack.by_category("runtime")
@@ -295,19 +349,16 @@ def _python_version_at_least(stack: StackInfo, minimum: tuple[int, int]) -> bool
     )
 
     if version is None:
-
         return False
 
     parts = version.split(".")
 
     try:
-
         major = int(parts[0])
 
         minor = int(parts[1]) if len(parts) > 1 else 0
 
     except ValueError:
-
         return False
 
     return (major, minor) >= minimum

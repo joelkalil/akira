@@ -64,7 +64,6 @@ class CiCdDetector(BaseDetector):
         )
 
         if workflow_files:
-
             signals.append(
                 Signal(
                     tool="github-actions",
@@ -76,7 +75,6 @@ class CiCdDetector(BaseDetector):
             )
 
         if (project_root / ".gitlab-ci.yml").exists():
-
             signals.append(
                 Signal(
                     tool="gitlab-ci",

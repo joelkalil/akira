@@ -37,8 +37,8 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple of StylePattern instances representing the extracted import
-        style patterns.
+        A tuple of StylePattern instances representing the extracted import style
+        patterns.
     """
 
     local_roots = {
@@ -54,7 +54,6 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     non_empty = [imports for imports in imports_by_file if imports]
 
     if not non_empty:
-
         return ()
 
     all_imports = [item for imports in non_empty for item in imports]
@@ -155,7 +154,6 @@ def _file_imports(source: SourceFile, local_roots: set[str]) -> list[dict[str, o
     """
 
     if source.tree is None:
-
         return []
 
     module = source.tree
@@ -165,9 +163,7 @@ def _file_imports(source: SourceFile, local_roots: set[str]) -> list[dict[str, o
     imports: list[dict[str, object]] = []
 
     for node in ast.walk(module):
-
         if not isinstance(node, ast.Import | ast.ImportFrom):
-
             continue
 
         module_name = _imported_module_name(node)
@@ -205,7 +201,6 @@ def _imported_module_name(node: ast.Import | ast.ImportFrom) -> str:
     """
 
     if isinstance(node, ast.Import):
-
         return node.names[0].name
 
     dots = "." * node.level
@@ -238,17 +233,14 @@ def _classify_import(
     """
 
     if isinstance(node, ast.ImportFrom) and node.level > 0:
-
         return "local"
 
     root = module_name.split(".", 1)[0]
 
     if root in local_roots:
-
         return "local"
 
     if root in sys.stdlib_module_names or root == "__future__":
-
         return "stdlib"
 
     return "third_party"
@@ -256,11 +248,7 @@ def _classify_import(
 
 def _groups_are_ordered(imports: list[dict[str, object]]) -> bool:
     """
-    Check if the import groups in a file follow the standard stdlib, third-party,.
-
-    local order without.
-
-    any violations.
+    Check whether import groups follow the standard grouping order.
 
     Parameters
     ----------
@@ -296,7 +284,6 @@ def _imports_are_alphabetized(imports: list[dict[str, object]]) -> bool:
     by_group: dict[str, list[str]] = defaultdict(list)
 
     for item in imports:
-
         by_group[str(item["group"])].append(str(item["name"]).lstrip("."))
 
     return all(names == sorted(names, key=str.lower) for names in by_group.values())

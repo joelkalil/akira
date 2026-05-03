@@ -58,7 +58,6 @@ class PythonDetector(BaseDetector):
         python_version = self._python_version(pyproject, project_root)
 
         if python_version:
-
             version, source = python_version
 
             signals.append(
@@ -93,8 +92,8 @@ class PythonDetector(BaseDetector):
         Returns
         -------
         tuple[str, str] | None
-            A tuple of (normalized_version, source) if a Python version is
-            found, otherwise None.
+            A tuple of (normalized_version, source) if a Python version is found,
+            otherwise None.
         """
 
         project = pyproject.get("project", {})
@@ -102,7 +101,6 @@ class PythonDetector(BaseDetector):
         requires_python = project.get("requires-python")
 
         if isinstance(requires_python, str):
-
             return _normalize_python_version(requires_python), "pyproject.toml"
 
         poetry_python = (
@@ -113,19 +111,15 @@ class PythonDetector(BaseDetector):
         )
 
         if isinstance(poetry_python, str):
-
             return _normalize_python_version(poetry_python), "pyproject.toml"
 
         for filename in (".python-version", "runtime.txt"):
-
             path = project_root / filename
 
             if path.exists():
-
                 raw = path.read_text(encoding="utf-8").strip()
 
                 if raw:
-
                     return _normalize_python_version(raw), filename
 
         return None
@@ -136,9 +130,9 @@ class PythonDetector(BaseDetector):
         pyproject: dict,
     ) -> list[Signal]:
         """
-        Detect which Python package manager(s) are being used based on lock.
+        Detect which Python package manager(s) are being used based on lock. files and.
 
-        files and pyproject.toml.
+        pyproject.toml.
 
         Parameters
         ----------
@@ -160,27 +154,21 @@ class PythonDetector(BaseDetector):
         build_requires = pyproject.get("build-system", {}).get("requires", [])
 
         if (project_root / "uv.lock").exists():
-
             signals.append(_package_manager_signal("uv", "uv.lock", 1.0))
 
         elif "uv" in tool_config:
-
             signals.append(_package_manager_signal("uv", "pyproject.toml", 1.0))
 
         if (project_root / "poetry.lock").exists():
-
             signals.append(_package_manager_signal("poetry", "poetry.lock", 1.0))
 
         elif "poetry" in tool_config or any(
             str(item).startswith("poetry-core") for item in build_requires
         ):
-
             signals.append(_package_manager_signal("poetry", "pyproject.toml", 1.0))
 
         for conda_file in ("environment.yml", "environment.yaml", "conda-lock.yml"):
-
             if (project_root / conda_file).exists():
-
                 signals.append(_package_manager_signal("conda", conda_file, 1.0))
 
                 break
@@ -189,7 +177,6 @@ class PythonDetector(BaseDetector):
             any(project_root.glob("requirements*.txt"))
             or (project_root / "setup.py").exists()
         ):
-
             signals.append(
                 _package_manager_signal("pip", "requirements/setup files", 0.9)
             )

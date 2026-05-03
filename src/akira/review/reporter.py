@@ -38,6 +38,13 @@ def render_review(
 ) -> None:
     """
     Display categorized review findings with Rich.
+
+    Parameters
+    ----------
+    result : ReviewResult
+        The result value.
+    console : Console | None
+        The console value.
     """
 
     output = console or Console()
@@ -50,17 +57,14 @@ def render_review(
     )
 
     if not result.findings:
-
         output.print("[green]No review findings.[/green]")
 
         return
 
     for category in ReviewCategory:
-
         findings = result.by_category(category)
 
         if not findings:
-
             continue
 
         style, title = CATEGORY_STYLES[category]
@@ -79,7 +83,6 @@ def render_review(
         table.add_column("Migration", no_wrap=True)
 
         for finding in findings:
-
             table.add_row(
                 finding.rule_id,
                 finding.message,

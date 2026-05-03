@@ -93,16 +93,15 @@ class TestingDetector(BaseDetector):
             source : str
                 The source of the detection (e.g., "pyproject.toml", "dependencies").
             confidence : float
-                A confidence score between 0 and 1 indicating the
-                strength of the signal.
-            package : str | None, optional
+                A confidence score between 0 and 1 indicating the strength of the
+                signal.
+            package : str | None
                 The specific package that led to the detection, if applicable.
-            metadata : dict | None, optional
+            metadata : dict | None
                 Additional metadata to include with the signal.
             """
 
             if tool in detected:
-
                 return
 
             detected.add(tool)
@@ -123,37 +122,29 @@ class TestingDetector(BaseDetector):
         pyproject_tools = pyproject.get("tool", {})
 
         if "pytest" in pyproject_tools:
-
             emit("pytest", "pyproject.toml", 1.0)
 
         if "coverage" in pyproject_tools:
-
             emit("coverage", "pyproject.toml", 1.0)
 
         if "tox" in pyproject_tools:
-
             emit("tox", "pyproject.toml", 1.0)
 
         if "nox" in pyproject_tools:
-
             emit("nox", "pyproject.toml", 1.0)
 
         setup_cfg = read_setup_cfg(project_root / "setup.cfg")
 
         if setup_cfg.has_section("tool:pytest"):
-
             emit("pytest", "setup.cfg", 1.0)
 
         if setup_cfg.has_section("coverage:run"):
-
             emit("coverage", "setup.cfg", 1.0)
 
         if (project_root / "pytest.ini").exists():
-
             emit("pytest", "pytest.ini", 1.0)
 
         if (project_root / ".coveragerc").exists():
-
             emit("coverage", ".coveragerc", 1.0)
 
         for filename, tool in (
@@ -161,21 +152,15 @@ class TestingDetector(BaseDetector):
             ("nox.py", "nox"),
             ("noxfile.py", "nox"),
         ):
-
             if (project_root / filename).exists():
-
                 emit(tool, filename, 1.0)
 
         for package, (tool, import_name) in self.TESTING_TOOLS.items():
-
             if package in dependencies:
-
                 emit(tool, "dependencies", 0.9, package=package)
 
         for package in sorted(dependencies):
-
             if package.startswith("pytest-"):
-
                 emit(
                     package,
                     "dependencies",
@@ -185,19 +170,15 @@ class TestingDetector(BaseDetector):
                 )
 
         if not any(iter_python_files(project_root)):
-
             return signals
 
         imports = scan_imports(project_root)
 
         if "unittest" in imports:
-
             emit("unittest", "source imports", 0.75)
 
         for package, (tool, import_name) in self.TESTING_TOOLS.items():
-
             if package_to_import_name(import_name) in imports:
-
                 emit(tool, "source imports", 0.75, package=package)
 
         return signals

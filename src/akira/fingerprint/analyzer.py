@@ -73,6 +73,20 @@ def analyze_project(
 ) -> FingerprintAnalysis:
     """
     Return sampled Python files with raw text and AST parse results.
+
+    Parameters
+    ----------
+    project_root : Path
+        The project root value.
+    sample_size : int
+        The sample size value.
+    exclude : Iterable[str]
+        The exclude value.
+
+    Returns
+    -------
+    FingerprintAnalysis
+        The result of the operation.
     """
 
     root = project_root.resolve()
@@ -88,6 +102,16 @@ def analyze_project(
 def extract_style_patterns(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     """
     Run all v1 practical fingerprint extractors over a source sample.
+
+    Parameters
+    ----------
+    analysis : FingerprintAnalysis
+        The analysis value.
+
+    Returns
+    -------
+    tuple[StylePattern, ...]
+        The result of the operation.
     """
 
     extractors = (
@@ -106,7 +130,6 @@ def extract_style_patterns(analysis: FingerprintAnalysis) -> tuple[StylePattern,
     patterns: list[StylePattern] = []
 
     for extractor in extractors:
-
         patterns.extend(extractor(analysis))
 
     return tuple(patterns)
@@ -120,6 +143,20 @@ def fingerprint_project(
 ) -> FingerprintAnalysis:
     """
     Collect files and attach structured style patterns.
+
+    Parameters
+    ----------
+    project_root : Path
+        The project root value.
+    sample_size : int
+        The sample size value.
+    exclude : Iterable[str]
+        The exclude value.
+
+    Returns
+    -------
+    FingerprintAnalysis
+        The result of the operation.
     """
 
     analysis = analyze_project(project_root, sample_size=sample_size, exclude=exclude)
@@ -139,12 +176,25 @@ def collect_python_files(
 ) -> tuple[Path, ...]:
     """
     Select up to ``sample_size`` Python files from a project.
+
+    Parameters
+    ----------
+    project_root : Path
+        The project root value.
+    sample_size : int
+        The sample size value.
+    exclude : Iterable[str]
+        The exclude value.
+
+    Returns
+    -------
+    tuple[Path, ...]
+        The result of the operation.
     """
 
     root = project_root.resolve()
 
     if sample_size <= 0 or not root.exists():
-
         return ()
 
     exclude_patterns = tuple(_normalize_exclude_pattern(pattern) for pattern in exclude)
@@ -152,7 +202,6 @@ def collect_python_files(
     files: list[Path] = []
 
     for directory, dirnames, filenames in os.walk(root):
-
         current_dir = Path(directory)
 
         relative_dir = current_dir.relative_to(root)
@@ -164,9 +213,7 @@ def collect_python_files(
         ]
 
         for filename in sorted(filenames):
-
             if not filename.endswith(".py"):
-
                 continue
 
             path = current_dir / filename
@@ -174,13 +221,11 @@ def collect_python_files(
             relative_path = path.relative_to(root)
 
             if _is_skipped(relative_path, exclude_patterns):
-
                 continue
 
             files.append(path)
 
             if len(files) >= sample_size:
-
                 return tuple(files)
 
     return tuple(files)
@@ -194,6 +239,18 @@ def collect_python_files(
 def _read_source_file(path: Path, project_root: Path) -> SourceFile:
     """
     Read and parse a Python source file for fingerprint analysis.
+
+    Parameters
+    ----------
+    path : Path
+        The path value.
+    project_root : Path
+        The project root value.
+
+    Returns
+    -------
+    SourceFile
+        The result of the operation.
     """
 
     relative_path = path.relative_to(project_root)
@@ -201,7 +258,6 @@ def _read_source_file(path: Path, project_root: Path) -> SourceFile:
     read_result = _read_python_text(path)
 
     if isinstance(read_result, OSError):
-
         return SourceFile(
             path=path,
             relative_path=relative_path,
@@ -212,11 +268,9 @@ def _read_source_file(path: Path, project_root: Path) -> SourceFile:
     text = read_result
 
     try:
-
         tree = ast.parse(text, filename=str(path))
 
     except SyntaxError as error:
-
         return SourceFile(
             path=path,
             relative_path=relative_path,
@@ -230,24 +284,28 @@ def _read_source_file(path: Path, project_root: Path) -> SourceFile:
 def _read_python_text(path: Path) -> str | OSError:
     """
     Read Python source text while respecting file encoding declarations.
+
+    Parameters
+    ----------
+    path : Path
+        The path value.
+
+    Returns
+    -------
+    str | OSError
+        The result of the operation.
     """
 
     try:
-
         with tokenize.open(path) as file:
-
             return file.read()
 
     except (OSError, SyntaxError, UnicodeDecodeError) as primary_error:
-
         try:
-
             return path.read_text(encoding="utf-8", errors="replace")
 
         except OSError as fallback_error:
-
             if isinstance(primary_error, OSError):
-
                 return primary_error
 
             return fallback_error
@@ -256,6 +314,16 @@ def _read_python_text(path: Path) -> str | OSError:
 def _format_syntax_error(error: SyntaxError) -> str:
     """
     Format a syntax error into a compact analysis message.
+
+    Parameters
+    ----------
+    error : SyntaxError
+        The error value.
+
+    Returns
+    -------
+    str
+        The result of the operation.
     """
 
     location = f"line {error.lineno}" if error.lineno is not None else "unknown line"
@@ -266,22 +334,31 @@ def _format_syntax_error(error: SyntaxError) -> str:
 def _is_skipped(relative_path: Path, exclude_patterns: tuple[str, ...]) -> bool:
     """
     Return whether a relative path should be skipped during analysis.
+
+    Parameters
+    ----------
+    relative_path : Path
+        The relative path value.
+    exclude_patterns : tuple[str, ...]
+        The exclude patterns value.
+
+    Returns
+    -------
+    bool
+        The result of the operation.
     """
 
     if relative_path == Path("."):
-
         return False
 
     parts = relative_path.parts
 
     if any(part in DEFAULT_EXCLUDED_DIRS for part in parts):
-
         return True
 
     name = relative_path.name
 
     if name.endswith(GENERATED_FILE_SUFFIXES):
-
         return True
 
     relative_posix = relative_path.as_posix()
@@ -294,14 +371,24 @@ def _is_skipped(relative_path: Path, exclude_patterns: tuple[str, ...]) -> bool:
 def _matches_exclude(relative_posix: str, pattern: str) -> bool:
     """
     Return whether a normalized relative path matches an exclude pattern.
+
+    Parameters
+    ----------
+    relative_posix : str
+        The relative posix value.
+    pattern : str
+        The pattern value.
+
+    Returns
+    -------
+    bool
+        The result of the operation.
     """
 
     if not pattern:
-
         return False
 
     if any(marker in pattern for marker in "*?[]"):
-
         return fnmatch.fnmatch(relative_posix, pattern)
 
     return relative_posix == pattern or relative_posix.startswith(f"{pattern}/")
@@ -310,6 +397,16 @@ def _matches_exclude(relative_posix: str, pattern: str) -> bool:
 def _normalize_exclude_pattern(pattern: str) -> str:
     """
     Normalize an exclude pattern for POSIX-style path matching.
+
+    Parameters
+    ----------
+    pattern : str
+        The pattern value.
+
+    Returns
+    -------
+    str
+        The result of the operation.
     """
 
     return pattern.strip().replace("\\", "/").strip("/")

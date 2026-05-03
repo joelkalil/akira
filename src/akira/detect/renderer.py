@@ -147,12 +147,12 @@ def render_stack_markdown(
 
     Parameters
     ----------
-    stack
-        Stack information to render.
-    generated_at
-        Optional generation timestamp.
-    akira_version
-        Akira version to include in the rendered artifact.
+    stack : StackInfo
+        The stack value.
+    generated_at : datetime | None
+        The generated at value.
+    akira_version : str
+        The akira version value.
 
     Returns
     -------
@@ -188,10 +188,10 @@ def write_stack_markdown(output_dir: Path, stack: StackInfo) -> Path:
 
     Parameters
     ----------
-    output_dir
-        Directory that should receive the generated file.
-    stack
-        Stack information to render.
+    output_dir : Path
+        The output dir value.
+    stack : StackInfo
+        The stack value.
 
     Returns
     -------
@@ -214,8 +214,8 @@ def build_stack_sections(stack: StackInfo) -> tuple[StackSection, ...]:
 
     Parameters
     ----------
-    stack
-        Stack information to organize into sections.
+    stack : StackInfo
+        The stack value.
 
     Returns
     -------
@@ -226,7 +226,6 @@ def build_stack_sections(stack: StackInfo) -> tuple[StackSection, ...]:
     sections: list[StackSection] = []
 
     for title, categories in SECTION_CATEGORIES.items():
-
         rows = tuple(
             (tool_label(tool), tool_value(tool))
             for category in categories
@@ -234,7 +233,6 @@ def build_stack_sections(stack: StackInfo) -> tuple[StackSection, ...]:
         )
 
         if rows:
-
             sections.append(StackSection(title=title, rows=rows))
 
     return tuple(sections)
@@ -246,8 +244,8 @@ def build_active_skills(stack: StackInfo) -> tuple[ActiveSkill, ...]:
 
     Parameters
     ----------
-    stack
-        Stack information to inspect.
+    stack : StackInfo
+        The stack value.
 
     Returns
     -------
@@ -258,13 +256,11 @@ def build_active_skills(stack: StackInfo) -> tuple[ActiveSkill, ...]:
     paths: list[str] = []
 
     for signal in stack.signals:
-
         category = normalize_skill_category(signal.category)
 
         path = SKILL_HINTS.get((category, signal.tool))
 
         if path and path not in paths:
-
             paths.append(path)
 
     return tuple(ActiveSkill(path=path) for path in paths)
@@ -276,8 +272,8 @@ def tool_label(tool: ToolInfo) -> str:
 
     Parameters
     ----------
-    tool
-        Tool information to label.
+    tool : ToolInfo
+        The tool value.
 
     Returns
     -------
@@ -294,8 +290,8 @@ def tool_value(tool: ToolInfo) -> str:
 
     Parameters
     ----------
-    tool
-        Tool information to display.
+    tool : ToolInfo
+        The tool value.
 
     Returns
     -------
@@ -306,55 +302,42 @@ def tool_value(tool: ToolInfo) -> str:
     name = tool.name.replace("-", " ").title()
 
     if tool.name in {"mypy", "pip", "pytest", "ruff", "uv"}:
-
         name = tool.name
 
     elif tool.name == "fastapi":
-
         name = "FastAPI"
 
     elif tool.name == "github-actions":
-
         name = "GitHub Actions"
 
     elif tool.name == "gitlab-ci":
-
         name = "GitLab CI"
 
     elif tool.name == "pre-commit":
-
         return "yes"
 
     elif tool.name == "sqlalchemy":
-
         name = "SQLAlchemy"
 
     elif tool.name == "docker-compose":
-
         name = "Docker Compose"
 
     elif tool.name == "gcp":
-
         name = "GCP"
 
     elif tool.name == "aws":
-
         name = "AWS"
 
     elif tool.name == "mkdocs":
-
         name = "MkDocs"
 
     elif tool.name == "pdoc":
-
         name = "pdoc"
 
     elif tool.name == "sphinx":
-
         name = "Sphinx"
 
     elif tool.name == "psycopg3":
-
         name = "psycopg3"
 
     return f"{name} {tool.version}" if tool.version else name
@@ -371,8 +354,8 @@ def _humanize_tool_name(name: str) -> str:
 
     Parameters
     ----------
-    name
-        Raw tool name.
+    name : str
+        The name value.
 
     Returns
     -------

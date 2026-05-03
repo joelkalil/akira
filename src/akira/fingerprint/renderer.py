@@ -215,6 +215,20 @@ def render_fingerprint_markdown(
 ) -> str:
     """
     Render fingerprint.md content for a fingerprint analysis.
+
+    Parameters
+    ----------
+    analysis : FingerprintAnalysis
+        The analysis value.
+    generated_at : datetime | None
+        The generated at value.
+    sample_size : int | None
+        The sample size value.
+
+    Returns
+    -------
+    str
+        The result of the operation.
     """
 
     timestamp = generated_at or datetime.now(timezone.utc)
@@ -247,6 +261,20 @@ def write_fingerprint_markdown(
 ) -> Path:
     """
     Create the output directory and write fingerprint.md into it.
+
+    Parameters
+    ----------
+    output_dir : Path
+        The output dir value.
+    analysis : FingerprintAnalysis
+        The analysis value.
+    sample_size : int | None
+        The sample size value.
+
+    Returns
+    -------
+    Path
+        The result of the operation.
     """
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -266,6 +294,16 @@ def build_fingerprint_sections(
 ) -> tuple[FingerprintSection, ...]:
     """
     Build all v1.0 fingerprint sections in a stable order.
+
+    Parameters
+    ----------
+    patterns : tuple[StylePattern, ...]
+        The patterns value.
+
+    Returns
+    -------
+    tuple[FingerprintSection, ...]
+        The result of the operation.
     """
 
     by_dimension_and_name = {
@@ -275,19 +313,15 @@ def build_fingerprint_sections(
     sections: list[FingerprintSection] = []
 
     for dimension, title, names in SECTION_ORDER:
-
         lines: list[FingerprintLine] = []
 
         for name in names:
-
             pattern = by_dimension_and_name.get((dimension, name))
 
             if pattern is None and dimension == "general":
-
                 pattern = by_dimension_and_name.get(("structure", name))
 
             if pattern is None:
-
                 continue
 
             lines.append(_line_for_pattern(pattern))
@@ -300,26 +334,31 @@ def build_fingerprint_sections(
 def format_fingerprint_value(value: Any) -> str:
     """
     Format a structured fingerprint value for human-readable Markdown.
+
+    Parameters
+    ----------
+    value : Any
+        The value value.
+
+    Returns
+    -------
+    str
+        The result of the operation.
     """
 
     if isinstance(value, tuple):
-
         return " -> ".join(format_fingerprint_value(item) for item in value)
 
     if isinstance(value, list):
-
         return ", ".join(format_fingerprint_value(item) for item in value)
 
     if isinstance(value, bool):
-
         return "yes" if value else "no"
 
     if isinstance(value, int):
-
         return str(value)
 
     if isinstance(value, float):
-
         return f"{value:.2f}"
 
     text = str(value)
@@ -335,6 +374,16 @@ def format_fingerprint_value(value: Any) -> str:
 def _line_for_pattern(pattern: StylePattern) -> FingerprintLine:
     """
     Convert a style pattern into a rendered fingerprint line.
+
+    Parameters
+    ----------
+    pattern : StylePattern
+        The pattern value.
+
+    Returns
+    -------
+    FingerprintLine
+        The result of the operation.
     """
 
     return FingerprintLine(
@@ -348,16 +397,24 @@ def _line_for_pattern(pattern: StylePattern) -> FingerprintLine:
 def _format_value(pattern: StylePattern) -> str:
     """
     Format a style pattern value for human-readable output.
+
+    Parameters
+    ----------
+    pattern : StylePattern
+        The pattern value.
+
+    Returns
+    -------
+    str
+        The result of the operation.
     """
 
     if isinstance(pattern.value, int) and pattern.dimension == "spacing":
-
         noun = "blank line" if pattern.value == 1 else "blank lines"
 
         return f"{pattern.value} {noun}"
 
     if pattern.name == "nesting_depth" and isinstance(pattern.value, int):
-
         noun = "level" if pattern.value == 1 else "levels"
 
         return f"{pattern.value} {noun}"
@@ -368,6 +425,16 @@ def _format_value(pattern: StylePattern) -> str:
 def _format_raw_value(value: Any) -> str:
     """
     Format a raw fingerprint value for display.
+
+    Parameters
+    ----------
+    value : Any
+        The value value.
+
+    Returns
+    -------
+    str
+        The result of the operation.
     """
 
     return format_fingerprint_value(value)
@@ -376,6 +443,16 @@ def _format_raw_value(value: Any) -> str:
 def _humanize_label(value: str) -> str:
     """
     Convert an internal pattern name into a display label.
+
+    Parameters
+    ----------
+    value : str
+        The value value.
+
+    Returns
+    -------
+    str
+        The result of the operation.
     """
 
     return value.replace("_", " ").replace("-", " ").title()

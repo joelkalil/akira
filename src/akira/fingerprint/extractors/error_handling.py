@@ -37,16 +37,14 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
     Returns
     -------
     tuple[StylePattern, ...]
-        A tuple of StylePattern instances representing the extracted
-        error-handling patterns.
+        A tuple of StylePattern instances representing the extracted error-handling
+        patterns.
     """
 
     handlers: list[ast.ExceptHandler] = []
 
     for source in analysis.parsed_files:
-
         if source.tree is not None:
-
             handlers.extend(
                 node
                 for node in ast.walk(source.tree)
@@ -54,7 +52,6 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
             )
 
     if not handlers:
-
         return ()
 
     specific = sum(1 for handler in handlers if _is_specific_exception(handler))
@@ -103,11 +100,7 @@ def extract(analysis: FingerprintAnalysis) -> tuple[StylePattern, ...]:
 
 def _is_specific_exception(handler: ast.ExceptHandler) -> bool:
     """
-    Determine if an except handler catches specific exceptions rather than using a.
-
-    bare except or.
-
-    generic Exception.
+    Determine whether an except handler catches specific exceptions.
 
     Parameters
     ----------
@@ -117,13 +110,11 @@ def _is_specific_exception(handler: ast.ExceptHandler) -> bool:
     Returns
     -------
     bool
-        True if the handler catches specific exceptions, False if it uses a bare
-        except or generic
-        Exception.
+        True if the handler catches specific exceptions, False if it uses a bare except
+        or generic Exception.
     """
 
     if handler.type is None:
-
         return False
 
     names = _exception_names(handler.type)
@@ -133,11 +124,7 @@ def _is_specific_exception(handler: ast.ExceptHandler) -> bool:
 
 def _exception_names(node: ast.AST) -> list[str]:
     """
-    Recursively extract exception names from an AST node representing an exception.
-
-    type in an except.
-
-    handler.
+    Recursively extract exception names from an except-handler type node.
 
     Parameters
     ----------
@@ -151,19 +138,15 @@ def _exception_names(node: ast.AST) -> list[str]:
     """
 
     if isinstance(node, ast.Name):
-
         return [node.id]
 
     if isinstance(node, ast.Attribute):
-
         return [node.attr]
 
     if isinstance(node, ast.Tuple):
-
         names: list[str] = []
 
         for element in node.elts:
-
             names.extend(_exception_names(element))
 
         return names
@@ -175,9 +158,7 @@ def _logs_on_catch(handler: ast.ExceptHandler) -> bool:
     """
     Determine if an except handler logs caught exceptions by checking for calls to.
 
-    logging methods.
-
-    within the handler body.
+    logging methods. within the handler body.
 
     Parameters
     ----------
@@ -191,15 +172,12 @@ def _logs_on_catch(handler: ast.ExceptHandler) -> bool:
     """
 
     for node in ast.walk(handler):
-
         if not isinstance(node, ast.Call):
-
             continue
 
         function = node.func
 
         if isinstance(function, ast.Attribute) and function.attr in LOG_METHODS:
-
             return True
 
     return False
@@ -209,9 +187,7 @@ def _reraises(handler: ast.ExceptHandler) -> bool:
     """
     Determine if an except handler re-raises exceptions after local handling by.
 
-    checking for raise.
-
-    statements within the handler body.
+    checking for raise. statements within the handler body.
 
     Parameters
     ----------

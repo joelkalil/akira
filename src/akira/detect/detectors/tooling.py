@@ -105,10 +105,18 @@ class ToolingDetector(BaseDetector):
         def emit(tool: str, source: str, confidence: float) -> None:
             """
             Return emit result.
+
+            Parameters
+            ----------
+            tool : str
+                The tool value.
+            source : str
+                The source value.
+            confidence : float
+                The confidence value.
             """
 
             if tool in detected:
-
                 return
 
             detected.add(tool)
@@ -128,33 +136,24 @@ class ToolingDetector(BaseDetector):
         pyproject_tools = pyproject.get("tool", {})
 
         for tool, key in self.PYPROJECT_TOOL_KEYS.items():
-
             if key in pyproject_tools:
-
                 emit(tool, "pyproject.toml", 1.0)
 
         setup_cfg = read_setup_cfg(project_root / "setup.cfg")
 
         for tool, section in self.SETUP_CFG_SECTIONS.items():
-
             if setup_cfg.has_section(section):
-
                 emit(tool, "setup.cfg", 1.0)
 
         for tool, filenames in self.ROOT_CONFIG_FILES.items():
-
             for filename in filenames:
-
                 if (project_root / filename).exists():
-
                     emit(tool, filename, 1.0)
 
                     break
 
         for tool in self.TOOL_CATEGORIES:
-
             if tool in dependencies:
-
                 emit(tool, "dependencies", 0.9)
 
         return signals

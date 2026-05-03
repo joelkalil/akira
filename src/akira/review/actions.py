@@ -44,6 +44,20 @@ def apply_review_findings(
 ) -> tuple[StackInfo, tuple[AppliedReviewChange, ...]]:
     """
     Apply accepted safe findings and regenerate stack-dependent artifacts.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+    findings : tuple[Finding, ...]
+        The findings value.
+    output_dir : Path
+        The output dir value.
+
+    Returns
+    -------
+    tuple[StackInfo, tuple[AppliedReviewChange, ...]]
+        The result of the operation.
     """
 
     accepted_stack = stack
@@ -51,11 +65,9 @@ def apply_review_findings(
     changed_findings: list[Finding] = []
 
     for finding in findings:
-
         updated_stack = apply_finding_to_stack(accepted_stack, finding)
 
         if updated_stack == accepted_stack:
-
             continue
 
         changed_findings.append(finding)
@@ -63,7 +75,6 @@ def apply_review_findings(
         accepted_stack = updated_stack
 
     if not changed_findings:
-
         return accepted_stack, ()
 
     stack_path = write_stack_markdown(output_dir, accepted_stack)
@@ -85,12 +96,23 @@ def apply_review_findings(
 def apply_finding_to_stack(stack: StackInfo, finding: Finding) -> StackInfo:
     """
     Return a new stack model with a finding's safe metadata change applied.
+
+    Parameters
+    ----------
+    stack : StackInfo
+        The stack value.
+    finding : Finding
+        The finding value.
+
+    Returns
+    -------
+    StackInfo
+        The result of the operation.
     """
 
     change = finding.safe_change
 
     if change is None:
-
         return stack
 
     remove_keys = {
@@ -107,13 +129,11 @@ def apply_finding_to_stack(stack: StackInfo, finding: Finding) -> StackInfo:
     existing_keys = {(signal.tool, signal.category) for signal in signals}
 
     for tool, category in change.add_signals:
-
         normalized_tool = tool.strip().lower()
 
         normalized_category = category.strip().lower()
 
         if (normalized_tool, normalized_category) in existing_keys:
-
             continue
 
         signals.append(

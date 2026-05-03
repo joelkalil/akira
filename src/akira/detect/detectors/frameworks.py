@@ -69,9 +69,7 @@ class FrameworkDetector(BaseDetector):
         dependencies = extract_dependencies(project_root)
 
         for package, category in self.FRAMEWORKS.items():
-
             if package in dependencies:
-
                 signals.append(
                     Signal(
                         tool=package,
@@ -87,11 +85,9 @@ class FrameworkDetector(BaseDetector):
         detected = {signal.tool for signal in signals}
 
         for package, category in self.FRAMEWORKS.items():
-
             import_name = package_to_import_name(package)
 
             if package not in detected and import_name in imported_modules:
-
                 signals.append(
                     Signal(
                         tool=package,

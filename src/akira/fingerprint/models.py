@@ -34,6 +34,11 @@ class SourceFile:
     def parsed(self) -> bool:
         """
         Return whether the file was parsed successfully.
+
+        Returns
+        -------
+        bool
+            The result of the operation.
         """
 
         return self.tree is not None and self.parse_error is None
@@ -76,6 +81,11 @@ class FingerprintAnalysis:
     def parsed_files(self) -> tuple[SourceFile, ...]:
         """
         Return files with a usable AST.
+
+        Returns
+        -------
+        tuple[SourceFile, ...]
+            The result of the operation.
         """
 
         return tuple(file for file in self.files if file.parsed)
@@ -84,6 +94,11 @@ class FingerprintAnalysis:
     def failed_files(self) -> tuple[SourceFile, ...]:
         """
         Return files that could not be parsed as Python.
+
+        Returns
+        -------
+        tuple[SourceFile, ...]
+            The result of the operation.
         """
 
         return tuple(file for file in self.files if file.parse_error is not None)
@@ -92,10 +107,14 @@ class FingerprintAnalysis:
     def confidence(self) -> float:
         """
         Return the average confidence across extracted patterns.
+
+        Returns
+        -------
+        float
+            The result of the operation.
         """
 
         if not self.patterns:
-
             return 0.0
 
         return round(

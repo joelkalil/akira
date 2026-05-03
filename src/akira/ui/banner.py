@@ -22,6 +22,11 @@ TAGLINE = "明 — bright, clear, intelligent\nOne command to teach your agent y
 def print_banner(console: Console | None = None) -> None:
     """
     Print the Akira ASCII banner and tagline.
+
+    Parameters
+    ----------
+    console : Console | None
+        The console value.
     """
 
     output = console or Console()

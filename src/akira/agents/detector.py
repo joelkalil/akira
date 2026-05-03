@@ -13,10 +13,20 @@ from akira.agents import SUPPORTED_AGENT_NAMES
 
 def detect_configured_agents(project_root: Path) -> tuple[str, ...]:
     """
-    Return configured agents detected at the project root.
+    Return configured agents detected at the project root. Detection uses project-local.
 
-    Detection uses project-local configuration markers and returns agent names
-    in the same stable order as ``SUPPORTED_AGENT_NAMES``.
+    configuration markers and returns agent names in the same stable order as
+    ``SUPPORTED_AGENT_NAMES``.
+
+    Parameters
+    ----------
+    project_root : Path
+        The project root value.
+
+    Returns
+    -------
+    tuple[str, ...]
+        The result of the operation.
     """
 
     indicators = {
@@ -36,6 +46,16 @@ def detect_configured_agents(project_root: Path) -> tuple[str, ...]:
 def _has_claude_code_config(project_root: Path) -> bool:
     """
     Return whether Claude Code project configuration exists.
+
+    Parameters
+    ----------
+    project_root : Path
+        The project root value.
+
+    Returns
+    -------
+    bool
+        The result of the operation.
     """
 
     return (project_root / ".claude").is_dir()
@@ -44,6 +64,16 @@ def _has_claude_code_config(project_root: Path) -> bool:
 def _has_cursor_config(project_root: Path) -> bool:
     """
     Return whether Cursor project configuration exists.
+
+    Parameters
+    ----------
+    project_root : Path
+        The project root value.
+
+    Returns
+    -------
+    bool
+        The result of the operation.
     """
 
     return (project_root / ".cursor").is_dir()
@@ -52,16 +82,24 @@ def _has_cursor_config(project_root: Path) -> bool:
 def _has_copilot_config(project_root: Path) -> bool:
     """
     Return whether GitHub Copilot project configuration exists.
+
+    Parameters
+    ----------
+    project_root : Path
+        The project root value.
+
+    Returns
+    -------
+    bool
+        The result of the operation.
     """
 
     github_dir = project_root / ".github"
 
     if (github_dir / "copilot-instructions.md").is_file():
-
         return True
 
     if not github_dir.is_dir():
-
         return False
 
     return any(path.is_file() for path in github_dir.glob("copilot*.md"))
@@ -70,6 +108,16 @@ def _has_copilot_config(project_root: Path) -> bool:
 def _has_codex_config(project_root: Path) -> bool:
     """
     Return whether Codex project configuration exists.
+
+    Parameters
+    ----------
+    project_root : Path
+        The project root value.
+
+    Returns
+    -------
+    bool
+        The result of the operation.
     """
 
     return (project_root / ".codex").is_dir()
@@ -78,6 +126,16 @@ def _has_codex_config(project_root: Path) -> bool:
 def _never_detect(_project_root: Path) -> bool:
     """
     Return false for unsupported agent detection checks.
+
+    Parameters
+    ----------
+    _project_root : Path
+        The project root value.
+
+    Returns
+    -------
+    bool
+        The result of the operation.
     """
 
     return False
