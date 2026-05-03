@@ -100,6 +100,7 @@ class TestFastapiProjectStackMarkdownRendersSectionsAndActiveSkills:
             "## Infrastructure",
             "## Active Skills",
         ):
+
             assert section in content
 
         assert "- **Web**: FastAPI 0.115.0" in content
@@ -130,6 +131,7 @@ class TestFastapiProjectStackMarkdownRendersSectionsAndActiveSkills:
             "python/infra/docker.md",
             "python/ci_cd/github_actions.md",
         ):
+
             assert f"- `{skill}`" in content
 
         assert "- `python/infra/docker.md`" in content
@@ -143,6 +145,7 @@ class TestFastapiProjectStackMarkdownRendersSectionsAndActiveSkills:
 
 
 def _frontmatter(content: str) -> dict[str, str]:
+
     _, raw_frontmatter, _ = content.split("---", 2)
 
     return yaml.safe_load(raw_frontmatter)
@@ -226,6 +229,7 @@ class TestStackMarkdownRendersNewInfraCiAndDatabaseTools:
             "- **Driver**: psycopg3 3.2.3",
             "- **Cache**: Redis",
         ):
+
             assert row in content
 
         assert "- `python/infra/gcp.md`" in content

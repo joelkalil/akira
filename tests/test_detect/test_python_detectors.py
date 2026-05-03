@@ -72,6 +72,7 @@ class TestFastapiFixtureEmitsFrameworkTestingAndToolingSignals:
         }
 
         for category, tools in expected_by_category.items():
+
             assert tools <= {
                 signal.tool for signal in stack.signals if signal.category == category
             }, category
@@ -120,12 +121,12 @@ class TestDetectsFrameworksFromDependencies:
 
         (tmp_path / "pyproject.toml").write_text(
             """
-[project]
-dependencies = [
-    "fastapi==0.115.0",
-    "typer>=0.15",
-]
-""".strip(),
+            [project]
+            dependencies = [
+                "fastapi==0.115.0",
+                "typer>=0.15",
+            ]
+            """.strip(),
             encoding="utf-8",
         )
 
@@ -215,12 +216,12 @@ class TestDetectsRuffMypyAndPreCommitFromConfig:
 
         (tmp_path / "pyproject.toml").write_text(
             """
-[tool.ruff]
-line-length = 88
+            [tool.ruff]
+            line-length = 88
 
-[tool.mypy]
-strict = true
-""".strip(),
+            [tool.mypy]
+            strict = true
+            """.strip(),
             encoding="utf-8",
         )
 
@@ -238,6 +239,7 @@ strict = true
         assert stack.has("pre-commit", category="pre_commit")
 
         for tool in ("ruff", "mypy", "pre-commit"):
+
             signal = next(signal for signal in stack.signals if signal.tool == tool)
 
             assert signal.source
@@ -289,12 +291,12 @@ class TestToolingConfigSignalUsesDependencyVersionWithoutDuplicate:
 
         (tmp_path / "pyproject.toml").write_text(
             """
-[project]
-dependencies = ["ruff==0.8.0"]
+            [project]
+            dependencies = ["ruff==0.8.0"]
 
-[tool.ruff]
-line-length = 88
-""".strip(),
+            [tool.ruff]
+            line-length = 88
+            """.strip(),
             encoding="utf-8",
         )
 
@@ -326,23 +328,23 @@ class TestParseSetupCfgSetupPyAndRequirementsTxt:
 
         (tmp_path / "setup.cfg").write_text(
             """
-[options]
-install_requires =
-    django==5.0
-    black==24.1
+            [options]
+            install_requires =
+                django==5.0
+                black==24.1
 
-[flake8]
-max-line-length = 88
-""".strip(),
+            [flake8]
+            max-line-length = 88
+            """.strip(),
             encoding="utf-8",
         )
 
         (tmp_path / "setup.py").write_text(
             """
-from setuptools import setup
+            from setuptools import setup
 
-setup(install_requires=["streamlit==1.40.0"])
-""".strip(),
+            setup(install_requires=["streamlit==1.40.0"])
+            """.strip(),
             encoding="utf-8",
         )
 

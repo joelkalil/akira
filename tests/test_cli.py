@@ -16,11 +16,9 @@ import pytest
 from typer.testing import CliRunner
 
 try:
-
     import tomllib
 
 except ModuleNotFoundError:
-
     import tomli as tomllib
 
 # Local Libraries
@@ -189,6 +187,7 @@ class TestFingerprintCommandCollectsFilesAndParseFailures:
         )
 
         with runner.isolated_filesystem():
+
             fingerprint_path = Path.cwd() / DEFAULT_OUTPUT_DIR / "fingerprint.md"
 
             result = runner.invoke(
@@ -227,15 +226,15 @@ class TestReviewReportsFindingsGroupedByCategory:
 
         (project / "pyproject.toml").write_text(
             """
-[project]
-requires-python = ">=3.12"
-dependencies = [
-    "fastapi==0.115.0",
-    "ruff==0.8.0",
-    "black==24.0.0",
-    "alembic==1.13.0",
-]
-""".strip(),
+            [project]
+            requires-python = ">=3.12"
+            dependencies = [
+                "fastapi==0.115.0",
+                "ruff==0.8.0",
+                "black==24.0.0",
+                "alembic==1.13.0",
+            ]
+            """.strip(),
             encoding="utf-8",
         )
 
@@ -329,13 +328,13 @@ class TestReviewAutoApplyUpdatesStackAndRegeneratesSkills:
 
         (project / "pyproject.toml").write_text(
             """
-[project]
-requires-python = ">=3.12"
-dependencies = [
-    "ruff==0.8.0",
-    "black==24.0.0",
-]
-""".strip(),
+            [project]
+            requires-python = ">=3.12"
+            dependencies = [
+                "ruff==0.8.0",
+                "black==24.0.0",
+            ]
+            """.strip(),
             encoding="utf-8",
         )
 
@@ -405,10 +404,10 @@ class TestReviewSkipLeavesArtifactsUnchanged:
 
         (project / "pyproject.toml").write_text(
             """
-[project]
-requires-python = ">=3.12"
-dependencies = []
-""".strip(),
+            [project]
+            requires-python = ">=3.12"
+            dependencies = []
+            """.strip(),
             encoding="utf-8",
         )
 
@@ -489,14 +488,14 @@ class TestFingerprintWritesMarkdownToOutput:
         project.mkdir()
 
         (project / "module.py").write_text(
-            """import os
+            """
+            import os
 
-
-def load_value(name: str) -> str:
-    if not name:
-        return "fallback"
-    return f"Hello {name}"
-""",
+            def load_value(name: str) -> str:
+                if not name:
+                    return "fallback"
+                return f"Hello {name}"
+            """,
             encoding="utf-8",
         )
 
@@ -571,6 +570,7 @@ class TestDetectUsesConfigDefaults:
         """
 
         with runner.isolated_filesystem():
+
             expected_output = Path.cwd() / DEFAULT_OUTPUT_DIR
 
             result = runner.invoke(app, ["detect", "--path", str(tmp_path)])
@@ -738,10 +738,10 @@ class TestDetectWritesStackMarkdownToOutput:
 
         (project / "pyproject.toml").write_text(
             """
-[project]
-requires-python = ">=3.12"
-dependencies = ["fastapi==0.115.0"]
-""".strip(),
+            [project]
+            requires-python = ">=3.12"
+            dependencies = ["fastapi==0.115.0"]
+            """.strip(),
             encoding="utf-8",
         )
 
@@ -780,10 +780,10 @@ class TestDetectInstallsGeneratedSkillsForClaudeCode:
 
         (project / "pyproject.toml").write_text(
             """
-[project]
-requires-python = ">=3.12"
-dependencies = ["pytest==8.0.0"]
-""".strip(),
+            [project]
+            requires-python = ">=3.12"
+            dependencies = ["pytest==8.0.0"]
+            """.strip(),
             encoding="utf-8",
         )
 
@@ -834,20 +834,20 @@ class TestCraftInstallsGeneratedContextForDetectedAgentByDefault:
 
         (project / "pyproject.toml").write_text(
             """
-[project]
-requires-python = ">=3.12"
-dependencies = ["pytest==8.0.0"]
-""".strip(),
+            [project]
+            requires-python = ">=3.12"
+            dependencies = ["pytest==8.0.0"]
+            """.strip(),
             encoding="utf-8",
         )
 
         (project / "service.py").write_text(
             """
-def load_value(name: str) -> str:
-    if not name:
-        return "fallback"
-    return f"Hello {name}"
-""".strip(),
+            def load_value(name: str) -> str:
+                if not name:
+                    return "fallback"
+                return f"Hello {name}"
+            """.strip(),
             encoding="utf-8",
         )
 
@@ -1045,6 +1045,7 @@ class TestCraftAgentAdapterWrapperRaisesCraftErrorForInvalidAgent:
         """
 
         with pytest.raises(UnsupportedCraftAgent) as exc_info:
+
             get_craft_agent_adapter("unknown-agent")
 
         assert "Unsupported agent 'unknown-agent'" in str(exc_info.value)
@@ -1068,6 +1069,7 @@ class TestCraftDefaultsToCurrentWorkingDirectoryArtifacts:
         project.mkdir()
 
         with runner.isolated_filesystem():
+
             artifacts = Path.cwd() / DEFAULT_OUTPUT_DIR
 
             (artifacts / "skills").mkdir(parents=True)
@@ -1204,6 +1206,7 @@ class TestBuildArtifactsIncludeJinjaTemplates:
         uv = shutil.which("uv")
 
         if uv is None:
+
             pytest.skip(
                 "uv is required to build artifacts for package-data validation."
             )
@@ -1220,6 +1223,7 @@ class TestBuildArtifactsIncludeJinjaTemplates:
         sdist_path = next(tmp_path.glob("*.tar.gz"))
 
         with ZipFile(wheel_path) as archive:
+
             wheel_names = set(archive.namelist())
 
             entry_points_name = next(

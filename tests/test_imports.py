@@ -26,8 +26,11 @@ class TestPackageExposesVersion:
         """
 
         try:
+
             expected_version = version("akira")
+
         except PackageNotFoundError:
+
             expected_version = "0+unknown"
 
         assert akira.__version__ == expected_version

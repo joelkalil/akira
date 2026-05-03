@@ -33,27 +33,27 @@ class TestSpacingExtractorReportsBlankLineConventions:
 
         source.write_text(
             """import os
-import sys
+            import sys
 
 
-CONSTANT = 1
+            CONSTANT = 1
 
 
-class Service:
-    def first_method(self):
-        value = 1
+            class Service:
+                def first_method(self):
+                    value = 1
 
-        return value
+                    return value
 
-    def second_method(self):
-        return 2
+                def second_method(self):
+                    return 2
 
 
-def helper_function():
-    value = 3
+            def helper_function():
+                value = 3
 
-    return value
-""",
+                return value
+            """,
             encoding="utf-8",
         )
 
@@ -83,21 +83,22 @@ class TestNamingExtractorReportsSymbolConventions:
         source = tmp_path / "module.py"
 
         source.write_text(
-            """MAX_RETRIES = 3
-is_enabled = True
+            """
+            MAX_RETRIES = 3
+            is_enabled = True
 
 
-class UserService:
-    def _build_payload(self, user_name: str) -> dict[str, str]:
-        has_access: bool = True
-        payload_data = {"name": user_name}
-        return payload_data
+            class UserService:
+                def _build_payload(self, user_name: str) -> dict[str, str]:
+                    has_access: bool = True
+                    payload_data = {"name": user_name}
+                    return payload_data
 
 
-def load_user(user_id: str) -> str:
-    should_retry = False
-    return user_id
-""",
+            def load_user(user_id: str) -> str:
+                should_retry = False
+                return user_id
+            """,
             encoding="utf-8",
         )
 
@@ -138,13 +139,14 @@ class TestImportExtractorReportsGroupingAndSafetyConventions:
         (package / "helpers.py").write_text("VALUE = 1\n", encoding="utf-8")
 
         (package / "main.py").write_text(
-            """import os
-import sys
+            """
+            import os
+            import sys
 
-import fastapi
+            import fastapi
 
-from demo.helpers import VALUE
-""",
+            from demo.helpers import VALUE
+            """,
             encoding="utf-8",
         )
 
@@ -179,12 +181,13 @@ class TestCommentExtractorReportsCommentStyleDimensions:
         source = tmp_path / "module.py"
 
         source.write_text(
-            """# --- Public helpers ---
-# TODO(joel): use the shared fixture later
-def load_value():
-    value = 1
-    return value  # return the stable value
-""",
+            """
+            # --- Public helpers ---
+            # TODO(joel): use the shared fixture later
+            def load_value():
+                value = 1
+                return value  # return the stable value
+            """,
             encoding="utf-8",
         )
 
@@ -217,18 +220,19 @@ class TestTypingExtractorReportsSignatureAndOptionalConventions:
         source = tmp_path / "module.py"
 
         source.write_text(
-            """from __future__ import annotations
+            """
+            from __future__ import annotations
 
-from typing import Iterable, Mapping
-
-
-def load_user(user_id: str, tags: Iterable[str] | None = None) -> Mapping[str, str]:
-    return {"id": user_id, "tags": ",".join(tags or [])}
+            from typing import Iterable, Mapping
 
 
-def _coerce_name(value: str | None) -> str:
-    return value or "anonymous"
-""",
+            def load_user(user_id: str, tags: Iterable[str] | None = None) -> Mapping[str, str]:
+                return {"id": user_id, "tags": ",".join(tags or [])}
+
+
+            def _coerce_name(value: str | None) -> str:
+                return value or "anonymous"
+            """,
             encoding="utf-8",
         )
 
@@ -261,23 +265,34 @@ class TestStructureExtractorReportsControlFlowShape:
         source = tmp_path / "module.py"
 
         source.write_text(
-            """def classify(value: int) -> str:
-    if value < 0:
-        return "negative"
-    if value == 0:
-        return "zero"
+            """
+            def classify(value: int) -> str:
 
-    label = "large" if value > 10 else "small"
-    return label
+                if value < 0:
+
+                    return "negative"
+
+                if value == 0:
+
+                    return "zero"
+
+                label = "large" if value > 10 else "small"
+
+                return label
 
 
-def nested(items: list[int]) -> int:
-    total = 0
-    for item in items:
-        if item > 0:
-            total += item
-    return total
-""",
+            def nested(items: list[int]) -> int:
+
+                total = 0
+
+                for item in items:
+
+                    if item > 0:
+
+                        total += item
+
+                return total
+            """,
             encoding="utf-8",
         )
 
@@ -314,16 +329,23 @@ class TestStructureExtractorIgnoresNestedScopesForOuterFunctionShape:
         source = tmp_path / "module.py"
 
         source.write_text(
-            """def outer(flag: bool) -> int:
-    def inner() -> int:
-        if flag:
-            if not flag:
-                return 1
-            return 2
-        return 3
+            """
+            def outer(flag: bool) -> int:
 
-    return inner()
-""",
+                def inner() -> int:
+
+                    if flag:
+
+                        if not flag:
+
+                            return 1
+
+                        return 2
+
+                    return 3
+
+                return inner()
+            """,
             encoding="utf-8",
         )
 
@@ -350,15 +372,20 @@ class TestTernaryConfidenceCountsFunctionsNotExpressions:
         source = tmp_path / "module.py"
 
         source.write_text(
-            """def with_ternaries(first: bool, second: bool) -> tuple[str, str]:
-    left = "yes" if first else "no"
-    right = "up" if second else "down"
-    return left, right
+            """
+            def with_ternaries(first: bool, second: bool) -> tuple[str, str]:
+
+                left = "yes" if first else "no"
+
+                right = "up" if second else "down"
+
+                return left, right
 
 
-def without_ternary() -> str:
-    return "plain"
-""",
+            def without_ternary() -> str:
+
+                return "plain"
+            """,
             encoding="utf-8",
         )
 
@@ -391,26 +418,36 @@ class TestDocstringExtractorReportsStyleAndVisibility:
 
         source.write_text(
             '''class Service:
-    """Load user-facing values.
+                """
+                Load user-facing values.
 
-    Args:
-        source: Source name.
-    """
+                Parameters
+                ----------
+                source: str
+                    Source name.
+                """
 
-    def public_method(self, source: str) -> str:
-        """Return a normalized value.
+                def public_method(self, source: str) -> str:
+                    """
+                    Return a normalized value.
 
-        Args:
-            source: Source name.
+                    Parameters
+                    ----------
+                    source: str 
+                        Source name.
 
-        Returns:
-            Normalized source.
-        """
-        return source.lower()
+                    Returns
+                    -------
+                    str
+                        Normalized source.
+                    """
 
-    def _private_method(self) -> None:
-        return None
-''',
+                    return source.lower()
+
+                def _private_method(self) -> None:
+                
+                    return None
+            ''',
             encoding="utf-8",
         )
 
@@ -445,39 +482,39 @@ class TestOrganizationExtractorReportsModuleAndClassOrder:
         source.write_text(
             '''"""Example module."""
 
-import os
+            import os
 
-MAX_RETRIES = 3
-
-
-class Payload(dict):
-    pass
+            MAX_RETRIES = 3
 
 
-def _coerce(value: str) -> str:
-    return value.strip()
+            class Payload(dict):
+                pass
 
 
-def load(value: str) -> str:
-    return _coerce(value)
+            def _coerce(value: str) -> str:
+                return value.strip()
 
 
-class Service:
-    timeout = 5
-
-    def __init__(self) -> None:
-        self.ready = True
-
-    def run(self) -> None:
-        return None
-
-    def _reset(self) -> None:
-        self.ready = False
+            def load(value: str) -> str:
+                return _coerce(value)
 
 
-if __name__ == "__main__":
-    print(load(" demo "))
-''',
+            class Service:
+                timeout = 5
+
+                def __init__(self) -> None:
+                    self.ready = True
+
+                def run(self) -> None:
+                    return None
+
+                def _reset(self) -> None:
+                    self.ready = False
+
+
+            if __name__ == "__main__":
+                print(load(" demo "))
+            ''',
             encoding="utf-8",
         )
 
@@ -523,13 +560,14 @@ class TestOrganizationExtractorOnlyTreatsEqMainCompareAsMainGuard:
         source = tmp_path / "module.py"
 
         source.write_text(
-            """def load() -> str:
-    return "ok"
+            """
+            def load() -> str:
+                return "ok"
 
 
-if __name__ != "__main__":
-    load()
-""",
+            if __name__ != "__main__":
+                load()
+            """,
             encoding="utf-8",
         )
 
@@ -553,26 +591,27 @@ class TestErrorAndStringExtractorsReportIdioms:
         source = tmp_path / "module.py"
 
         source.write_text(
-            '''import logging
+            '''
+            import logging
 
-LOGGER = logging.getLogger(__name__)
-
-
-def render(name: str) -> str:
-    message = f"Hello {name}"
-    template = """User:
-{name}
-"""
-    return message + template
+            LOGGER = logging.getLogger(__name__)
 
 
-def load(path: str) -> str:
-    try:
-        return open(path, encoding="utf-8").read()
-    except FileNotFoundError:
-        LOGGER.exception("Could not load %s", path)
-        raise
-''',
+            def render(name: str) -> str:
+                message = f"Hello {name}"
+                template = """User:
+            {name}
+            """
+                return message + template
+
+
+            def load(path: str) -> str:
+                try:
+                    return open(path, encoding="utf-8").read()
+                except FileNotFoundError:
+                    LOGGER.exception("Could not load %s", path)
+                    raise
+            ''',
             encoding="utf-8",
         )
 
@@ -605,11 +644,12 @@ class TestNewExtractorsTolerateFilesWithMissingAst:
         """
 
         (tmp_path / "valid.py").write_text(
-            """def load(value: str | None) -> str:
-    if value is None:
-        return "fallback"
-    return value
-""",
+            """
+            def load(value: str | None) -> str:
+                if value is None:
+                    return "fallback"
+                return value
+            """,
             encoding="utf-8",
         )
 
@@ -651,29 +691,29 @@ class TestConfidenceDecreasesForIntentionallyMixedStyle:
         mixed.mkdir()
 
         (consistent / "module.py").write_text(
-            """import os
+            """
+            import os
+
+            def first_function():
+                return 1
 
 
-def first_function():
-    return 1
-
-
-def second_function():
-    return 2
-""",
+            def second_function():
+                return 2
+            """,
             encoding="utf-8",
         )
 
         (mixed / "module.py").write_text(
-            """import os
+            """
+            import os
 
+            def first_function():
+                return 1
 
-def first_function():
-    return 1
-
-def secondFunction():
-    return 2
-""",
+            def secondFunction():
+                return 2
+            """,
             encoding="utf-8",
         )
 
@@ -705,15 +745,14 @@ class TestExtractStylePatternsIsDeterministic:
         """
 
         (tmp_path / "module.py").write_text(
-            """import os
+            """
+            import os
 
+            VALUE = 1
 
-VALUE = 1
-
-
-def load_value():
-    return VALUE
-""",
+            def load_value():
+                return VALUE
+            """,
             encoding="utf-8",
         )
 
@@ -732,4 +771,5 @@ def load_value():
 
 
 def _patterns_by_name(patterns: tuple[StylePattern, ...]) -> dict[str, StylePattern]:
+
     return {pattern.name: pattern for pattern in patterns}

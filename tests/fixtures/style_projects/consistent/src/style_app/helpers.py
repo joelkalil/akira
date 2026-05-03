@@ -12,7 +12,6 @@ DEFAULT_LABEL = "anonymous"
 def _normalize_name(name: str | None) -> str:
 
     if name is None:
-
         return DEFAULT_LABEL
 
     return name.strip().lower()
@@ -24,7 +23,6 @@ def build_tags(*, tags: Iterable[str] | None = None) -> list[str]:
     """
 
     if tags is None:
-
         return []
 
     return [tag.strip().lower() for tag in tags if tag.strip()]

@@ -36,28 +36,28 @@ class TestRenderFingerprintMarkdownIncludesFrontmatterAndV1Sections:
 
         source.write_text(
             '''# --- Public helpers ---
-import os
+            import os
 
 
-MAX_RETRIES = 3
+            MAX_RETRIES = 3
 
 
-class UserService:
-    """Load users.
+            class UserService:
+                """Load users.
 
-    Args:
-        source: Source name.
-    """
+                Args:
+                    source: Source name.
+                """
 
-    def _build_payload(self, user_name: str | None) -> dict[str, str]:
-        if user_name is None:
-            return {"name": "anonymous"}
-        return {"name": f"{user_name}"}
+                def _build_payload(self, user_name: str | None) -> dict[str, str]:
+                    if user_name is None:
+                        return {"name": "anonymous"}
+                    return {"name": f"{user_name}"}
 
 
-def load_user(user_id: str) -> str:
-    return user_id
-''',
+            def load_user(user_id: str) -> str:
+                return user_id
+            ''',
             encoding="utf-8",
         )
 
@@ -100,6 +100,7 @@ def load_user(user_id: str) -> str:
             "Strings",
             "General Patterns",
         ):
+
             assert f"## {section}" in content
 
 
@@ -143,22 +144,22 @@ class TestRenderFingerprintMarkdownPreservesIdentifierLikeValues:
         source = tmp_path / "module.py"
 
         source.write_text(
-            """from typing import ClassVar, TypedDict
+            """
+            from typing import ClassVar, TypedDict
+
+            class Payload(TypedDict):
+                name: str
 
 
-class Payload(TypedDict):
-    name: str
+            class Service:
+                retries: ClassVar[int] = 3
 
 
-class Service:
-    retries: ClassVar[int] = 3
-
-
-def load_payload(has_access: bool, should_retry: bool) -> Payload:
-    has_value = True
-    should_log = False
-    return {"name": "ok"}
-""",
+            def load_payload(has_access: bool, should_retry: bool) -> Payload:
+                has_value = True
+                should_log = False
+                return {"name": "ok"}
+            """,
             encoding="utf-8",
         )
 

@@ -131,6 +131,7 @@ class TestDefaultSamplingSkipsEnvironmentCachesGeneratedAndAkira:
         (project / "app.py").write_text("APP = True\n", encoding="utf-8")
 
         for directory in [".akira", ".venv", "__pycache__", "build", "generated"]:
+
             skipped_dir = project / directory
 
             skipped_dir.mkdir()

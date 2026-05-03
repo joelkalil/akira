@@ -229,6 +229,7 @@ class TestSignalRejectsInvalidConfidence:
         """
 
         with pytest.raises(ValueError, match="confidence"):
+
             Signal(
                 tool="pytest",
                 category="testing",

@@ -91,9 +91,9 @@ class TestTestingDetectorSkipsImportScanWhenConfigOrDependencyFound:
 
         (tmp_path / "pyproject.toml").write_text(
             """
-[project]
-dependencies = ["pytest==8.3.0"]
-""".strip(),
+            [project]
+            dependencies = ["pytest==8.3.0"]
+            """.strip(),
             encoding="utf-8",
         )
 

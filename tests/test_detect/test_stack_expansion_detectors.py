@@ -27,23 +27,23 @@ class TestDetectsTestingToolsAndPytestPlugins:
 
         (tmp_path / "pyproject.toml").write_text(
             """
-[project]
-dependencies = [
-    "pytest==8.3.0",
-    "pytest-cov==5.0.0",
-    "pytest-xdist==3.6.0",
-    "coverage==7.6.0",
-]
+            [project]
+            dependencies = [
+                "pytest==8.3.0",
+                "pytest-cov==5.0.0",
+                "pytest-xdist==3.6.0",
+                "coverage==7.6.0",
+            ]
 
-[dependency-groups]
-dev = ["tox==4.20.0", "nox==2024.10.9"]
+            [dependency-groups]
+            dev = ["tox==4.20.0", "nox==2024.10.9"]
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
+            [tool.pytest.ini_options]
+            testpaths = ["tests"]
 
-[tool.coverage.run]
-branch = true
-""".strip(),
+            [tool.coverage.run]
+            branch = true
+            """.strip(),
             encoding="utf-8",
         )
 
@@ -59,6 +59,7 @@ branch = true
         stack = Scanner().scan(tmp_path)
 
         for tool in ("pytest", "pytest-cov", "pytest-xdist", "coverage", "tox", "nox"):
+
             assert stack.has(tool, category="testing")
 
         assert stack.has("unittest", category="testing")
@@ -115,13 +116,13 @@ class TestDependencyGroupIncludeObjectsDoNotCrashDetection:
 
         (tmp_path / "pyproject.toml").write_text(
             """
-[dependency-groups]
-dev = [
-    "pytest==8.3.0",
-    { include-group = "lint" },
-]
-lint = ["ruff==0.8.0"]
-""".strip(),
+            [dependency-groups]
+            dev = [
+                "pytest==8.3.0",
+                { include-group = "lint" },
+            ]
+            lint = ["ruff==0.8.0"]
+            """.strip(),
             encoding="utf-8",
         )
 
@@ -147,16 +148,16 @@ class TestDetectsDatabaseLibrariesMigrationsAndPostgresHints:
 
         (tmp_path / "pyproject.toml").write_text(
             """
-[project]
-dependencies = [
-    "sqlalchemy==2.0.36",
-    "alembic==1.14.0",
-    "psycopg==3.2.3",
-    "psycopg2-binary==2.9.10",
-    "asyncpg==0.30.0",
-    "redis==5.2.0",
-]
-""".strip(),
+            [project]
+            dependencies = [
+                "sqlalchemy==2.0.36",
+                "alembic==1.14.0",
+                "psycopg==3.2.3",
+                "psycopg2-binary==2.9.10",
+                "asyncpg==0.30.0",
+                "redis==5.2.0",
+            ]
+            """.strip(),
             encoding="utf-8",
         )
 
@@ -177,6 +178,7 @@ dependencies = [
             "redis",
             "postgres",
         ):
+
             assert stack.has(tool, category="database")
 
         psycopg_signal = next(
@@ -205,12 +207,12 @@ class TestDetectsDockerComposeDatabaseServices:
 
         (tmp_path / "compose.yaml").write_text(
             """
-services:
-  db:
-    image: postgres:16
-  cache:
-    image: redis:7
-""".strip(),
+            services:
+            db:
+                image: postgres:16
+            cache:
+                image: redis:7
+            """.strip(),
             encoding="utf-8",
         )
 
@@ -249,12 +251,12 @@ class TestDetectsCloudTerraformAndCiCdHints:
 
         (github_workflows / "ci.yml").write_text(
             """
-jobs:
-  deploy:
-    steps:
-      - uses: google-github-actions/auth@v2
-      - uses: aws-actions/configure-aws-credentials@v4
-""".strip(),
+            jobs:
+            deploy:
+                steps:
+                - uses: google-github-actions/auth@v2
+                - uses: aws-actions/configure-aws-credentials@v4
+            """.strip(),
             encoding="utf-8",
         )
 
@@ -268,15 +270,16 @@ jobs:
 
         (terraform_dir / "main.tf").write_text(
             """
-provider "google" {}
-provider "aws" {}
-""".strip(),
+            provider "google" {}
+            provider "aws" {}
+            """.strip(),
             encoding="utf-8",
         )
 
         stack = Scanner().scan(tmp_path)
 
         for tool in ("terraform", "gcp", "aws"):
+
             assert stack.has(tool, category="infrastructure")
 
         assert stack.has("github-actions", category="ci_cd")
@@ -305,12 +308,12 @@ class TestDetectsDocumentationToolsFromDependenciesAndConfigs:
 
         (tmp_path / "pyproject.toml").write_text(
             """
-[project]
-dependencies = [
-    "mkdocs==1.6.1",
-    "pdoc==15.0.0",
-]
-""".strip(),
+            [project]
+            dependencies = [
+                "mkdocs==1.6.1",
+                "pdoc==15.0.0",
+            ]
+            """.strip(),
             encoding="utf-8",
         )
 

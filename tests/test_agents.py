@@ -49,6 +49,7 @@ class TestSupportedAgentsMatchDocumentedTargets:
         assert SUPPORTED_AGENT_NAMES == ("claude-code", "cursor", "copilot", "codex")
 
         for agent, relative_target in EXPECTED_TARGETS.items():
+
             adapter = get_agent_adapter(agent)
 
             assert adapter.target_relative_dir == relative_target
@@ -135,6 +136,7 @@ class TestInvalidAgentListsSupportedNames:
         """
 
         with pytest.raises(UnsupportedAgent) as exc_info:
+
             get_agent_adapter("unknown-agent")
 
         message = str(exc_info.value)
@@ -142,6 +144,7 @@ class TestInvalidAgentListsSupportedNames:
         assert "Unsupported agent 'unknown-agent'" in message
 
         for agent in EXPECTED_TARGETS:
+
             assert agent in message
 
 
@@ -156,6 +159,7 @@ class TestBaseAgentAdapterIsNotInstantiable:
         """
 
         with pytest.raises(TypeError):
+
             BaseAgentAdapter()
 
 

@@ -206,6 +206,7 @@ class TestInstallGeneratedSkillsRejectsTargetsOutsideProject:
         (outside / "old.md").write_text("old", encoding="utf-8")
 
         with pytest.raises(ValueError, match="within the project"):
+
             install_generated_skills(project, output, Path("..") / "outside")
 
         assert (outside / "old.md").read_text(encoding="utf-8") == "old"

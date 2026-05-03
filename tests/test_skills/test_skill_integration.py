@@ -58,6 +58,7 @@ class TestDetectGenerateAndInstallClaudeSkillsForRepresentativeStack:
         }
 
         for tool, category in expected_tools:
+
             assert stack.has(tool, category=category)
 
         generated = generate_skills(stack, output)
@@ -82,6 +83,7 @@ class TestDetectGenerateAndInstallClaudeSkillsForRepresentativeStack:
         }
 
         for skill in generated:
+
             frontmatter = _frontmatter(skill.path.read_text(encoding="utf-8"))
 
             assert isinstance(frontmatter["name"], str)
@@ -155,10 +157,12 @@ def _ignore_generated_cache_dirs(
     directory: str,
     names: list[str],
 ) -> set[str]:
+
     return {name for name in names if name in {".ruff_cache", "__pycache__"}}
 
 
 def _frontmatter(content: str) -> dict[str, object]:
+
     assert content.startswith("---\n")
 
     _, raw_frontmatter, _ = content.split("---", 2)
@@ -171,9 +175,13 @@ def _frontmatter(content: str) -> dict[str, object]:
 
 
 def _is_relative_to(path: Path, parent: Path) -> bool:
+
     try:
+
         path.relative_to(parent)
+
     except ValueError:
+
         return False
 
     return True

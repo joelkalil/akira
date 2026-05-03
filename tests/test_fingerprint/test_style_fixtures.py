@@ -103,6 +103,7 @@ class TestIndividualExtractorsReportExpectedFixturePatterns:
         }
 
         for extractor, expected_names in expected_names_by_extractor.items():
+
             patterns = extractor(analysis)
 
             actual_names = {pattern.name for pattern in patterns}
@@ -317,4 +318,5 @@ class TestFingerprintCoreRulesAreIncludedInGeneratedRouter:
 
 
 def _patterns_by_name(patterns: tuple[StylePattern, ...]) -> dict[str, StylePattern]:
+
     return {pattern.name: pattern for pattern in patterns}

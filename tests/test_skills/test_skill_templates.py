@@ -41,6 +41,7 @@ class TestSkillTemplatesRenderWithMinimalContext:
         )
 
         for path in TEMPLATE_ROOT.rglob("*.md.j2"):
+
             template_name = path.relative_to(TEMPLATE_ROOT).as_posix()
 
             rendered = env.get_template(template_name).render()
@@ -66,7 +67,9 @@ class TestPublicSkillTemplatesHaveValidAgentSkillFrontmatter:
         )
 
         for path in TEMPLATE_ROOT.rglob("*.md.j2"):
+
             if "_partials" in path.parts:
+
                 continue
 
             template_name = path.relative_to(TEMPLATE_ROOT).as_posix()
@@ -153,6 +156,7 @@ class TestFastapiAsyncRulesUseDedicatedBooleanFlag:
 
 
 def _environment() -> Environment:
+
     return Environment(
         loader=FileSystemLoader(TEMPLATE_ROOT),
         undefined=StrictUndefined,
@@ -162,6 +166,7 @@ def _environment() -> Environment:
 
 
 def _frontmatter(content: str) -> dict[str, object]:
+
     assert content.startswith("---\n")
 
     _, raw_frontmatter, _ = content.split("---", 2)

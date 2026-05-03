@@ -170,6 +170,7 @@ class TestGeneratedSkillFilesHaveValidFrontmatterAndBody:
         generated = generate_skills(stack, tmp_path / ".akira")
 
         for skill in generated:
+
             content = skill.path.read_text(encoding="utf-8")
 
             frontmatter = _frontmatter(content)
@@ -299,18 +300,19 @@ class TestRootRouterIncludesCoreRulesFromStructuredFingerprint:
         project.mkdir()
 
         (project / "module.py").write_text(
-            """from __future__ import annotations
+            """
+            from __future__ import annotations
 
-import os
-import sys
+            import os
+            import sys
 
 
-def build_name(value: str | None) -> str:
-    if value is None:
-        return "anonymous"
+            def build_name(value: str | None) -> str:
+                if value is None:
+                    return "anonymous"
 
-    return f"{value}"
-""",
+                return f"{value}"
+            """,
             encoding="utf-8",
         )
 
@@ -362,12 +364,13 @@ class TestRootRouterDoesNotRescanWhenOnlyFingerprintFileExists:
         project.mkdir()
 
         (project / "module.py").write_text(
-            """def build_name(value: str | None) -> str:
-    if value is None:
-        return "anonymous"
+            """
+            def build_name(value: str | None) -> str:
+                if value is None:
+                    return "anonymous"
 
-    return f"{value}"
-""",
+                return f"{value}"
+            """,
             encoding="utf-8",
         )
 
@@ -505,6 +508,7 @@ class TestRootRouterOutputIsDeterministicForSignalOrder:
 
 
 def _frontmatter(content: str) -> dict[str, object]:
+
     assert content.startswith("---\n")
 
     _, raw_frontmatter, _ = content.split("---", 2)
